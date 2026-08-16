@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HA 桌面控制</string>
+    <string name="widget_name">Home Assistant</string>
+    <string name="widget_description">控制 Home Assistant 灯光和风扇</string>
+    <string name="setup_title">Home Assistant 连接设置</string>
+    <string name="setup_hint">填写 Home Assistant 地址、长效访问令牌和实体 ID，保存后将小组件添加到桌面。</string>
+    <string name="base_url_label">Home Assistant 地址</string>
+    <string name="base_url_example">例如 http://homeassistant.local:8123</string>
+    <string name="token_label">长效访问令牌</string>
+    <string name="token_hint">在 Home Assistant 个人资料中创建</string>
+    <string name="light_entity_label">灯光实体 ID</string>
+    <string name="light_entity_example">例如 light.living_room</string>
+    <string name="fan_entity_label">风扇实体 ID</string>
+    <string name="fan_entity_example">例如 fan.bedroom</string>
+    <string name="save_button">保存并刷新小组件</string>
+    <string name="invalid_configuration">请填写有效地址、令牌和两个实体 ID。</string>
+    <string name="saved_configuration">已保存，正在刷新小组件。</string>
+    <string name="setup_required">请先在应用中完成 Home Assistant 设置</string>
+    <string name="loading">正在刷新状态…</string>
+    <string name="request_failed">控制请求失败</string>
+    <string name="connection_failed">无法连接 Home Assistant</string>
+    <string name="tap_to_toggle">点击卡片切换状态</string>
+    <string name="light_name">灯光</string>
+    <string name="fan_name">风扇</string>
+    <string name="state_on">开启</string>
+    <string name="state_off">关闭</string>
+    <string name="state_unknown">未知</string>
+</resources>
