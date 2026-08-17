@@ -65,7 +65,6 @@ public final class SpeedActivity extends Activity {
             try {
                 EspHomeClient.setFanPercentage(percentage);
                 WidgetPreferences.saveBaseSpeed(this, percentage);
-                FanModeScheduler.schedule(this);
                 HaFanWidgetProvider.requestRefresh(this);
                 runOnUiThread(() -> {
                     Toast.makeText(this, R.string.speed_saved, Toast.LENGTH_SHORT).show();

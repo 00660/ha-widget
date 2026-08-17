@@ -69,7 +69,7 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
                 if (ACTION_TOGGLE.equals(action)) {
                     EspHomeClient.toggleFan();
                 } else {
-                    FanModeScheduler.enable(applicationContext, presetFor(action));
+                    EspHomeClient.setFanPreset(presetFor(action));
                 }
             } catch (IOException ignored) {
             }
@@ -186,7 +186,7 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
             views.setOnClickPendingIntent(R.id.fan_power_tile, commandIntent(context, ACTION_TOGGLE, id));
             views.setOnClickPendingIntent(R.id.fan_natural_button, commandIntent(context, ACTION_NATURAL, id));
             views.setOnClickPendingIntent(R.id.fan_sleep_button, commandIntent(context, ACTION_SLEEP, id));
-            views.setOnClickPendingIntent(R.id.fan_speed_tile, speedIntent(context, id));
+            views.setOnClickPendingIntent(R.id.fan_power_button, speedIntent(context, id));
             manager.updateAppWidget(id, views);
         }
     }

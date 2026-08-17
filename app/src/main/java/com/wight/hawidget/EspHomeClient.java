@@ -36,6 +36,13 @@ final class EspHomeClient {
         sendCommand(command.toByteArray());
     }
 
+    static void setFanPreset(String preset) throws IOException {
+        ByteArrayOutputStream command = newCommand();
+        writeBoolean(command, 12, true);
+        writeString(command, 13, preset);
+        sendCommand(command.toByteArray());
+    }
+
     private static void sendCommand(byte[] command) throws IOException {
         try (Session session = Session.open()) {
             session.send(31, command);
