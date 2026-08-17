@@ -10,18 +10,15 @@ final class HaSettings {
     private static final String PREFERENCES = "ha_widget_preferences";
     private static final String BASE_URL = "base_url";
     private static final String TOKEN = "token";
-    private static final String LIGHT_ENTITY = "light_entity";
     private static final String FAN_ENTITY = "fan_entity";
 
     final String baseUrl;
     final String token;
-    final String lightEntity;
     final String fanEntity;
 
-    HaSettings(String baseUrl, String token, String lightEntity, String fanEntity) {
+    HaSettings(String baseUrl, String token, String fanEntity) {
         this.baseUrl = trimTrailingSlash(baseUrl);
         this.token = token == null ? "" : token.trim();
-        this.lightEntity = lightEntity == null ? "" : lightEntity.trim();
         this.fanEntity = fanEntity == null ? "" : fanEntity.trim();
     }
 
@@ -30,7 +27,6 @@ final class HaSettings {
         return new HaSettings(
                 preferences.getString(BASE_URL, ""),
                 preferences.getString(TOKEN, ""),
-                preferences.getString(LIGHT_ENTITY, ""),
                 preferences.getString(FAN_ENTITY, "")
         );
     }
@@ -40,17 +36,12 @@ final class HaSettings {
                 .edit()
                 .putString(BASE_URL, baseUrl)
                 .putString(TOKEN, token)
-                .putString(LIGHT_ENTITY, lightEntity)
                 .putString(FAN_ENTITY, fanEntity)
                 .apply();
     }
 
     boolean isComplete() {
-        return hasConnection() && (!lightEntity.isEmpty() || !fanEntity.isEmpty());
-    }
-
-    boolean hasLight() {
-        return hasConnection() && !lightEntity.isEmpty();
+        return hasFan();
     }
 
     boolean hasFan() {

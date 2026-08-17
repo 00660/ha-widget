@@ -20,16 +20,35 @@ final class HaClient {
     private HaClient() {
     }
 
-    static String fetchState(HaSettings settings, String entityId) throws IOException, JSONException {
-        String body = request(settings, "GET", "/api/states/" + Uri.encode(entityId), null);
-        return new JSONObject(body).optString("state", "unknown");
+    static FanState fetchFanState(HaSettings settings) throws IOException, JSONException {
+        String body = request(settings, "GET", "/api/states/" + Uri.encode(settings.fanEntity), null);
+        JSONObject entity = new JSONObject(body);
+        JSONObject attributes = entity.optJSONObject("attributes");
+        return new FanState(
+                "on".equalsIgnoreCase(entity.optString("state")),
+                attributes == null ? "" : attributes.optString("preset_mode", "")
+        );
     }
 
-    static void toggle(HaSettings settings, String domain, String entityId) throws IOException {
+    static void toggleFan(HaSettings settings) throws IOException {
+        callFanService(settings, "toggle", null);
+    }
+
+    static void setFanPreset(HaSettings settings, String presetMode) throws IOException {
         try {
-            JSONObject request = new JSONObject();
-            request.put("entity_id", entityId);
-            request(settings, "POST", "/api/services/" + domain + "/toggle", request.toString());
+            JSONObject data = new JSONObject();
+            data.put("preset_mode", presetMode);
+            callFanService(settings, "set_preset_mode", data);
+        } catch (JSONException exception) {
+            throw new IOException("Could not create Home Assistant request", exception);
+        }
+    }
+
+    private static void callFanService(HaSettings settings, String service, JSONObject data) throws IOException {
+        try {
+            JSONObject request = data == null ? new JSONObject() : data;
+            request.put("entity_id", settings.fanEntity);
+            request(settings, "POST", "/api/services/fan/" + service, request.toString());
         } catch (JSONException exception) {
             throw new IOException("Could not create Home Assistant request", exception);
         }
@@ -78,5 +97,15 @@ final class HaClient {
             }
         }
         return body.toString();
+    }
+
+    static final class FanState {
+        final boolean on;
+        final String presetMode;
+
+        FanState(boolean on, String presetMode) {
+            this.on = on;
+            this.presetMode = presetMode;
+        }
     }
 }
