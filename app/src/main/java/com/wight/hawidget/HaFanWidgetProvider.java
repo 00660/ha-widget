@@ -20,14 +20,8 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
     private static final String ACTION_TOGGLE = "com.wight.hawidget.FAN_TOGGLE";
     private static final String ACTION_NATURAL = "com.wight.hawidget.FAN_NATURAL";
     private static final String ACTION_SLEEP = "com.wight.hawidget.FAN_SLEEP";
-    private static final String ACTION_SPEED_ONE = "com.wight.hawidget.FAN_SPEED_ONE";
-    private static final String ACTION_SPEED_TWO = "com.wight.hawidget.FAN_SPEED_TWO";
-    private static final String ACTION_SPEED_THREE = "com.wight.hawidget.FAN_SPEED_THREE";
     private static final String NATURAL_PRESET = "自然风";
     private static final String SLEEP_PRESET = "睡眠风";
-    private static final String SPEED_ONE_PRESET = "1档微风";
-    private static final String SPEED_TWO_PRESET = "2档柔风";
-    private static final String SPEED_THREE_PRESET = "3档清风";
     private static final ExecutorService NETWORK_EXECUTOR = Executors.newSingleThreadExecutor();
 
     public static void requestRefresh(Context context) {
@@ -61,10 +55,7 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
     private boolean isControlAction(String action) {
         return ACTION_TOGGLE.equals(action)
                 || ACTION_NATURAL.equals(action)
-                || ACTION_SLEEP.equals(action)
-                || ACTION_SPEED_ONE.equals(action)
-                || ACTION_SPEED_TWO.equals(action)
-                || ACTION_SPEED_THREE.equals(action);
+                || ACTION_SLEEP.equals(action);
     }
 
     private void runCommand(Context context, String action) {
@@ -88,19 +79,7 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
     }
 
     private String presetFor(String action) {
-        if (ACTION_NATURAL.equals(action)) {
-            return NATURAL_PRESET;
-        }
-        if (ACTION_SLEEP.equals(action)) {
-            return SLEEP_PRESET;
-        }
-        if (ACTION_SPEED_ONE.equals(action)) {
-            return SPEED_ONE_PRESET;
-        }
-        if (ACTION_SPEED_TWO.equals(action)) {
-            return SPEED_TWO_PRESET;
-        }
-        return SPEED_THREE_PRESET;
+        return ACTION_NATURAL.equals(action) ? NATURAL_PRESET : SLEEP_PRESET;
     }
 
     private void refreshAsync(Context context) {
@@ -148,6 +127,12 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
             );
             views.setTextViewText(R.id.fan_widget_mode, modeText(context, state));
             views.setTextViewText(R.id.fan_widget_speed_text, speedText(context, state));
+            views.setProgressBar(
+                    R.id.fan_speed_progress,
+                    100,
+                    state != null && state.available && state.percentage >= 0 ? state.percentage : 0,
+                    false
+            );
             views.setInt(
                     R.id.fan_widget_connection_dot,
                     "setBackgroundResource",
@@ -168,31 +153,10 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
                     "setBackgroundResource",
                     sleepWind ? R.drawable.fan_control_natural_active : R.drawable.fan_control_secondary
             );
-            views.setInt(
-                    R.id.fan_speed_one_button,
-                    "setBackgroundResource",
-                    available && SPEED_ONE_PRESET.equals(state.presetMode)
-                            ? R.drawable.fan_control_natural_active : R.drawable.fan_control_secondary
-            );
-            views.setInt(
-                    R.id.fan_speed_two_button,
-                    "setBackgroundResource",
-                    available && SPEED_TWO_PRESET.equals(state.presetMode)
-                            ? R.drawable.fan_control_natural_active : R.drawable.fan_control_secondary
-            );
-            views.setInt(
-                    R.id.fan_speed_three_button,
-                    "setBackgroundResource",
-                    available && SPEED_THREE_PRESET.equals(state.presetMode)
-                            ? R.drawable.fan_control_natural_active : R.drawable.fan_control_secondary
-            );
             views.setOnClickPendingIntent(R.id.fan_power_button, commandIntent(context, ACTION_TOGGLE, id));
             views.setOnClickPendingIntent(R.id.fan_natural_button, commandIntent(context, ACTION_NATURAL, id));
             views.setOnClickPendingIntent(R.id.fan_sleep_button, commandIntent(context, ACTION_SLEEP, id));
-            views.setOnClickPendingIntent(R.id.fan_speed_one_button, commandIntent(context, ACTION_SPEED_ONE, id));
-            views.setOnClickPendingIntent(R.id.fan_speed_two_button, commandIntent(context, ACTION_SPEED_TWO, id));
-            views.setOnClickPendingIntent(R.id.fan_speed_three_button, commandIntent(context, ACTION_SPEED_THREE, id));
-            views.setOnClickPendingIntent(R.id.fan_widget_speed, speedIntent(context, id));
+            views.setOnClickPendingIntent(R.id.fan_speed_control, speedIntent(context, id));
             manager.updateAppWidget(id, views);
         }
     }
@@ -214,7 +178,7 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
         if (state == null || !state.available || state.percentage < 0) {
             return context.getString(R.string.speed_unavailable);
         }
-        return context.getString(R.string.speed_percent, state.percentage);
+        return context.getString(R.string.speed_widget_percent, state.percentage);
     }
 
     private PendingIntent commandIntent(Context context, String action, int appWidgetId) {
