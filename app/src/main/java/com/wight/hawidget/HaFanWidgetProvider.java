@@ -62,6 +62,7 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
     private void runCommand(Context context, String action) {
         Context applicationContext = context.getApplicationContext();
         if (ACTION_NATURAL.equals(action) || ACTION_SLEEP.equals(action)) {
+            HaSettings.saveSelectedPreset(applicationContext, presetFor(action));
             renderPresetFeedback(applicationContext, action);
         }
         BroadcastReceiver.PendingResult pendingResult = goAsync();
@@ -144,13 +145,14 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
     }
 
     private void render(AppWidgetManager manager, Context context, int[] ids, HaClient.FanState state) {
+        String selectedPreset = selectedPreset(context, state);
         for (int id : ids) {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ha_fan_widget);
             boolean connected = state != null;
             boolean available = connected && state.available;
             boolean on = available && state.on;
-            boolean naturalWind = available && NATURAL_PRESET.equals(state.presetMode);
-            boolean sleepWind = available && SLEEP_PRESET.equals(state.presetMode);
+            boolean naturalWind = available && NATURAL_PRESET.equals(selectedPreset);
+            boolean sleepWind = available && SLEEP_PRESET.equals(selectedPreset);
             views.setImageViewResource(R.id.fan_widget_icon, on ? R.drawable.ic_fan_on : R.drawable.ic_fan_off);
             views.setTextViewText(
                     R.id.fan_widget_state,
@@ -197,6 +199,17 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
             views.setOnClickPendingIntent(R.id.fan_speed_tile, speedIntent(context, id));
             manager.updateAppWidget(id, views);
         }
+    }
+
+    private String selectedPreset(Context context, HaClient.FanState state) {
+        if (state == null || !state.available) {
+            return "";
+        }
+        if (NATURAL_PRESET.equals(state.presetMode) || SLEEP_PRESET.equals(state.presetMode)) {
+            HaSettings.saveSelectedPreset(context, state.presetMode);
+            return state.presetMode;
+        }
+        return HaSettings.loadSelectedPreset(context);
     }
 
     private String speedText(Context context, HaClient.FanState state) {

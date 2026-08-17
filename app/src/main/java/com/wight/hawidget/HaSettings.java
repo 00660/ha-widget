@@ -11,6 +11,7 @@ final class HaSettings {
     private static final String BASE_URL = "base_url";
     private static final String TOKEN = "token";
     private static final String FAN_ENTITY = "fan_entity";
+    private static final String SELECTED_PRESET = "selected_preset";
 
     final String baseUrl;
     final String token;
@@ -29,6 +30,18 @@ final class HaSettings {
                 preferences.getString(TOKEN, ""),
                 preferences.getString(FAN_ENTITY, "")
         );
+    }
+
+    static String loadSelectedPreset(Context context) {
+        return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .getString(SELECTED_PRESET, "");
+    }
+
+    static void saveSelectedPreset(Context context, String preset) {
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .edit()
+                .putString(SELECTED_PRESET, preset)
+                .apply();
     }
 
     void save(Context context) {
