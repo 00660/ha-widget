@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.widget.RemoteViews;
 
 import org.json.JSONException;
@@ -16,7 +17,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class HaFanWidgetProvider extends AppWidgetProvider {
-    private static final String ACTION_REFRESH = "com.wight.hawidget.FAN_REFRESH";
     private static final String ACTION_TOGGLE = "com.wight.hawidget.FAN_TOGGLE";
     private static final String ACTION_NATURAL = "com.wight.hawidget.FAN_NATURAL";
     private static final String NATURAL_PRESET = "自然风";
@@ -45,10 +45,6 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
         String action = intent.getAction();
         if (ACTION_TOGGLE.equals(action) || ACTION_NATURAL.equals(action)) {
             runCommand(context, ACTION_NATURAL.equals(action));
-            return;
-        }
-        if (ACTION_REFRESH.equals(action)) {
-            refreshAsync(context);
             return;
         }
         super.onReceive(context, intent);
@@ -128,7 +124,6 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
                     "setBackgroundResource",
                     naturalWind ? R.drawable.fan_control_natural_active : R.drawable.fan_control_secondary
             );
-            views.setOnClickPendingIntent(R.id.fan_widget_root, commandIntent(context, ACTION_REFRESH, id));
             views.setOnClickPendingIntent(R.id.fan_power_button, commandIntent(context, ACTION_TOGGLE, id));
             views.setOnClickPendingIntent(R.id.fan_natural_button, commandIntent(context, ACTION_NATURAL, id));
             manager.updateAppWidget(id, views);
@@ -146,7 +141,9 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
     }
 
     private PendingIntent commandIntent(Context context, String action, int appWidgetId) {
-        Intent intent = new Intent(context, HaFanWidgetProvider.class).setAction(action);
+        Intent intent = new Intent(context, HaFanWidgetProvider.class)
+                .setAction(action)
+                .setData(Uri.parse("hawidget://" + context.getPackageName() + "/" + appWidgetId + "/" + action));
         return PendingIntent.getBroadcast(
                 context,
                 appWidgetId + action.hashCode(),
