@@ -2,8 +2,11 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:description="@string/fan_widget_description"
     android:initialLayout="@layout/ha_fan_widget"
-    android:minHeight="64dp"
-    android:minWidth="64dp"
+    android:minHeight="40dp"
+    android:minWidth="40dp"
+    android:previewLayout="@layout/ha_fan_widget"
     android:resizeMode="horizontal|vertical"
+    android:targetCellHeight="1"
+    android:targetCellWidth="1"
     android:updatePeriodMillis="1800000"
     android:widgetCategory="home_screen" />
