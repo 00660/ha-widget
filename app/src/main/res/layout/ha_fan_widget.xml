@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/fan_card_background"
+    android:gravity="center_vertical"
     android:orientation="vertical"
     android:padding="8dp">
 
@@ -47,24 +48,23 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="82dp"
         android:layout_marginTop="4dp"
-        android:layout_weight="1"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <LinearLayout
             android:id="@+id/fan_power_button"
-            android:layout_width="50dp"
-            android:layout_height="match_parent"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:background="@drawable/fan_control_primary"
             android:gravity="center"
             android:orientation="vertical">
 
             <ImageView
                 android:id="@+id/fan_widget_icon"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:contentDescription="@string/fan_power"
                 android:src="@drawable/ic_fan_off" />
 
@@ -79,15 +79,14 @@
 
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="78dp"
             android:layout_marginStart="9dp"
             android:layout_weight="1"
-            android:gravity="center_vertical"
             android:orientation="vertical">
 
             <TextView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="18dp"
                 android:text="@string/current_mode"
                 android:textColor="#94A3B8"
                 android:textSize="9sp" />
@@ -95,59 +94,59 @@
             <TextView
                 android:id="@+id/fan_widget_mode"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="20dp"
                 android:layout_marginTop="2dp"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="#334155"
                 android:textSize="15sp"
                 android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/fan_speed_control"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/fan_control_secondary"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fan_speed_label"
+                    android:textColor="#475569"
+                    android:textSize="9sp" />
+
+                <ProgressBar
+                    android:id="@+id/fan_speed_progress"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:indeterminate="false"
+                    android:max="100"
+                    android:progressDrawable="@drawable/fan_speed_progress" />
+
+                <TextView
+                    android:id="@+id/fan_widget_speed_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#1E3A8A"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/fan_speed_control"
         android:layout_width="match_parent"
-        android:layout_height="34dp"
-        android:layout_marginTop="5dp"
-        android:background="@drawable/fan_control_secondary"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/fan_speed_label"
-            android:textColor="#475569"
-            android:textSize="10sp" />
-
-        <ProgressBar
-            android:id="@+id/fan_speed_progress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="0dp"
-            android:layout_height="18dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_weight="1"
-            android:indeterminate="false"
-            android:max="100"
-            android:progressDrawable="@drawable/fan_speed_progress" />
-
-        <TextView
-            android:id="@+id/fan_widget_speed_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#1E3A8A"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="26dp"
-        android:layout_marginTop="5dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="4dp"
         android:orientation="horizontal">
 
         <TextView
