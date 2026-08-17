@@ -46,7 +46,19 @@ final class HaSettings {
     }
 
     boolean isComplete() {
-        return isValidBaseUrl() && !token.isEmpty() && !lightEntity.isEmpty() && !fanEntity.isEmpty();
+        return hasConnection() && (!lightEntity.isEmpty() || !fanEntity.isEmpty());
+    }
+
+    boolean hasLight() {
+        return hasConnection() && !lightEntity.isEmpty();
+    }
+
+    boolean hasFan() {
+        return hasConnection() && !fanEntity.isEmpty();
+    }
+
+    private boolean hasConnection() {
+        return isValidBaseUrl() && !token.isEmpty();
     }
 
     private boolean isValidBaseUrl() {

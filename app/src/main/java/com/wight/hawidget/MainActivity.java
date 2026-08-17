@@ -43,7 +43,8 @@ public final class MainActivity extends Activity {
             return;
         }
         settings.save(this);
-        HaWidgetProvider.requestRefresh(this);
+        HaLightWidgetProvider.requestRefresh(this);
+        HaFanWidgetProvider.requestRefresh(this);
         Toast.makeText(this, R.string.saved_configuration, Toast.LENGTH_SHORT).show();
     }
 }

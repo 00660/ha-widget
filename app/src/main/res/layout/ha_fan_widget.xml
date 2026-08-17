@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/fan_widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="6dp">
+
+    <ImageView
+        android:id="@+id/fan_widget_icon"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:contentDescription="@string/fan_widget_name"
+        android:src="@drawable/ic_fan_off" />
+
+    <TextView
+        android:id="@+id/fan_widget_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="#FFFFFF"
+        android:textSize="10sp" />
+</LinearLayout>

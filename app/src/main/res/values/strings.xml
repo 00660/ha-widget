@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">HA 桌面控制</string>
-    <string name="widget_name">Home Assistant</string>
-    <string name="widget_description">控制 Home Assistant 灯光和风扇</string>
+    <string name="light_widget_name">HA 灯光</string>
+    <string name="fan_widget_name">HA 风扇</string>
+    <string name="light_widget_description">控制一个 Home Assistant 灯光</string>
+    <string name="fan_widget_description">控制一个 Home Assistant 风扇</string>
     <string name="setup_title">Home Assistant 连接设置</string>
-    <string name="setup_hint">填写 Home Assistant 地址、长效访问令牌和实体 ID，保存后将小组件添加到桌面。</string>
+    <string name="setup_hint">填写 Home Assistant 地址、长效访问令牌和需要使用的实体 ID，保存后将对应小组件添加到桌面。</string>
     <string name="base_url_label">Home Assistant 地址</string>
     <string name="base_url_example">例如 http://homeassistant.local:8123</string>
     <string name="token_label">长效访问令牌</string>
@@ -14,7 +16,7 @@
     <string name="fan_entity_label">风扇实体 ID</string>
     <string name="fan_entity_example">例如 fan.bedroom</string>
     <string name="save_button">保存并刷新小组件</string>
-    <string name="invalid_configuration">请填写有效地址、令牌和两个实体 ID。</string>
+    <string name="invalid_configuration">请填写有效地址、令牌和至少一个实体 ID。</string>
     <string name="saved_configuration">已保存，正在刷新小组件。</string>
     <string name="setup_required">请先在应用中完成 Home Assistant 设置</string>
     <string name="loading">正在刷新状态…</string>

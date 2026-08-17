@@ -18,16 +18,29 @@
         </activity>
 
         <receiver
-            android:name=".HaWidgetProvider"
+            android:name=".HaLightWidgetProvider"
             android:exported="false"
-            android:label="@string/widget_name">
+            android:label="@string/light_widget_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/ha_widget_info" />
+                android:resource="@xml/light_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".HaFanWidgetProvider"
+            android:exported="false"
+            android:label="@string/fan_widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/fan_widget_info" />
         </receiver>
     </application>
 </manifest>
