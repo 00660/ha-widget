@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.view.View;
 import android.widget.RemoteViews;
 
 import org.json.JSONException;
@@ -121,11 +120,9 @@ public final class HaWidgetProvider extends AppWidgetProvider {
         views.setImageViewResource(R.id.fan_icon, state.fanOn ? R.drawable.ic_fan_on : R.drawable.ic_fan_off);
         views.setTextViewText(R.id.light_state, stateText(context, R.string.light_name, state.lightState));
         views.setTextViewText(R.id.fan_state, stateText(context, R.string.fan_name, state.fanState));
-        views.setTextViewText(R.id.widget_status, status == null ? context.getString(R.string.tap_to_toggle) : status);
-        views.setViewVisibility(R.id.widget_status, View.VISIBLE);
         views.setOnClickPendingIntent(R.id.light_control, commandIntent(context, ACTION_TOGGLE_LIGHT, 1));
         views.setOnClickPendingIntent(R.id.fan_control, commandIntent(context, ACTION_TOGGLE_FAN, 2));
-        views.setOnClickPendingIntent(R.id.widget_header, commandIntent(context, ACTION_REFRESH, 3));
+        views.setOnClickPendingIntent(R.id.widget_root, commandIntent(context, ACTION_REFRESH, 3));
         return views;
     }
 
