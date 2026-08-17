@@ -17,11 +17,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".SpeedActivity"
-            android:exported="false"
-            android:theme="@style/Theme.HaWidget.SpeedDialog" />
-
         <receiver
             android:name=".HaFanWidgetProvider"
             android:exported="false"
