@@ -125,21 +125,15 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
                                     : available ? R.string.fan_connected : R.string.fan_unavailable
                     )
             );
-            views.setTextViewText(R.id.fan_widget_mode, modeText(context, state));
-            views.setTextViewText(R.id.fan_widget_speed_text, speedText(context, state));
-            views.setProgressBar(
-                    R.id.fan_speed_progress,
-                    100,
-                    state != null && state.available && state.percentage >= 0 ? state.percentage : 0,
-                    false
-            );
+            views.setTextViewText(R.id.fan_widget_speed, speedText(context, state));
+            views.setTextViewText(R.id.fan_speed_tile_value, speedValue(context, state));
             views.setInt(
                     R.id.fan_widget_connection_dot,
                     "setBackgroundResource",
                     available ? R.drawable.fan_connection_dot : R.drawable.fan_connection_off_dot
             );
             views.setInt(
-                    R.id.fan_power_button,
+                    R.id.fan_power_tile,
                     "setBackgroundResource",
                     on ? R.drawable.fan_control_primary : R.drawable.fan_control_power_off
             );
@@ -153,30 +147,24 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
                     "setBackgroundResource",
                     sleepWind ? R.drawable.fan_control_natural_active : R.drawable.fan_control_secondary
             );
-            views.setOnClickPendingIntent(R.id.fan_power_button, commandIntent(context, ACTION_TOGGLE, id));
+            views.setOnClickPendingIntent(R.id.fan_power_tile, commandIntent(context, ACTION_TOGGLE, id));
             views.setOnClickPendingIntent(R.id.fan_natural_button, commandIntent(context, ACTION_NATURAL, id));
             views.setOnClickPendingIntent(R.id.fan_sleep_button, commandIntent(context, ACTION_SLEEP, id));
-            views.setOnClickPendingIntent(R.id.fan_speed_control, speedIntent(context, id));
+            views.setOnClickPendingIntent(R.id.fan_speed_tile, speedIntent(context, id));
             manager.updateAppWidget(id, views);
         }
-    }
-
-    private String modeText(Context context, HaClient.FanState state) {
-        if (state == null) {
-            return context.getString(R.string.fan_not_configured);
-        }
-        if (!state.available) {
-            return context.getString(R.string.fan_unavailable);
-        }
-        if (!state.on) {
-            return context.getString(R.string.state_off);
-        }
-        return state.presetMode.isEmpty() ? context.getString(R.string.fan_default_mode) : state.presetMode;
     }
 
     private String speedText(Context context, HaClient.FanState state) {
         if (state == null || !state.available || state.percentage < 0) {
             return context.getString(R.string.speed_unavailable);
+        }
+        return context.getString(R.string.speed_percent, state.percentage);
+    }
+
+    private String speedValue(Context context, HaClient.FanState state) {
+        if (state == null || !state.available || state.percentage < 0) {
+            return "--";
         }
         return context.getString(R.string.speed_widget_percent, state.percentage);
     }

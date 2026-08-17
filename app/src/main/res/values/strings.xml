@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">HA 桌面控制</string>
     <string name="fan_widget_name">HA 风扇</string>
-    <string name="fan_widget_description">控制一个 Home Assistant 风扇及自然风模式</string>
+    <string name="fan_widget_description">控制风扇开关、自然风、睡眠风和风速</string>
     <string name="setup_title">Home Assistant 风扇设置</string>
     <string name="setup_hint">填写 Home Assistant 地址、长效访问令牌和风扇实体 ID。小组件可直接切换开关、自然风、睡眠风和风速。</string>
     <string name="base_url_label">Home Assistant 地址</string>
@@ -19,7 +19,7 @@
     <string name="request_failed">控制请求失败</string>
     <string name="connection_failed">无法连接 Home Assistant</string>
     <string name="fan_name">风扇</string>
-    <string name="fan_panel_title">PWM 风扇</string>
+    <string name="fan_panel_title">智能风扇</string>
     <string name="fan_power">开关</string>
     <string name="fan_natural">自然风</string>
     <string name="fan_sleep">睡眠风</string>
@@ -34,8 +34,6 @@
     <string name="speed_percent">风速 %1$d%%</string>
     <string name="speed_widget_percent">%1$d%%</string>
     <string name="speed_unavailable">风速不可用</string>
-    <string name="fan_speed_label">风速</string>
-    <string name="current_mode">当前模式</string>
     <string name="speed_title">风速调节</string>
     <string name="speed_hint">拖动滑块后保存</string>
     <string name="speed_save">设置风速</string>
