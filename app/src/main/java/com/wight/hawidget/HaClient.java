@@ -26,7 +26,8 @@ final class HaClient {
         JSONObject attributes = entity.optJSONObject("attributes");
         return new FanState(
                 "on".equalsIgnoreCase(entity.optString("state")),
-                attributes == null ? "" : attributes.optString("preset_mode", "")
+                attributes == null ? "" : attributes.optString("preset_mode", ""),
+                attributes == null ? -1 : attributes.optInt("percentage", -1)
         );
     }
 
@@ -39,6 +40,16 @@ final class HaClient {
             JSONObject data = new JSONObject();
             data.put("preset_mode", presetMode);
             callFanService(settings, "set_preset_mode", data);
+        } catch (JSONException exception) {
+            throw new IOException("Could not create Home Assistant request", exception);
+        }
+    }
+
+    static void setFanPercentage(HaSettings settings, int percentage) throws IOException {
+        try {
+            JSONObject data = new JSONObject();
+            data.put("percentage", percentage);
+            callFanService(settings, "set_percentage", data);
         } catch (JSONException exception) {
             throw new IOException("Could not create Home Assistant request", exception);
         }
@@ -102,10 +113,12 @@ final class HaClient {
     static final class FanState {
         final boolean on;
         final String presetMode;
+        final int percentage;
 
-        FanState(boolean on, String presetMode) {
+        FanState(boolean on, String presetMode, int percentage) {
             this.on = on;
             this.presetMode = presetMode;
+            this.percentage = percentage;
         }
     }
 }

@@ -17,6 +17,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".SpeedActivity"
+            android:exported="false" />
+
         <receiver
             android:name=".HaFanWidgetProvider"
             android:exported="false"

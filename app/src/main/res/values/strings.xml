@@ -22,6 +22,10 @@
     <string name="fan_panel_title">HLK 风扇</string>
     <string name="fan_power">开关</string>
     <string name="fan_natural">自然风</string>
+    <string name="fan_sleep">睡眠风</string>
+    <string name="fan_speed_one">1档</string>
+    <string name="fan_speed_two">2档</string>
+    <string name="fan_speed_three">3档</string>
     <string name="fan_connected">已连接</string>
     <string name="fan_disconnected">未连接</string>
     <string name="fan_not_configured">未配置 HA</string>
@@ -29,4 +33,11 @@
     <string name="state_on">已开启</string>
     <string name="state_off">已关闭</string>
     <string name="state_unknown">未连接</string>
+    <string name="speed_percent">风速 %1$d%%</string>
+    <string name="speed_unavailable">风速不可用</string>
+    <string name="speed_title">风速调节</string>
+    <string name="speed_hint">拖动滑块后保存</string>
+    <string name="speed_save">设置风速</string>
+    <string name="speed_saved">风速已更新</string>
+    <string name="speed_failed">风速设置失败</string>
 </resources>

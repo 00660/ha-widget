@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/fan_widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/fan_card_background"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="8dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="22dp"
+        android:layout_height="18dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <ImageView
-            android:layout_width="18dp"
-            android:layout_height="18dp"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
             android:background="@drawable/fan_title_badge"
             android:contentDescription="@string/fan_widget_name"
             android:padding="3dp"
@@ -24,11 +23,11 @@
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="5dp"
             android:layout_weight="1"
             android:text="@string/fan_panel_title"
             android:textColor="#1E293B"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <View
@@ -49,31 +48,25 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="3dp"
         android:layout_weight="1"
         android:gravity="center"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:id="@+id/fan_power_button"
+            android:layout_width="58dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/fan_control_primary"
             android:gravity="center"
             android:orientation="vertical">
 
-            <FrameLayout
-                android:layout_width="54dp"
-                android:layout_height="54dp"
-                android:background="@drawable/fan_hero_background"
-                android:padding="10dp">
-
-                <ImageView
-                    android:id="@+id/fan_widget_icon"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:contentDescription="@string/fan_widget_name"
-                    android:src="@drawable/ic_fan_off" />
-            </FrameLayout>
+            <ImageView
+                android:id="@+id/fan_widget_icon"
+                android:layout_width="31dp"
+                android:layout_height="31dp"
+                android:contentDescription="@string/fan_power"
+                android:src="@drawable/ic_fan_off" />
 
             <TextView
                 android:id="@+id/fan_widget_mode"
@@ -82,71 +75,108 @@
                 android:layout_marginTop="2dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="#64748B"
+                android:textColor="#FFFFFF"
                 android:textSize="9sp" />
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="34dp"
-            android:orientation="horizontal">
+            android:id="@+id/fan_widget_speed"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/fan_control_secondary"
+            android:gravity="center"
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:contentDescription="@string/speed_title"
+                android:src="@drawable/ic_wind" />
 
-                <LinearLayout
-                    android:id="@+id/fan_power_button"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginEnd="3dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/fan_control_primary"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:contentDescription="@string/fan_power"
-                        android:src="@drawable/ic_power" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="@string/fan_power"
-                        android:textColor="#FFFFFF"
-                        android:textSize="9sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/fan_natural_button"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="3dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/fan_control_secondary"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:contentDescription="@string/fan_natural"
-                        android:src="@drawable/ic_wind" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="@string/fan_natural"
-                        android:textColor="#475569"
-                        android:textSize="9sp" />
-                </LinearLayout>
-            </LinearLayout>
-
+            <TextView
+                android:id="@+id/fan_widget_speed_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="#334155"
+                android:textSize="10sp" />
         </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_marginTop="4dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/fan_natural_button"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="3dp"
+            android:layout_weight="1"
+            android:background="@drawable/fan_control_secondary"
+            android:gravity="center"
+            android:text="@string/fan_natural"
+            android:textColor="#475569"
+            android:textSize="9sp" />
+
+        <TextView
+            android:id="@+id/fan_sleep_button"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="3dp"
+            android:layout_weight="1"
+            android:background="@drawable/fan_control_secondary"
+            android:gravity="center"
+            android:text="@string/fan_sleep"
+            android:textColor="#475569"
+            android:textSize="9sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="22dp"
+        android:layout_marginTop="4dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/fan_speed_one_button"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/fan_control_secondary"
+            android:gravity="center"
+            android:text="@string/fan_speed_one"
+            android:textColor="#475569"
+            android:textSize="9sp" />
+
+        <TextView
+            android:id="@+id/fan_speed_two_button"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="1dp"
+            android:layout_marginEnd="1dp"
+            android:layout_weight="1"
+            android:background="@drawable/fan_control_secondary"
+            android:gravity="center"
+            android:text="@string/fan_speed_two"
+            android:textColor="#475569"
+            android:textSize="9sp" />
+
+        <TextView
+            android:id="@+id/fan_speed_three_button"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/fan_control_secondary"
+            android:gravity="center"
+            android:text="@string/fan_speed_three"
+            android:textColor="#475569"
+            android:textSize="9sp" />
     </LinearLayout>
 </LinearLayout>
