@@ -24,8 +24,10 @@ final class HaClient {
         String body = request(settings, "GET", "/api/states/" + Uri.encode(settings.fanEntity), null);
         JSONObject entity = new JSONObject(body);
         JSONObject attributes = entity.optJSONObject("attributes");
+        String state = entity.optString("state");
         return new FanState(
-                "on".equalsIgnoreCase(entity.optString("state")),
+                "on".equalsIgnoreCase(state),
+                !"unavailable".equalsIgnoreCase(state),
                 attributes == null ? "" : attributes.optString("preset_mode", ""),
                 attributes == null ? -1 : attributes.optInt("percentage", -1)
         );
@@ -112,11 +114,13 @@ final class HaClient {
 
     static final class FanState {
         final boolean on;
+        final boolean available;
         final String presetMode;
         final int percentage;
 
-        FanState(boolean on, String presetMode, int percentage) {
+        FanState(boolean on, boolean available, String presetMode, int percentage) {
             this.on = on;
+            this.available = available;
             this.presetMode = presetMode;
             this.percentage = percentage;
         }

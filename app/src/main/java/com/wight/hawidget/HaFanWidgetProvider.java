@@ -134,20 +134,24 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
         for (int id : ids) {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ha_fan_widget);
             boolean connected = state != null;
-            boolean on = connected && state.on;
-            boolean naturalWind = connected && NATURAL_PRESET.equals(state.presetMode);
-            boolean sleepWind = connected && SLEEP_PRESET.equals(state.presetMode);
+            boolean available = connected && state.available;
+            boolean on = available && state.on;
+            boolean naturalWind = available && NATURAL_PRESET.equals(state.presetMode);
+            boolean sleepWind = available && SLEEP_PRESET.equals(state.presetMode);
             views.setImageViewResource(R.id.fan_widget_icon, on ? R.drawable.ic_fan_on : R.drawable.ic_fan_off);
             views.setTextViewText(
                     R.id.fan_widget_state,
-                    context.getString(connected ? R.string.fan_connected : R.string.fan_disconnected)
+                    context.getString(
+                            !connected ? R.string.fan_disconnected
+                                    : available ? R.string.fan_connected : R.string.fan_unavailable
+                    )
             );
             views.setTextViewText(R.id.fan_widget_mode, modeText(context, state));
             views.setTextViewText(R.id.fan_widget_speed_text, speedText(context, state));
             views.setInt(
                     R.id.fan_widget_connection_dot,
                     "setBackgroundResource",
-                    connected ? R.drawable.fan_connection_dot : R.drawable.fan_connection_off_dot
+                    available ? R.drawable.fan_connection_dot : R.drawable.fan_connection_off_dot
             );
             views.setInt(
                     R.id.fan_power_button,
@@ -167,19 +171,19 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
             views.setInt(
                     R.id.fan_speed_one_button,
                     "setBackgroundResource",
-                    connected && SPEED_ONE_PRESET.equals(state.presetMode)
+                    available && SPEED_ONE_PRESET.equals(state.presetMode)
                             ? R.drawable.fan_control_natural_active : R.drawable.fan_control_secondary
             );
             views.setInt(
                     R.id.fan_speed_two_button,
                     "setBackgroundResource",
-                    connected && SPEED_TWO_PRESET.equals(state.presetMode)
+                    available && SPEED_TWO_PRESET.equals(state.presetMode)
                             ? R.drawable.fan_control_natural_active : R.drawable.fan_control_secondary
             );
             views.setInt(
                     R.id.fan_speed_three_button,
                     "setBackgroundResource",
-                    connected && SPEED_THREE_PRESET.equals(state.presetMode)
+                    available && SPEED_THREE_PRESET.equals(state.presetMode)
                             ? R.drawable.fan_control_natural_active : R.drawable.fan_control_secondary
             );
             views.setOnClickPendingIntent(R.id.fan_power_button, commandIntent(context, ACTION_TOGGLE, id));
@@ -197,6 +201,9 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
         if (state == null) {
             return context.getString(R.string.fan_not_configured);
         }
+        if (!state.available) {
+            return context.getString(R.string.fan_unavailable);
+        }
         if (!state.on) {
             return context.getString(R.string.state_off);
         }
@@ -204,7 +211,7 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
     }
 
     private String speedText(Context context, HaClient.FanState state) {
-        if (state == null || state.percentage < 0) {
+        if (state == null || !state.available || state.percentage < 0) {
             return context.getString(R.string.speed_unavailable);
         }
         return context.getString(R.string.speed_percent, state.percentage);

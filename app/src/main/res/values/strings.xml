@@ -28,6 +28,7 @@
     <string name="fan_speed_three">3档</string>
     <string name="fan_connected">已连接</string>
     <string name="fan_disconnected">未连接</string>
+    <string name="fan_unavailable">设备离线</string>
     <string name="fan_not_configured">未配置 HA</string>
     <string name="fan_default_mode">标准风</string>
     <string name="state_on">已开启</string>
