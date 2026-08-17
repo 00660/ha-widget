@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.widget.RemoteViews;
 
@@ -60,6 +61,9 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
 
     private void runCommand(Context context, String action) {
         Context applicationContext = context.getApplicationContext();
+        if (ACTION_NATURAL.equals(action) || ACTION_SLEEP.equals(action)) {
+            renderPresetFeedback(applicationContext, action);
+        }
         BroadcastReceiver.PendingResult pendingResult = goAsync();
         NETWORK_EXECUTOR.execute(() -> {
             HaSettings settings = HaSettings.load(applicationContext);
@@ -80,6 +84,36 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
 
     private String presetFor(String action) {
         return ACTION_NATURAL.equals(action) ? NATURAL_PRESET : SLEEP_PRESET;
+    }
+
+    private void renderPresetFeedback(Context context, String action) {
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        int[] ids = manager.getAppWidgetIds(new ComponentName(context, HaFanWidgetProvider.class));
+        boolean naturalWind = ACTION_NATURAL.equals(action);
+        for (int id : ids) {
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ha_fan_widget);
+            views.setInt(
+                    R.id.fan_natural_button,
+                    "setBackgroundResource",
+                    naturalWind ? R.drawable.fan_control_primary : R.drawable.fan_control_secondary
+            );
+            views.setInt(
+                    R.id.fan_sleep_button,
+                    "setBackgroundResource",
+                    naturalWind ? R.drawable.fan_control_secondary : R.drawable.fan_control_primary
+            );
+            views.setImageViewResource(
+                    R.id.fan_natural_icon,
+                    naturalWind ? R.drawable.ic_wind_light : R.drawable.ic_wind
+            );
+            views.setImageViewResource(
+                    R.id.fan_sleep_icon,
+                    naturalWind ? R.drawable.ic_sleep : R.drawable.ic_sleep_light
+            );
+            views.setTextColor(R.id.fan_natural_label, naturalWind ? Color.WHITE : Color.rgb(71, 85, 105));
+            views.setTextColor(R.id.fan_sleep_label, naturalWind ? Color.rgb(71, 85, 105) : Color.WHITE);
+            manager.partiallyUpdateAppWidget(id, views);
+        }
     }
 
     private void refreshAsync(Context context) {
@@ -140,13 +174,23 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
             views.setInt(
                     R.id.fan_natural_button,
                     "setBackgroundResource",
-                    naturalWind ? R.drawable.fan_control_natural_active : R.drawable.fan_control_secondary
+                    naturalWind ? R.drawable.fan_control_primary : R.drawable.fan_control_secondary
             );
             views.setInt(
                     R.id.fan_sleep_button,
                     "setBackgroundResource",
-                    sleepWind ? R.drawable.fan_control_natural_active : R.drawable.fan_control_secondary
+                    sleepWind ? R.drawable.fan_control_primary : R.drawable.fan_control_secondary
             );
+            views.setImageViewResource(
+                    R.id.fan_natural_icon,
+                    naturalWind ? R.drawable.ic_wind_light : R.drawable.ic_wind
+            );
+            views.setImageViewResource(
+                    R.id.fan_sleep_icon,
+                    sleepWind ? R.drawable.ic_sleep_light : R.drawable.ic_sleep
+            );
+            views.setTextColor(R.id.fan_natural_label, naturalWind ? Color.WHITE : Color.rgb(71, 85, 105));
+            views.setTextColor(R.id.fan_sleep_label, sleepWind ? Color.WHITE : Color.rgb(71, 85, 105));
             views.setOnClickPendingIntent(R.id.fan_power_tile, commandIntent(context, ACTION_TOGGLE, id));
             views.setOnClickPendingIntent(R.id.fan_natural_button, commandIntent(context, ACTION_NATURAL, id));
             views.setOnClickPendingIntent(R.id.fan_sleep_button, commandIntent(context, ACTION_SLEEP, id));

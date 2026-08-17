@@ -107,6 +107,7 @@
                     android:orientation="vertical">
 
                     <ImageView
+                        android:id="@+id/fan_power_tile_icon"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:contentDescription="@string/fan_power"
@@ -167,12 +168,14 @@
                     android:orientation="vertical">
 
                     <ImageView
+                        android:id="@+id/fan_natural_icon"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:contentDescription="@string/fan_natural"
                         android:src="@drawable/ic_wind" />
 
                     <TextView
+                        android:id="@+id/fan_natural_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
@@ -192,12 +195,14 @@
                     android:orientation="vertical">
 
                     <ImageView
+                        android:id="@+id/fan_sleep_icon"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:contentDescription="@string/fan_sleep"
                         android:src="@drawable/ic_sleep" />
 
                     <TextView
+                        android:id="@+id/fan_sleep_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
