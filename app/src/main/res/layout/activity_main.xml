@@ -1,74 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="24dp">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:text="@string/setup_title"
+        android:textAppearance="@android:style/TextAppearance.Material.Headline" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/setup_title"
-            android:textAppearance="@android:style/TextAppearance.Material.Headline" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/setup_hint"
-            android:textAppearance="@android:style/TextAppearance.Material.Body1" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="@string/base_url_label" />
-
-        <EditText
-            android:id="@+id/base_url"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:autofillHints="url"
-            android:hint="@string/base_url_example"
-            android:inputType="textUri" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/token_label" />
-
-        <EditText
-            android:id="@+id/token"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:autofillHints="password"
-            android:hint="@string/token_hint"
-            android:inputType="textPassword" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/fan_entity_label" />
-
-        <EditText
-            android:id="@+id/fan_entity"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/fan_entity_example"
-            android:inputType="text" />
-
-        <Button
-            android:id="@+id/save_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:text="@string/save_button" />
-    </LinearLayout>
-</ScrollView>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:text="@string/setup_hint"
+        android:textAppearance="@android:style/TextAppearance.Material.Body1" />
+</LinearLayout>

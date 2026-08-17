@@ -33,5 +33,9 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/fan_widget_info" />
         </receiver>
+
+        <receiver
+            android:name=".FanModeReceiver"
+            android:exported="false" />
     </application>
 </manifest>

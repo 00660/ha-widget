@@ -11,8 +11,6 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.widget.RemoteViews;
 
-import org.json.JSONException;
-
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -62,21 +60,18 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
     private void runCommand(Context context, String action) {
         Context applicationContext = context.getApplicationContext();
         if (ACTION_NATURAL.equals(action) || ACTION_SLEEP.equals(action)) {
-            HaSettings.saveSelectedPreset(applicationContext, presetFor(action));
+            WidgetPreferences.saveSelectedPreset(applicationContext, presetFor(action));
             renderPresetFeedback(applicationContext, action);
         }
         BroadcastReceiver.PendingResult pendingResult = goAsync();
         NETWORK_EXECUTOR.execute(() -> {
-            HaSettings settings = HaSettings.load(applicationContext);
-            if (settings.hasFan()) {
-                try {
-                    if (ACTION_TOGGLE.equals(action)) {
-                        HaClient.toggleFan(settings);
-                    } else {
-                        HaClient.setFanPreset(settings, presetFor(action));
-                    }
-                } catch (IOException ignored) {
+            try {
+                if (ACTION_TOGGLE.equals(action)) {
+                    EspHomeClient.toggleFan();
+                } else {
+                    FanModeScheduler.enable(applicationContext, presetFor(action));
                 }
+            } catch (IOException ignored) {
             }
             refresh(applicationContext);
             pendingResult.finish();
@@ -132,19 +127,14 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
         if (ids.length == 0) {
             return;
         }
-        HaSettings settings = HaSettings.load(context);
-        if (!settings.hasFan()) {
-            render(manager, context, ids, null);
-            return;
-        }
         try {
-            render(manager, context, ids, HaClient.fetchFanState(settings));
-        } catch (IOException | JSONException ignored) {
+            render(manager, context, ids, EspHomeClient.fetchFanState());
+        } catch (IOException ignored) {
             render(manager, context, ids, null);
         }
     }
 
-    private void render(AppWidgetManager manager, Context context, int[] ids, HaClient.FanState state) {
+    private void render(AppWidgetManager manager, Context context, int[] ids, EspHomeClient.FanState state) {
         String selectedPreset = selectedPreset(context, state);
         for (int id : ids) {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ha_fan_widget);
@@ -201,25 +191,25 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    private String selectedPreset(Context context, HaClient.FanState state) {
+    private String selectedPreset(Context context, EspHomeClient.FanState state) {
         if (state == null || !state.available) {
             return "";
         }
         if (NATURAL_PRESET.equals(state.presetMode) || SLEEP_PRESET.equals(state.presetMode)) {
-            HaSettings.saveSelectedPreset(context, state.presetMode);
+            WidgetPreferences.saveSelectedPreset(context, state.presetMode);
             return state.presetMode;
         }
-        return HaSettings.loadSelectedPreset(context);
+        return WidgetPreferences.loadSelectedPreset(context);
     }
 
-    private String speedText(Context context, HaClient.FanState state) {
+    private String speedText(Context context, EspHomeClient.FanState state) {
         if (state == null || !state.available || state.percentage < 0) {
             return context.getString(R.string.speed_unavailable);
         }
         return context.getString(R.string.speed_percent, state.percentage);
     }
 
-    private String speedValue(Context context, HaClient.FanState state) {
+    private String speedValue(Context context, EspHomeClient.FanState state) {
         if (state == null || !state.available || state.percentage < 0) {
             return "--";
         }

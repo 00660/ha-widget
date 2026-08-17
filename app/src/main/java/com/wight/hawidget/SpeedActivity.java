@@ -7,8 +7,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONException;
-
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,34 +45,27 @@ public final class SpeedActivity extends Activity {
     }
 
     private void loadSpeed() {
-        HaSettings settings = HaSettings.load(this);
-        if (!settings.hasFan()) {
-            return;
-        }
         NETWORK_EXECUTOR.execute(() -> {
             try {
-                HaClient.FanState state = HaClient.fetchFanState(settings);
+                EspHomeClient.FanState state = EspHomeClient.fetchFanState();
                 if (state.percentage >= 0) {
                     runOnUiThread(() -> {
                         speed.setProgress(state.percentage);
                         showValue(state.percentage);
                     });
                 }
-            } catch (IOException | JSONException ignored) {
+            } catch (IOException ignored) {
             }
         });
     }
 
     private void saveSpeed(View ignored) {
-        HaSettings settings = HaSettings.load(this);
         int percentage = speed.getProgress();
-        if (!settings.hasFan()) {
-            Toast.makeText(this, R.string.invalid_configuration, Toast.LENGTH_SHORT).show();
-            return;
-        }
         NETWORK_EXECUTOR.execute(() -> {
             try {
-                HaClient.setFanPercentage(settings, percentage);
+                EspHomeClient.setFanPercentage(percentage);
+                WidgetPreferences.saveBaseSpeed(this, percentage);
+                FanModeScheduler.schedule(this);
                 HaFanWidgetProvider.requestRefresh(this);
                 runOnUiThread(() -> {
                     Toast.makeText(this, R.string.speed_saved, Toast.LENGTH_SHORT).show();

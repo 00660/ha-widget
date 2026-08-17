@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">HA 桌面控制</string>
-    <string name="fan_widget_name">HA 风扇</string>
-    <string name="fan_widget_description">控制风扇开关、自然风、睡眠风和风速</string>
-    <string name="setup_title">Home Assistant 风扇设置</string>
-    <string name="setup_hint">填写 Home Assistant 地址、长效访问令牌和风扇实体 ID。小组件可直接切换开关、自然风、睡眠风和风速。</string>
+    <string name="app_name">ESPHome 风扇控制</string>
+    <string name="fan_widget_name">ESPHome 风扇</string>
+    <string name="fan_widget_description">直连风扇控制开关、自然风、睡眠风和风速</string>
+    <string name="setup_title">ESPHome 直连已启用</string>
+    <string name="setup_hint">小组件直连风扇设备，开关、风速和状态不经过 Home Assistant。</string>
     <string name="base_url_label">Home Assistant 地址</string>
     <string name="base_url_example">例如 http://homeassistant.local:8123</string>
     <string name="token_label">长效访问令牌</string>
