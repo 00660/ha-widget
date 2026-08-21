@@ -1,7 +1,6 @@
 package com.wight.hawidget;
 
 import android.app.Activity;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -27,8 +26,11 @@ public final class MainActivity extends Activity {
         Button save = findViewById(R.id.save_device);
         ScrollView scroll = findViewById(R.id.settings_scroll);
         View.OnFocusChangeListener focusListener = (view, hasFocus) -> {
-            if (hasFocus) view.postDelayed(() ->
-                    ensureVisible((EditText) view, scroll), 220);
+            if (hasFocus) view.postDelayed(() -> {
+                EditText field = (EditText) view;
+                field.requestRectangleOnScreen(
+                        new android.graphics.Rect(0, 0, field.getWidth(), field.getHeight()), true);
+            }, 350);
         };
         for (EditText field : urls) field.setOnFocusChangeListener(focusListener);
         for (EditText field : names) field.setOnFocusChangeListener(focusListener);
@@ -56,15 +58,6 @@ public final class MainActivity extends Activity {
 
     private void setUrlText(EditText field, String value) {
         field.setText(value == null || value.isEmpty() ? "http://" : value);
-    }
-
-    private void ensureVisible(EditText field, ScrollView scroll) {
-        Rect visible = new Rect();
-        field.getWindowVisibleDisplayFrame(visible);
-        Rect fieldRect = new Rect();
-        field.getGlobalVisibleRect(fieldRect);
-        int delta = fieldRect.bottom - visible.bottom + 24;
-        if (delta > 0) scroll.scrollBy(0, delta);
     }
 
 }
