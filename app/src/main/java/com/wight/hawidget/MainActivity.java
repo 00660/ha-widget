@@ -1,6 +1,7 @@
 package com.wight.hawidget;
 
 import android.app.Activity;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -24,14 +25,18 @@ public final class MainActivity extends Activity {
             names[i].setText(WidgetPreferences.loadFanName(this, i));
         }
         Button save = findViewById(R.id.save_device);
+        View root = findViewById(R.id.settings_root);
         ScrollView scroll = findViewById(R.id.settings_scroll);
         View.OnFocusChangeListener focusListener = (view, hasFocus) -> {
             if (hasFocus) view.postDelayed(() ->
-                    scroll.requestChildRectangleOnScreen(view,
-                            new android.graphics.Rect(0, 0, view.getWidth(), view.getHeight()), false), 220);
+                    ensureVisible((EditText) view, scroll), 220);
         };
         for (EditText field : urls) field.setOnFocusChangeListener(focusListener);
         for (EditText field : names) field.setOnFocusChangeListener(focusListener);
+        root.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            View focused = root.findFocus();
+            if (focused instanceof EditText) ensureVisible((EditText) focused, scroll);
+        });
         save.setOnClickListener(view -> {
             String value = url.getText().toString().trim();
             String name = fanName.getText().toString().trim();
@@ -56,6 +61,15 @@ public final class MainActivity extends Activity {
 
     private void setUrlText(EditText field, String value) {
         field.setText(value == null || value.isEmpty() ? "http://" : value);
+    }
+
+    private void ensureVisible(EditText field, ScrollView scroll) {
+        Rect visible = new Rect();
+        field.getWindowVisibleDisplayFrame(visible);
+        Rect fieldRect = new Rect();
+        field.getGlobalVisibleRect(fieldRect);
+        int delta = fieldRect.bottom - visible.bottom + 24;
+        if (delta > 0) scroll.scrollBy(0, delta);
     }
 
 }
