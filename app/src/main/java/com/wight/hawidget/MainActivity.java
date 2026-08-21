@@ -25,7 +25,6 @@ public final class MainActivity extends Activity {
             names[i].setText(WidgetPreferences.loadFanName(this, i));
         }
         Button save = findViewById(R.id.save_device);
-        View root = findViewById(R.id.settings_root);
         ScrollView scroll = findViewById(R.id.settings_scroll);
         View.OnFocusChangeListener focusListener = (view, hasFocus) -> {
             if (hasFocus) view.postDelayed(() ->
@@ -33,10 +32,6 @@ public final class MainActivity extends Activity {
         };
         for (EditText field : urls) field.setOnFocusChangeListener(focusListener);
         for (EditText field : names) field.setOnFocusChangeListener(focusListener);
-        root.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
-            View focused = root.findFocus();
-            if (focused instanceof EditText) ensureVisible((EditText) focused, scroll);
-        });
         save.setOnClickListener(view -> {
             String value = url.getText().toString().trim();
             String name = fanName.getText().toString().trim();
