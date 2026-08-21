@@ -62,8 +62,8 @@
             android:orientation="vertical">
 
             <FrameLayout
-                android:layout_width="68dp"
-                android:layout_height="68dp">
+                android:layout_width="150dp"
+                android:layout_height="150dp">
 
                 <ImageView
                     android:layout_width="match_parent"
@@ -81,7 +81,7 @@
                     android:id="@+id/fan_widget_icon"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_margin="18dp"
+                    android:layout_margin="40dp"
                     android:contentDescription="@string/fan_power"
                     android:src="@drawable/ic_fan_off" />
             </FrameLayout>
@@ -89,10 +89,10 @@
             <TextView
                 android:id="@+id/fan_widget_speed"
                 android:layout_width="wrap_content"
-                android:layout_height="16dp"
-                android:layout_marginTop="1dp"
+                android:layout_height="20dp"
+                android:layout_marginTop="3dp"
                 android:textColor="#475569"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 android:textStyle="bold" />
         </LinearLayout>
 

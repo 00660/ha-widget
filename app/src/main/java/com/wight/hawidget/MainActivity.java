@@ -29,7 +29,8 @@ public final class MainActivity extends Activity {
                 value = urls[i].getText().toString().trim();
                 while (value.endsWith("/")) value = value.substring(0, value.length() - 1);
                 if (!value.isEmpty() && (value.startsWith("http://") || value.startsWith("https://"))) {
-                    WidgetPreferences.saveDevice(this, i, value, names[i].getText().toString().trim().isEmpty() ? "风扇" : names[i].getText().toString().trim());
+                    String name = names[i].getText().toString().trim();
+                    WidgetPreferences.saveDevice(this, i, value, name.isEmpty() ? "设备 " + (i + 1) : name);
                 }
             }
             if (!WidgetPreferences.loadEspHomeUrl(this).isEmpty()) {
