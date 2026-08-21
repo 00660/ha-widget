@@ -2,7 +2,7 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:description="@string/fan_widget_description"
     android:initialLayout="@layout/ha_fan_widget_wide"
-    android:minHeight="150dp"
+    android:minHeight="116dp"
     android:minWidth="180dp"
     android:previewLayout="@layout/ha_fan_widget_wide"
     android:resizeMode="horizontal|vertical"

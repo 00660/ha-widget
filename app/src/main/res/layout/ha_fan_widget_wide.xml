@@ -4,17 +4,17 @@
     android:layout_height="match_parent"
     android:background="@drawable/fan_card_background"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="8dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="28dp"
+        android:layout_height="22dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:background="@drawable/fan_title_badge"
             android:contentDescription="@string/fan_widget_name"
             android:padding="4dp"
@@ -27,7 +27,7 @@
             android:layout_weight="1"
             android:text="@string/fan_panel_title"
             android:textColor="#1E293B"
-            android:textSize="17sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <View
@@ -40,7 +40,8 @@
             android:id="@+id/fan_widget_state"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
+            android:layout_marginStart="4dp"
+            android:visibility="gone"
             android:textColor="#64748B"
             android:textSize="11sp" />
     </LinearLayout>
@@ -48,7 +49,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="7dp"
+        android:layout_marginTop="4dp"
         android:layout_weight="1"
         android:orientation="horizontal">
 
@@ -60,8 +61,8 @@
             android:orientation="vertical">
 
             <FrameLayout
-                android:layout_width="140dp"
-                android:layout_height="140dp">
+                android:layout_width="68dp"
+                android:layout_height="68dp">
 
                 <ImageView
                     android:layout_width="match_parent"
@@ -79,7 +80,7 @@
                     android:id="@+id/fan_widget_icon"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_margin="36dp"
+                    android:layout_margin="18dp"
                     android:contentDescription="@string/fan_power"
                     android:src="@drawable/ic_fan_off" />
             </FrameLayout>
@@ -87,17 +88,17 @@
             <TextView
                 android:id="@+id/fan_widget_speed"
                 android:layout_width="wrap_content"
-                android:layout_height="20dp"
-                android:layout_marginTop="3dp"
+                android:layout_height="16dp"
+                android:layout_marginTop="1dp"
                 android:textColor="#475569"
-                android:textSize="14sp"
+                android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="6dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -111,7 +112,7 @@
                     android:id="@+id/fan_power_tile"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginEnd="4dp"
+                    android:layout_marginEnd="2dp"
                     android:layout_weight="1"
                     android:background="@drawable/fan_control_primary"
                     android:gravity="center"
@@ -119,8 +120,8 @@
 
                     <ImageView
                         android:id="@+id/fan_power_tile_icon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:contentDescription="@string/fan_power"
                         android:src="@drawable/ic_power" />
 
@@ -128,24 +129,24 @@
                         android:id="@+id/fan_power_tile_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
+                        android:layout_marginTop="1dp"
                         android:text="@string/fan_power"
                         android:textColor="#FFFFFF"
-                        android:textSize="12sp" />
+                        android:textSize="10sp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="2dp"
                     android:layout_weight="1"
                     android:background="@drawable/fan_control_secondary"
                     android:gravity="center"
                     android:orientation="vertical">
 
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:contentDescription="@string/speed_title"
                         android:src="@drawable/ic_wind" />
 
@@ -153,9 +154,9 @@
                         android:id="@+id/fan_speed_tile_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
+                        android:layout_marginTop="1dp"
                         android:textColor="#475569"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
@@ -163,7 +164,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:layout_weight="1"
                 android:orientation="horizontal">
 
@@ -171,7 +172,7 @@
                     android:id="@+id/fan_natural_button"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginEnd="4dp"
+                    android:layout_marginEnd="2dp"
                     android:layout_weight="1"
                     android:background="@drawable/fan_control_secondary"
                     android:gravity="center"
@@ -179,8 +180,8 @@
 
                     <ImageView
                         android:id="@+id/fan_natural_icon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:contentDescription="@string/fan_natural"
                         android:src="@drawable/ic_wind" />
 
@@ -188,17 +189,17 @@
                         android:id="@+id/fan_natural_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
+                        android:layout_marginTop="1dp"
                         android:text="@string/fan_natural"
                         android:textColor="#475569"
-                        android:textSize="12sp" />
+                        android:textSize="10sp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/fan_sleep_button"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="2dp"
                     android:layout_weight="1"
                     android:background="@drawable/fan_control_secondary"
                     android:gravity="center"
@@ -206,8 +207,8 @@
 
                     <ImageView
                         android:id="@+id/fan_sleep_icon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:contentDescription="@string/fan_sleep"
                         android:src="@drawable/ic_sleep" />
 
@@ -215,10 +216,10 @@
                         android:id="@+id/fan_sleep_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
+                        android:layout_marginTop="1dp"
                         android:text="@string/fan_sleep"
                         android:textColor="#475569"
-                        android:textSize="12sp" />
+                        android:textSize="10sp" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
