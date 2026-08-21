@@ -120,7 +120,7 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
         int[] ids = manager.getAppWidgetIds(new ComponentName(context, HaFanWidgetProvider.class));
         boolean naturalWind = ACTION_NATURAL.equals(action);
         for (int id : ids) {
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ha_fan_widget);
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ha_fan_widget_square);
             views.setInt(
                     R.id.fan_natural_button,
                     "setBackgroundResource",
@@ -170,7 +170,7 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
     private void render(AppWidgetManager manager, Context context, int[] ids, EspHomeClient.FanState state) {
         String selectedPreset = selectedPreset(context, state);
         for (int id : ids) {
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ha_fan_widget);
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ha_fan_widget_square);
             boolean connected = state != null;
             boolean available = connected && state.available;
             boolean on = available && state.on;
@@ -185,7 +185,6 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
                     )
             );
             views.setTextViewText(R.id.fan_widget_speed, speedText(context, state));
-            views.setTextViewText(R.id.fan_speed_tile_value, speedValue(context, state));
             views.setInt(
                     R.id.fan_widget_connection_dot,
                     "setBackgroundResource",
@@ -245,13 +244,6 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
             return context.getString(R.string.speed_unavailable);
         }
         return context.getString(R.string.speed_percent, state.percentage);
-    }
-
-    private String speedValue(Context context, EspHomeClient.FanState state) {
-        if (state == null || !state.available || state.percentage < 0) {
-            return "--";
-        }
-        return context.getString(R.string.speed_widget_percent, state.percentage);
     }
 
     private PendingIntent commandIntent(Context context, String action, int appWidgetId) {
