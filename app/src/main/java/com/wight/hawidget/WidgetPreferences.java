@@ -6,6 +6,7 @@ final class WidgetPreferences {
     private static final String PREFERENCES = "widget_preferences";
     private static final String SELECTED_PRESET = "selected_preset";
     private static final String BASE_SPEED = "base_speed";
+    private static final String MODE = "mode";
 
     private WidgetPreferences() {
     }
@@ -31,6 +32,18 @@ final class WidgetPreferences {
         context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
                 .edit()
                 .putInt(BASE_SPEED, Math.max(0, Math.min(100, percentage)))
+                .apply();
+    }
+
+    static String loadMode(Context context) {
+        return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .getString(MODE, "");
+    }
+
+    static void saveMode(Context context, String mode) {
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .edit()
+                .putString(MODE, mode == null ? "" : mode)
                 .apply();
     }
 }

@@ -90,8 +90,17 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
     private void runCommand(Context context, String action, int speed) {
         Context applicationContext = context.getApplicationContext();
         if (ACTION_NATURAL.equals(action) || ACTION_SLEEP.equals(action)) {
+            String mode = ACTION_NATURAL.equals(action)
+                    ? FanModeService.MODE_NATURAL : FanModeService.MODE_SLEEP;
             WidgetPreferences.saveSelectedPreset(applicationContext, presetFor(action));
+            applicationContext.startForegroundService(new Intent(applicationContext, FanModeService.class)
+                    .setAction(FanModeService.ACTION_START)
+                    .putExtra(FanModeService.EXTRA_MODE, mode));
             renderPresetFeedback(applicationContext, action);
+        } else {
+            applicationContext.startService(new Intent(applicationContext, FanModeService.class)
+                    .setAction(FanModeService.ACTION_STOP));
+            WidgetPreferences.saveMode(applicationContext, "");
         }
         BroadcastReceiver.PendingResult pendingResult = goAsync();
         NETWORK_EXECUTOR.execute(() -> {
@@ -101,8 +110,6 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
                 } else if (ACTION_SET_SPEED.equals(action) && speed >= 1 && speed <= 100) {
                     EspHomeClient.setFanPercentage(speed);
                     WidgetPreferences.saveBaseSpeed(applicationContext, speed);
-                } else {
-                    EspHomeClient.setFanPreset(presetFor(action));
                 }
             } catch (IOException ignored) {
             }
@@ -231,6 +238,13 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
     }
 
     private String selectedPreset(Context context, EspHomeClient.FanState state) {
+        String mode = WidgetPreferences.loadMode(context);
+        if (FanModeService.MODE_NATURAL.equals(mode)) {
+            return NATURAL_PRESET;
+        }
+        if (FanModeService.MODE_SLEEP.equals(mode)) {
+            return SLEEP_PRESET;
+        }
         if (state == null || !state.available) {
             return "";
         }
