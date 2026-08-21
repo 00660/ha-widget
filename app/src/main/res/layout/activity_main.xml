@@ -67,6 +67,12 @@
             <EditText android:id="@+id/esphome_url_4" android:layout_width="match_parent" android:layout_height="42dp" android:layout_marginTop="8dp" android:background="@drawable/settings_input_background" android:hint="ESPHome 地址" android:inputType="textUri" android:singleLine="true" android:textSize="13sp" />
         </LinearLayout>
 
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:background="@drawable/settings_card_background" android:orientation="vertical">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal"><TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="挂件 05" android:textColor="#0F172A" android:textSize="20sp" android:textStyle="bold" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="#E0EAFF" android:padding="6dp" android:text="5×2" android:textColor="#2563EB" android:textSize="12sp" android:textStyle="bold" /></LinearLayout>
+            <EditText android:id="@+id/fan_name_5" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="14dp" android:background="@drawable/settings_input_background" android:hint="设备名称" android:inputType="text" android:singleLine="true" android:textSize="16sp" />
+            <EditText android:id="@+id/esphome_url_5" android:layout_width="match_parent" android:layout_height="42dp" android:layout_marginTop="8dp" android:background="@drawable/settings_input_background" android:hint="http:// 设备地址" android:inputType="textUri" android:singleLine="true" android:textSize="13sp" />
+        </LinearLayout>
+
     </LinearLayout>
     </ScrollView>
 

@@ -15,12 +15,12 @@ public final class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         EditText url = findViewById(R.id.esphome_url);
         EditText fanName = findViewById(R.id.fan_name);
-        url.setText(WidgetPreferences.loadEspHomeUrl(this));
+        setUrlText(url, WidgetPreferences.loadEspHomeUrl(this));
         fanName.setText(WidgetPreferences.loadFanName(this));
-        EditText[] urls = {url, findViewById(R.id.esphome_url_2), findViewById(R.id.esphome_url_3), findViewById(R.id.esphome_url_4)};
-        EditText[] names = {fanName, findViewById(R.id.fan_name_2), findViewById(R.id.fan_name_3), findViewById(R.id.fan_name_4)};
+        EditText[] urls = {url, findViewById(R.id.esphome_url_2), findViewById(R.id.esphome_url_3), findViewById(R.id.esphome_url_4), findViewById(R.id.esphome_url_5)};
+        EditText[] names = {fanName, findViewById(R.id.fan_name_2), findViewById(R.id.fan_name_3), findViewById(R.id.fan_name_4), findViewById(R.id.fan_name_5)};
         for (int i = 1; i < urls.length; i++) {
-            urls[i].setText(WidgetPreferences.loadEspHomeUrl(this, i));
+            setUrlText(urls[i], WidgetPreferences.loadEspHomeUrl(this, i));
             names[i].setText(WidgetPreferences.loadFanName(this, i));
         }
         Button save = findViewById(R.id.save_device);
@@ -36,6 +36,8 @@ public final class MainActivity extends Activity {
             String name = fanName.getText().toString().trim();
             for (int i = 0; i < urls.length; i++) {
                 value = urls[i].getText().toString().trim();
+                if ("http://".equals(value) || "https://".equals(value)) value = "";
+                else if (!value.isEmpty() && !value.startsWith("http://") && !value.startsWith("https://")) value = "http://" + value;
                 while (value.endsWith("/")) value = value.substring(0, value.length() - 1);
                 if (!value.isEmpty() && (value.startsWith("http://") || value.startsWith("https://"))) {
                     String deviceName = names[i].getText().toString().trim();
@@ -49,5 +51,9 @@ public final class MainActivity extends Activity {
                 Toast.makeText(this, "请输入有效的 ESPHome 地址", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void setUrlText(EditText field, String value) {
+        field.setText(value == null || value.isEmpty() ? "http://" : value);
     }
 }
