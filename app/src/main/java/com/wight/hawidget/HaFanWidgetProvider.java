@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class HaFanWidgetProvider extends AppWidgetProvider {
+    protected int deviceSlot() { return 0; }
     private static final String ACTION_TOGGLE = "com.wight.hawidget.FAN_TOGGLE";
     private static final String ACTION_NATURAL = "com.wight.hawidget.FAN_NATURAL";
     private static final String ACTION_SLEEP = "com.wight.hawidget.FAN_SLEEP";
@@ -124,7 +125,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
 
     private void renderPresetFeedback(Context context, String action) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
-        int[] ids = manager.getAppWidgetIds(new ComponentName(context, HaFanWidgetProvider.class));
+        int[] ids = manager.getAppWidgetIds(new ComponentName(context, getClass()));
         boolean naturalWind = ACTION_NATURAL.equals(action);
         for (int id : ids) {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ha_fan_widget_wide);
@@ -163,7 +164,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
 
     private void refresh(Context context) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
-        int[] ids = manager.getAppWidgetIds(new ComponentName(context, HaFanWidgetProvider.class));
+        int[] ids = manager.getAppWidgetIds(new ComponentName(context, getClass()));
         if (ids.length == 0) {
             return;
         }
