@@ -2,7 +2,9 @@ package com.wight.hawidget;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Build;
 import android.view.View;
+import android.view.WindowInsets;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
@@ -12,6 +14,8 @@ public final class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Build.VERSION.SDK_INT >= 30) getWindow().setDecorFitsSystemWindows(true);
+        getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         setContentView(R.layout.activity_main);
         EditText url = findViewById(R.id.esphome_url);
         EditText fanName = findViewById(R.id.fan_name);
@@ -25,6 +29,18 @@ public final class MainActivity extends Activity {
         }
         Button save = findViewById(R.id.save_device);
         ScrollView scroll = findViewById(R.id.settings_scroll);
+        if (Build.VERSION.SDK_INT >= 30) {
+            scroll.setOnApplyWindowInsetsListener((view, insets) -> {
+                int imeBottom = insets.getInsets(WindowInsets.Type.ime()).bottom;
+                view.setPadding(view.getPaddingLeft(), view.getPaddingTop(), view.getPaddingRight(), 24 + imeBottom);
+                View focused = view.findFocus();
+                if (focused instanceof EditText && imeBottom > 0) {
+                    focused.postDelayed(() -> focused.requestRectangleOnScreen(
+                            new android.graphics.Rect(0, 0, focused.getWidth(), focused.getHeight()), true), 80);
+                }
+                return insets;
+            });
+        }
         View.OnFocusChangeListener focusListener = (view, hasFocus) -> {
             if (hasFocus) view.postDelayed(() -> {
                 EditText field = (EditText) view;
