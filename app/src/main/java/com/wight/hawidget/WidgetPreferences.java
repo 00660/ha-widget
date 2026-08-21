@@ -7,6 +7,8 @@ final class WidgetPreferences {
     private static final String SELECTED_PRESET = "selected_preset";
     private static final String BASE_SPEED = "base_speed";
     private static final String MODE = "mode";
+    private static final String ESPHOME_URL = "esphome_url";
+    private static final String FAN_NAME = "fan_name";
 
     private WidgetPreferences() {
     }
@@ -44,6 +46,24 @@ final class WidgetPreferences {
         context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
                 .edit()
                 .putString(MODE, mode == null ? "" : mode)
+                .apply();
+    }
+
+    static String loadEspHomeUrl(Context context) {
+        return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .getString(ESPHOME_URL, "http://192.168.2.64");
+    }
+
+    static String loadFanName(Context context) {
+        return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .getString(FAN_NAME, "风扇");
+    }
+
+    static void saveDevice(Context context, String url, String fanName) {
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .edit()
+                .putString(ESPHOME_URL, url)
+                .putString(FAN_NAME, fanName)
                 .apply();
     }
 }

@@ -83,7 +83,7 @@ public final class FanModeService extends Service {
                     : sleepSpeed(base, phase);
             COMMANDS.execute(() -> {
                 try {
-                    EspHomeClient.setFanPercentage(speed);
+                    EspHomeClient.setFanPercentage(this, speed);
                     HaFanWidgetProvider.requestRefresh(this);
                 } catch (IOException ignored) {
                 }

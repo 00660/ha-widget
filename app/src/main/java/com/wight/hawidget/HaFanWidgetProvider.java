@@ -106,9 +106,9 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
         NETWORK_EXECUTOR.execute(() -> {
             try {
                 if (ACTION_TOGGLE.equals(action)) {
-                    EspHomeClient.toggleFan();
+                    EspHomeClient.toggleFan(applicationContext);
                 } else if (ACTION_SET_SPEED.equals(action) && speed >= 1 && speed <= 100) {
-                    EspHomeClient.setFanPercentage(speed);
+                    EspHomeClient.setFanPercentage(applicationContext, speed);
                     WidgetPreferences.saveBaseSpeed(applicationContext, speed);
                 }
             } catch (IOException ignored) {
@@ -168,7 +168,7 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
             return;
         }
         try {
-            render(manager, context, ids, EspHomeClient.fetchFanState());
+            render(manager, context, ids, EspHomeClient.fetchFanState(context));
         } catch (IOException ignored) {
             render(manager, context, ids, null);
         }

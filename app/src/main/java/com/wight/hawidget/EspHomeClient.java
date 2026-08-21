@@ -1,5 +1,6 @@
 package com.wight.hawidget;
 
+import android.content.Context;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,30 +18,16 @@ final class EspHomeClient {
     private EspHomeClient() {
     }
 
-    static FanState fetchFanState() throws IOException {
-        try (Session session = Session.open()) {
-            session.send(20, new byte[0]);
-            return session.readFanState();
-        }
+    static FanState fetchFanState(Context context) throws IOException {
+        return EspHomeWebClient.fetchFanState(context);
     }
 
-    static void toggleFan() throws IOException {
-        FanState state = fetchFanState();
-        sendCommand(commandWithState(!state.on));
+    static void toggleFan(Context context) throws IOException {
+        EspHomeWebClient.toggleFan(context);
     }
 
-    static void setFanPercentage(int percentage) throws IOException {
-        ByteArrayOutputStream command = newCommand();
-        writeBoolean(command, 10, true);
-        writeVarIntField(command, 11, Math.max(0, Math.min(100, percentage)));
-        sendCommand(command.toByteArray());
-    }
-
-    static void setFanPreset(String preset) throws IOException {
-        ByteArrayOutputStream command = newCommand();
-        writeBoolean(command, 12, true);
-        writeString(command, 13, preset);
-        sendCommand(command.toByteArray());
+    static void setFanPercentage(Context context, int percentage) throws IOException {
+        EspHomeWebClient.setFanPercentage(context, percentage);
     }
 
     private static void sendCommand(byte[] command) throws IOException {
@@ -104,12 +91,23 @@ final class EspHomeClient {
         final boolean available;
         final int percentage;
         final String presetMode;
+        final int speedCount;
+        final boolean oscillation;
+        final boolean childLock;
 
         FanState(boolean on, boolean available, int percentage, String presetMode) {
+            this(on, available, percentage, presetMode, 0, false, false);
+        }
+
+        FanState(boolean on, boolean available, int percentage, String presetMode,
+                 int speedCount, boolean oscillation, boolean childLock) {
             this.on = on;
             this.available = available;
             this.percentage = percentage;
             this.presetMode = presetMode;
+            this.speedCount = speedCount;
+            this.oscillation = oscillation;
+            this.childLock = childLock;
         }
     }
 
