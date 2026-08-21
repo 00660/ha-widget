@@ -1,7 +1,9 @@
 package com.wight.hawidget;
 
 import android.app.Activity;
+import android.graphics.Rect;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -22,6 +24,13 @@ public final class MainActivity extends Activity {
             names[i].setText(WidgetPreferences.loadFanName(this, i));
         }
         Button save = findViewById(R.id.save_device);
+        View root = findViewById(R.id.settings_root);
+        root.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            Rect visibleFrame = new Rect();
+            root.getWindowVisibleDisplayFrame(visibleFrame);
+            int keyboardHeight = root.getRootView().getHeight() - visibleFrame.bottom;
+            save.setTranslationY(keyboardHeight > root.getHeight() / 5 ? -keyboardHeight : 0);
+        });
         save.setOnClickListener(view -> {
             String value = url.getText().toString().trim();
             String name = fanName.getText().toString().trim();
