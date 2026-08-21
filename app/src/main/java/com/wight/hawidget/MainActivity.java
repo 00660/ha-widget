@@ -30,7 +30,7 @@ public final class MainActivity extends Activity {
                 while (value.endsWith("/")) value = value.substring(0, value.length() - 1);
                 if (!value.isEmpty() && (value.startsWith("http://") || value.startsWith("https://"))) {
                     String deviceName = names[i].getText().toString().trim();
-                    WidgetPreferences.saveDevice(this, i, value, deviceName.isEmpty() ? "设备 " + (i + 1) : deviceName);
+                    WidgetPreferences.saveDevice(this, i, value, deviceName);
                 }
             }
             if (!WidgetPreferences.loadEspHomeUrl(this).isEmpty()) {

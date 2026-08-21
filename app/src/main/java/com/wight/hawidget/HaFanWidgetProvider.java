@@ -184,7 +184,8 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             boolean on = available && state.on;
             boolean naturalWind = available && NATURAL_PRESET.equals(selectedPreset);
             boolean sleepWind = available && SLEEP_PRESET.equals(selectedPreset);
-            views.setTextViewText(R.id.fan_widget_title, WidgetPreferences.loadFanName(context, deviceSlot()));
+            String fanName = WidgetPreferences.loadFanName(context, deviceSlot()).trim();
+            views.setTextViewText(R.id.fan_widget_title, fanName.isEmpty() ? "未命名" : fanName);
             views.setImageViewResource(R.id.fan_widget_icon, on ? R.drawable.ic_fan_on : R.drawable.ic_fan_off);
             views.setTextViewText(
                     R.id.fan_widget_state,
