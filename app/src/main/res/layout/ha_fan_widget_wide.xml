@@ -25,6 +25,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
+            android:id="@+id/fan_widget_title"
             android:text="@string/fan_panel_title"
             android:textColor="#1E293B"
             android:textSize="14sp"

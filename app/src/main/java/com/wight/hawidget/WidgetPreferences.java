@@ -64,7 +64,7 @@ final class WidgetPreferences {
 
     static String loadFanName(Context context, int slot) {
         return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-                .getString(FAN_NAME + slot, "风扇");
+                .getString(FAN_NAME + slot, "未命名风扇");
     }
 
     static void saveDevice(Context context, String url, String fanName) {
