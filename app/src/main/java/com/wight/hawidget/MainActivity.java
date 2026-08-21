@@ -29,8 +29,8 @@ public final class MainActivity extends Activity {
                 value = urls[i].getText().toString().trim();
                 while (value.endsWith("/")) value = value.substring(0, value.length() - 1);
                 if (!value.isEmpty() && (value.startsWith("http://") || value.startsWith("https://"))) {
-                    String name = names[i].getText().toString().trim();
-                    WidgetPreferences.saveDevice(this, i, value, name.isEmpty() ? "设备 " + (i + 1) : name);
+                    String deviceName = names[i].getText().toString().trim();
+                    WidgetPreferences.saveDevice(this, i, value, deviceName.isEmpty() ? "设备 " + (i + 1) : deviceName);
                 }
             }
             if (!WidgetPreferences.loadEspHomeUrl(this).isEmpty()) {
