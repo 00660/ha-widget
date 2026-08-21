@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
-import android.view.View;
 import android.widget.RemoteViews;
 
 import java.io.IOException;
@@ -259,16 +258,14 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
     private void renderSpeedRing(Context context, RemoteViews views, EspHomeClient.FanState state) {
         int percentage = state != null && state.available ? state.percentage : -1;
         if (percentage < 1 || percentage > 100) {
-            views.setViewVisibility(R.id.fan_speed_progress, View.INVISIBLE);
             return;
         }
         int progressDrawable = context.getResources().getIdentifier(
-                String.format("fan_horseshoe_marker_%03d", percentage),
+                String.format("fan_circle_marker_%03d", percentage),
                 "drawable",
                 context.getPackageName()
         );
-        views.setImageViewResource(R.id.fan_speed_progress, progressDrawable);
-        views.setViewVisibility(R.id.fan_speed_progress, View.VISIBLE);
+        views.setImageViewResource(R.id.fan_speed_marker, progressDrawable);
     }
 
     private PendingIntent commandIntent(Context context, String action, int appWidgetId) {
