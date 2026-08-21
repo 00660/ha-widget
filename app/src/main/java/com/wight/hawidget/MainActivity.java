@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 public final class MainActivity extends Activity {
@@ -25,11 +26,15 @@ public final class MainActivity extends Activity {
         }
         Button save = findViewById(R.id.save_device);
         View root = findViewById(R.id.settings_root);
+        ScrollView scroll = findViewById(R.id.settings_scroll);
+        View.OnFocusChangeListener focusListener = (view, hasFocus) -> {
+            if (hasFocus) view.postDelayed(() -> ensureVisible((EditText) view, scroll), 180);
+        };
+        for (EditText field : urls) field.setOnFocusChangeListener(focusListener);
+        for (EditText field : names) field.setOnFocusChangeListener(focusListener);
         root.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
-            Rect visibleFrame = new Rect();
-            root.getWindowVisibleDisplayFrame(visibleFrame);
-            int keyboardHeight = root.getRootView().getHeight() - visibleFrame.bottom;
-            save.setTranslationY(keyboardHeight > root.getHeight() / 5 ? -keyboardHeight : 0);
+            View focused = root.findFocus();
+            if (focused instanceof EditText) ensureVisible((EditText) focused, scroll);
         });
         save.setOnClickListener(view -> {
             String value = url.getText().toString().trim();
@@ -55,5 +60,15 @@ public final class MainActivity extends Activity {
 
     private void setUrlText(EditText field, String value) {
         field.setText(value == null || value.isEmpty() ? "http://" : value);
+    }
+
+    private void ensureVisible(EditText field, ScrollView scroll) {
+        Rect visible = new Rect();
+        field.getWindowVisibleDisplayFrame(visible);
+        Rect fieldRect = new Rect();
+        field.getGlobalVisibleRect(fieldRect);
+        int keyboardTop = visible.bottom;
+        int delta = fieldRect.bottom - keyboardTop + 28;
+        if (delta > 0) scroll.smoothScrollBy(0, delta);
     }
 }
