@@ -263,7 +263,7 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
             return;
         }
         int progressDrawable = context.getResources().getIdentifier(
-                String.format("fan_ring_progress_%03d", percentage),
+                String.format("fan_horseshoe_marker_%03d", percentage),
                 "drawable",
                 context.getPackageName()
         );
