@@ -80,7 +80,7 @@ final class EspHomeWebClient {
         int level = Integer.parseInt(match(SPEED_LEVEL, json, "0"));
         int count = Integer.parseInt(match(SPEED_COUNT, json, "0"));
         boolean oscillation = Boolean.parseBoolean(match(OSCILLATION, json, "false"));
-        int percentage = count == 3 ? level * 33 : level;
+        int percentage = count == 3 ? (level >= 3 ? 100 : level * 33) : level;
         if (percentage > 100) percentage = 100;
         return new EspHomeClient.FanState(on, true, percentage, "", count, oscillation, false);
     }
