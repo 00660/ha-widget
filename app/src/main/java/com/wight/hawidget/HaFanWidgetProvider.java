@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public final class HaFanWidgetProvider extends AppWidgetProvider {
+public class HaFanWidgetProvider extends AppWidgetProvider {
     private static final String ACTION_TOGGLE = "com.wight.hawidget.FAN_TOGGLE";
     private static final String ACTION_NATURAL = "com.wight.hawidget.FAN_NATURAL";
     private static final String ACTION_SLEEP = "com.wight.hawidget.FAN_SLEEP";
