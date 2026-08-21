@@ -78,700 +78,800 @@
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="68dp"
-                    android:layout_marginTop="3dp" />
+                    android:layout_marginTop="3dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_002"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="72dp"
-                    android:layout_marginTop="3dp" />
+                    android:layout_marginTop="3dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_003"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="76dp"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_004"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="80dp"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_005"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="84dp"
-                    android:layout_marginTop="5dp" />
+                    android:layout_marginTop="5dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_006"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="88dp"
-                    android:layout_marginTop="6dp" />
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_007"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="92dp"
-                    android:layout_marginTop="8dp" />
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_008"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="96dp"
-                    android:layout_marginTop="9dp" />
+                    android:layout_marginTop="9dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_009"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="99dp"
-                    android:layout_marginTop="11dp" />
+                    android:layout_marginTop="11dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_010"
-                    android:layout_width="4dp"
-                    android:layout_height="4dp"
-                    android:layout_marginStart="103dp"
-                    android:layout_marginTop="13dp" />
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginStart="101dp"
+                    android:layout_marginTop="11dp"
+                    android:background="@drawable/fan_ring_tick_major" />
 
                 <View
                     android:id="@+id/fan_speed_011"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="106dp"
-                    android:layout_marginTop="15dp" />
+                    android:layout_marginTop="15dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_012"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="109dp"
-                    android:layout_marginTop="18dp" />
+                    android:layout_marginTop="18dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_013"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="112dp"
-                    android:layout_marginTop="21dp" />
+                    android:layout_marginTop="21dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_014"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="115dp"
-                    android:layout_marginTop="24dp" />
+                    android:layout_marginTop="24dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_015"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="118dp"
-                    android:layout_marginTop="27dp" />
+                    android:layout_marginTop="27dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_016"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="121dp"
-                    android:layout_marginTop="30dp" />
+                    android:layout_marginTop="30dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_017"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="123dp"
-                    android:layout_marginTop="33dp" />
+                    android:layout_marginTop="33dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_018"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="125dp"
-                    android:layout_marginTop="37dp" />
+                    android:layout_marginTop="37dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_019"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="127dp"
-                    android:layout_marginTop="40dp" />
+                    android:layout_marginTop="40dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_020"
-                    android:layout_width="4dp"
-                    android:layout_height="4dp"
-                    android:layout_marginStart="128dp"
-                    android:layout_marginTop="44dp" />
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginStart="126dp"
+                    android:layout_marginTop="42dp"
+                    android:background="@drawable/fan_ring_tick_major" />
 
                 <View
                     android:id="@+id/fan_speed_021"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="130dp"
-                    android:layout_marginTop="48dp" />
+                    android:layout_marginTop="48dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_022"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="131dp"
-                    android:layout_marginTop="52dp" />
+                    android:layout_marginTop="52dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_023"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="132dp"
-                    android:layout_marginTop="56dp" />
+                    android:layout_marginTop="56dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_024"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="132dp"
-                    android:layout_marginTop="60dp" />
+                    android:layout_marginTop="60dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_025"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="133dp"
-                    android:layout_marginTop="64dp" />
+                    android:layout_marginTop="64dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_026"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="133dp"
-                    android:layout_marginTop="68dp" />
+                    android:layout_marginTop="68dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_027"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="133dp"
-                    android:layout_marginTop="72dp" />
+                    android:layout_marginTop="72dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_028"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="132dp"
-                    android:layout_marginTop="76dp" />
+                    android:layout_marginTop="76dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_029"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="132dp"
-                    android:layout_marginTop="80dp" />
+                    android:layout_marginTop="80dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_030"
-                    android:layout_width="4dp"
-                    android:layout_height="4dp"
-                    android:layout_marginStart="131dp"
-                    android:layout_marginTop="84dp" />
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginStart="129dp"
+                    android:layout_marginTop="82dp"
+                    android:background="@drawable/fan_ring_tick_major" />
 
                 <View
                     android:id="@+id/fan_speed_031"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="130dp"
-                    android:layout_marginTop="88dp" />
+                    android:layout_marginTop="88dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_032"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="128dp"
-                    android:layout_marginTop="92dp" />
+                    android:layout_marginTop="92dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_033"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="127dp"
-                    android:layout_marginTop="96dp" />
+                    android:layout_marginTop="96dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_034"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="125dp"
-                    android:layout_marginTop="99dp" />
+                    android:layout_marginTop="99dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_035"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="123dp"
-                    android:layout_marginTop="103dp" />
+                    android:layout_marginTop="103dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_036"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="121dp"
-                    android:layout_marginTop="106dp" />
+                    android:layout_marginTop="106dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_037"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="118dp"
-                    android:layout_marginTop="109dp" />
+                    android:layout_marginTop="109dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_038"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="115dp"
-                    android:layout_marginTop="112dp" />
+                    android:layout_marginTop="112dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_039"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="112dp"
-                    android:layout_marginTop="115dp" />
+                    android:layout_marginTop="115dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_040"
-                    android:layout_width="4dp"
-                    android:layout_height="4dp"
-                    android:layout_marginStart="109dp"
-                    android:layout_marginTop="118dp" />
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginStart="107dp"
+                    android:layout_marginTop="116dp"
+                    android:background="@drawable/fan_ring_tick_major" />
 
                 <View
                     android:id="@+id/fan_speed_041"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="106dp"
-                    android:layout_marginTop="121dp" />
+                    android:layout_marginTop="121dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_042"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="103dp"
-                    android:layout_marginTop="123dp" />
+                    android:layout_marginTop="123dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_043"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="99dp"
-                    android:layout_marginTop="125dp" />
+                    android:layout_marginTop="125dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_044"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="96dp"
-                    android:layout_marginTop="127dp" />
+                    android:layout_marginTop="127dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_045"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="92dp"
-                    android:layout_marginTop="128dp" />
+                    android:layout_marginTop="128dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_046"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="88dp"
-                    android:layout_marginTop="130dp" />
+                    android:layout_marginTop="130dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_047"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="84dp"
-                    android:layout_marginTop="131dp" />
+                    android:layout_marginTop="131dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_048"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="80dp"
-                    android:layout_marginTop="132dp" />
+                    android:layout_marginTop="132dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_049"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="76dp"
-                    android:layout_marginTop="132dp" />
+                    android:layout_marginTop="132dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_050"
-                    android:layout_width="4dp"
-                    android:layout_height="4dp"
-                    android:layout_marginStart="72dp"
-                    android:layout_marginTop="133dp" />
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginStart="70dp"
+                    android:layout_marginTop="131dp"
+                    android:background="@drawable/fan_ring_tick_major" />
 
                 <View
                     android:id="@+id/fan_speed_051"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="68dp"
-                    android:layout_marginTop="133dp" />
+                    android:layout_marginTop="133dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_052"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="64dp"
-                    android:layout_marginTop="133dp" />
+                    android:layout_marginTop="133dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_053"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="60dp"
-                    android:layout_marginTop="132dp" />
+                    android:layout_marginTop="132dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_054"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="56dp"
-                    android:layout_marginTop="132dp" />
+                    android:layout_marginTop="132dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_055"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="52dp"
-                    android:layout_marginTop="131dp" />
+                    android:layout_marginTop="131dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_056"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="48dp"
-                    android:layout_marginTop="130dp" />
+                    android:layout_marginTop="130dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_057"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="44dp"
-                    android:layout_marginTop="128dp" />
+                    android:layout_marginTop="128dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_058"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="40dp"
-                    android:layout_marginTop="127dp" />
+                    android:layout_marginTop="127dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_059"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="37dp"
-                    android:layout_marginTop="125dp" />
+                    android:layout_marginTop="125dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_060"
-                    android:layout_width="4dp"
-                    android:layout_height="4dp"
-                    android:layout_marginStart="33dp"
-                    android:layout_marginTop="123dp" />
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginStart="31dp"
+                    android:layout_marginTop="121dp"
+                    android:background="@drawable/fan_ring_tick_major" />
 
                 <View
                     android:id="@+id/fan_speed_061"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="30dp"
-                    android:layout_marginTop="121dp" />
+                    android:layout_marginTop="121dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_062"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="27dp"
-                    android:layout_marginTop="118dp" />
+                    android:layout_marginTop="118dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_063"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="24dp"
-                    android:layout_marginTop="115dp" />
+                    android:layout_marginTop="115dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_064"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="21dp"
-                    android:layout_marginTop="112dp" />
+                    android:layout_marginTop="112dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_065"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="18dp"
-                    android:layout_marginTop="109dp" />
+                    android:layout_marginTop="109dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_066"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="15dp"
-                    android:layout_marginTop="106dp" />
+                    android:layout_marginTop="106dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_067"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="13dp"
-                    android:layout_marginTop="103dp" />
+                    android:layout_marginTop="103dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_068"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="11dp"
-                    android:layout_marginTop="99dp" />
+                    android:layout_marginTop="99dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_069"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="9dp"
-                    android:layout_marginTop="96dp" />
+                    android:layout_marginTop="96dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_070"
-                    android:layout_width="4dp"
-                    android:layout_height="4dp"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginTop="92dp" />
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginTop="90dp"
+                    android:background="@drawable/fan_ring_tick_major" />
 
                 <View
                     android:id="@+id/fan_speed_071"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="6dp"
-                    android:layout_marginTop="88dp" />
+                    android:layout_marginTop="88dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_072"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="5dp"
-                    android:layout_marginTop="84dp" />
+                    android:layout_marginTop="84dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_073"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="4dp"
-                    android:layout_marginTop="80dp" />
+                    android:layout_marginTop="80dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_074"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="4dp"
-                    android:layout_marginTop="76dp" />
+                    android:layout_marginTop="76dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_075"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="3dp"
-                    android:layout_marginTop="72dp" />
+                    android:layout_marginTop="72dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_076"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="3dp"
-                    android:layout_marginTop="68dp" />
+                    android:layout_marginTop="68dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_077"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="3dp"
-                    android:layout_marginTop="64dp" />
+                    android:layout_marginTop="64dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_078"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="4dp"
-                    android:layout_marginTop="60dp" />
+                    android:layout_marginTop="60dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_079"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="4dp"
-                    android:layout_marginTop="56dp" />
+                    android:layout_marginTop="56dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_080"
-                    android:layout_width="4dp"
-                    android:layout_height="4dp"
-                    android:layout_marginStart="5dp"
-                    android:layout_marginTop="52dp" />
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginTop="50dp"
+                    android:background="@drawable/fan_ring_tick_major" />
 
                 <View
                     android:id="@+id/fan_speed_081"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="6dp"
-                    android:layout_marginTop="48dp" />
+                    android:layout_marginTop="48dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_082"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="8dp"
-                    android:layout_marginTop="44dp" />
+                    android:layout_marginTop="44dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_083"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="9dp"
-                    android:layout_marginTop="40dp" />
+                    android:layout_marginTop="40dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_084"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="11dp"
-                    android:layout_marginTop="37dp" />
+                    android:layout_marginTop="37dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_085"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="13dp"
-                    android:layout_marginTop="33dp" />
+                    android:layout_marginTop="33dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_086"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="15dp"
-                    android:layout_marginTop="30dp" />
+                    android:layout_marginTop="30dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_087"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="18dp"
-                    android:layout_marginTop="27dp" />
+                    android:layout_marginTop="27dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_088"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="21dp"
-                    android:layout_marginTop="24dp" />
+                    android:layout_marginTop="24dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_089"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="24dp"
-                    android:layout_marginTop="21dp" />
+                    android:layout_marginTop="21dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_090"
-                    android:layout_width="4dp"
-                    android:layout_height="4dp"
-                    android:layout_marginStart="27dp"
-                    android:layout_marginTop="18dp" />
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginStart="25dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/fan_ring_tick_major" />
 
                 <View
                     android:id="@+id/fan_speed_091"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="30dp"
-                    android:layout_marginTop="15dp" />
+                    android:layout_marginTop="15dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_092"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="33dp"
-                    android:layout_marginTop="13dp" />
+                    android:layout_marginTop="13dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_093"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="37dp"
-                    android:layout_marginTop="11dp" />
+                    android:layout_marginTop="11dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_094"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="40dp"
-                    android:layout_marginTop="9dp" />
+                    android:layout_marginTop="9dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_095"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="44dp"
-                    android:layout_marginTop="8dp" />
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_096"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="48dp"
-                    android:layout_marginTop="6dp" />
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_097"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="52dp"
-                    android:layout_marginTop="5dp" />
+                    android:layout_marginTop="5dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_098"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="56dp"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_099"
                     android:layout_width="4dp"
                     android:layout_height="4dp"
                     android:layout_marginStart="60dp"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/fan_ring_tick" />
 
                 <View
                     android:id="@+id/fan_speed_100"
-                    android:layout_width="4dp"
-                    android:layout_height="4dp"
-                    android:layout_marginStart="64dp"
-                    android:layout_marginTop="3dp" />
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginStart="62dp"
+                    android:layout_marginTop="1dp"
+                    android:background="@drawable/fan_ring_tick_major" />
             </FrameLayout>
 
             <TextView
@@ -914,4 +1014,3 @@
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
-

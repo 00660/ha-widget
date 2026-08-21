@@ -186,6 +186,7 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
             );
             views.setTextViewText(R.id.fan_widget_speed, speedText(context, state));
             views.setTextViewText(R.id.fan_speed_tile_value, speedValue(context, state));
+            renderSpeedRing(views, state);
             views.setInt(
                     R.id.fan_widget_connection_dot,
                     "setBackgroundResource",
@@ -252,6 +253,20 @@ public final class HaFanWidgetProvider extends AppWidgetProvider {
             return "--";
         }
         return context.getString(R.string.speed_widget_percent, state.percentage);
+    }
+
+    private void renderSpeedRing(RemoteViews views, EspHomeClient.FanState state) {
+        int percentage = state != null && state.available ? state.percentage : -1;
+        for (int speed = 1; speed <= 100; speed++) {
+            int drawable = speed == percentage
+                    ? R.drawable.fan_ring_tick_current
+                    : percentage >= speed
+                            ? R.drawable.fan_ring_tick_active
+                            : speed % 10 == 0
+                                    ? R.drawable.fan_ring_tick_major
+                                    : R.drawable.fan_ring_tick;
+            views.setInt(SPEED_ZONE_IDS[speed - 1], "setBackgroundResource", drawable);
+        }
     }
 
     private PendingIntent commandIntent(Context context, String action, int appWidgetId) {
