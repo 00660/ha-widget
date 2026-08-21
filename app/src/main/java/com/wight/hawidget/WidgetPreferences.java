@@ -50,20 +50,32 @@ final class WidgetPreferences {
     }
 
     static String loadEspHomeUrl(Context context) {
+        return loadEspHomeUrl(context, 0);
+    }
+
+    static String loadEspHomeUrl(Context context, int slot) {
         return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-                .getString(ESPHOME_URL, "http://192.168.2.64");
+                .getString(ESPHOME_URL + slot, slot == 0 ? "http://192.168.2.64" : "");
     }
 
     static String loadFanName(Context context) {
+        return loadFanName(context, 0);
+    }
+
+    static String loadFanName(Context context, int slot) {
         return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-                .getString(FAN_NAME, "风扇");
+                .getString(FAN_NAME + slot, "风扇");
     }
 
     static void saveDevice(Context context, String url, String fanName) {
+        saveDevice(context, 0, url, fanName);
+    }
+
+    static void saveDevice(Context context, int slot, String url, String fanName) {
         context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
                 .edit()
-                .putString(ESPHOME_URL, url)
-                .putString(FAN_NAME, fanName)
+                .putString(ESPHOME_URL + slot, url)
+                .putString(FAN_NAME + slot, fanName)
                 .apply();
     }
 }

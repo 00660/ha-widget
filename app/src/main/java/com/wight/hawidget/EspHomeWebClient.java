@@ -25,8 +25,12 @@ final class EspHomeWebClient {
     }
 
     static EspHomeClient.FanState fetchFanState(Context context) throws IOException {
-        String baseUrl = WidgetPreferences.loadEspHomeUrl(context);
-        String fanName = WidgetPreferences.loadFanName(context);
+        return fetchFanState(context, 0);
+    }
+
+    static EspHomeClient.FanState fetchFanState(Context context, int slot) throws IOException {
+        String baseUrl = WidgetPreferences.loadEspHomeUrl(context, slot);
+        String fanName = WidgetPreferences.loadFanName(context, slot);
         HttpURLConnection connection = open(baseUrl + "/events");
         connection.setRequestProperty("Accept", "text/event-stream");
         try (InputStream input = connection.getInputStream();
@@ -44,23 +48,31 @@ final class EspHomeWebClient {
     }
 
     static void toggleFan(Context context) throws IOException {
-        EspHomeClient.FanState state = fetchFanState(context);
-        postFan(context, state.on ? "turn_off" : "turn_on", null);
+        toggleFan(context, 0);
+    }
+
+    static void toggleFan(Context context, int slot) throws IOException {
+        EspHomeClient.FanState state = fetchFanState(context, slot);
+        postFan(context, slot, state.on ? "turn_off" : "turn_on", null);
     }
 
     static void setFanPercentage(Context context, int percentage) throws IOException {
+        setFanPercentage(context, 0, percentage);
+    }
+
+    static void setFanPercentage(Context context, int slot, int percentage) throws IOException {
         int clamped = Math.max(0, Math.min(100, percentage));
         if (clamped == 0) {
-            postFan(context, "turn_off", null);
+            postFan(context, slot, "turn_off", null);
             return;
         }
         int level = clamped <= 33 ? 1 : clamped <= 66 ? 2 : 3;
-        postFan(context, "turn_on", "speed_level=" + level);
+        postFan(context, slot, "turn_on", "speed_level=" + level);
     }
 
-    private static void postFan(Context context, String action, String query) throws IOException {
-        String url = WidgetPreferences.loadEspHomeUrl(context) + "/fan/"
-                + encode(WidgetPreferences.loadFanName(context)) + "/" + action;
+    private static void postFan(Context context, int slot, String action, String query) throws IOException {
+        String url = WidgetPreferences.loadEspHomeUrl(context, slot) + "/fan/"
+                + encode(WidgetPreferences.loadFanName(context, slot)) + "/" + action;
         if (query != null) {
             url += "?" + query;
         }

@@ -22,12 +22,24 @@ final class EspHomeClient {
         return EspHomeWebClient.fetchFanState(context);
     }
 
+    static FanState fetchFanState(Context context, int slot) throws IOException {
+        return EspHomeWebClient.fetchFanState(context, slot);
+    }
+
     static void toggleFan(Context context) throws IOException {
         EspHomeWebClient.toggleFan(context);
     }
 
+    static void toggleFan(Context context, int slot) throws IOException {
+        EspHomeWebClient.toggleFan(context, slot);
+    }
+
     static void setFanPercentage(Context context, int percentage) throws IOException {
         EspHomeWebClient.setFanPercentage(context, percentage);
+    }
+
+    static void setFanPercentage(Context context, int slot, int percentage) throws IOException {
+        EspHomeWebClient.setFanPercentage(context, slot, percentage);
     }
 
     private static void sendCommand(byte[] command) throws IOException {

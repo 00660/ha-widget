@@ -1,2 +1,2 @@
 package com.wight.hawidget;
-public final class ESPHomeFanWidgetProvider4 extends HaFanWidgetProvider {}
+public final class ESPHomeFanWidgetProvider4 extends HaFanWidgetProvider { @Override protected int deviceSlot() { return 4; } }
