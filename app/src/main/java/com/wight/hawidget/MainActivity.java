@@ -28,7 +28,10 @@ public final class MainActivity extends Activity {
         View root = findViewById(R.id.settings_root);
         ScrollView scroll = findViewById(R.id.settings_scroll);
         View.OnFocusChangeListener focusListener = (view, hasFocus) -> {
-            if (hasFocus) view.postDelayed(() -> ensureVisible((EditText) view, scroll), 180);
+            if (hasFocus) view.postDelayed(() -> {
+                scroll.fullScroll(View.FOCUS_DOWN);
+                ensureVisible((EditText) view, scroll);
+            }, 260);
         };
         for (EditText field : urls) field.setOnFocusChangeListener(focusListener);
         for (EditText field : names) field.setOnFocusChangeListener(focusListener);
