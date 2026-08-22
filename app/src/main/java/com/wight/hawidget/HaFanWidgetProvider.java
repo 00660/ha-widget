@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 import java.io.IOException;
@@ -112,7 +113,8 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
                     EspHomeClient.setFanPercentage(applicationContext, deviceSlot(), speed);
                     WidgetPreferences.saveBaseSpeed(applicationContext, speed);
                 }
-            } catch (IOException ignored) {
+            } catch (IOException exception) {
+                Log.e("HaFanWidget", "fan command failed for slot " + deviceSlot(), exception);
             }
             refresh(applicationContext);
             pendingResult.finish();
