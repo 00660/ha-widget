@@ -10,35 +10,12 @@
     android:paddingEnd="8dp"
     android:paddingBottom="6dp">
 
-    <ImageView
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:background="@drawable/fan_title_badge"
-        android:contentDescription="@string/fan_widget_name"
-        android:padding="6dp"
-        android:src="@drawable/ic_fan_on" />
-
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="6dp"
-        android:layout_weight="1.00"
-        android:gravity="center_vertical"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/fan_widget_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="@string/fan_panel_title"
-            android:textColor="#1E293B"
-            android:textSize="13sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <!-- Kept invisible for shared provider compatibility; no status is shown. -->
+    <!-- Kept invisible for shared provider compatibility; this widget is controls-only. -->
+    <TextView
+        android:id="@+id/fan_widget_title"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:visibility="gone" />
     <TextView
         android:id="@+id/fan_widget_state"
         android:layout_width="1dp"
