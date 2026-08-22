@@ -59,7 +59,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
         if (ids.length == 0) {
             return;
         }
-        Intent intent = new Intent(context, HaFanWidgetProvider.class)
+        Intent intent = new Intent(context, getClass())
                 .setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
                 .putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
         context.sendBroadcast(intent);
@@ -286,7 +286,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
     }
 
     private PendingIntent commandIntent(Context context, String action, int appWidgetId) {
-        Intent intent = new Intent(context, HaFanWidgetProvider.class)
+        Intent intent = new Intent(context, getClass())
                 .setAction(action)
                 .setData(Uri.parse("hawidget://" + context.getPackageName() + "/" + appWidgetId + "/" + action));
         return PendingIntent.getBroadcast(
