@@ -131,7 +131,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
         int[] ids = manager.getAppWidgetIds(new ComponentName(context, getClass()));
         boolean naturalWind = ACTION_NATURAL.equals(action);
         for (int id : ids) {
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ha_fan_widget);
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ha_fan_widget_wide);
             views.setInt(
                     R.id.fan_natural_button,
                     "setBackgroundResource",
@@ -181,7 +181,9 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
     private void render(AppWidgetManager manager, Context context, int[] ids, EspHomeClient.FanState state) {
         String selectedPreset = selectedPreset(context, state);
         for (int id : ids) {
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ha_fan_widget);
+            int speedCount = state != null && state.available ? state.speedCount : 100;
+            int layout = speedCount == 3 ? R.layout.ha_fan_widget_wide : R.layout.ha_fan_widget;
+            RemoteViews views = new RemoteViews(context.getPackageName(), layout);
             boolean connected = state != null;
             boolean available = connected && state.available;
             boolean on = available && state.on;
@@ -199,7 +201,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             );
             views.setTextViewText(R.id.fan_widget_speed, speedText(context, state));
             views.setTextViewText(R.id.fan_speed_tile_value, speedValue(context, state));
-            renderSpeedRing(context, views, state);
+            if (speedCount != 3) renderSpeedRing(context, views, state);
             views.setInt(
                     R.id.fan_widget_connection_dot,
                     "setBackgroundResource",
@@ -233,23 +235,13 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             views.setOnClickPendingIntent(R.id.fan_power_tile, commandIntent(context, ACTION_TOGGLE, id));
             views.setOnClickPendingIntent(R.id.fan_natural_button, commandIntent(context, ACTION_NATURAL, id));
             views.setOnClickPendingIntent(R.id.fan_sleep_button, commandIntent(context, ACTION_SLEEP, id));
-            int speedCount = state != null && state.available ? state.speedCount : 100;
-            int[] discreteIds = {R.id.fan_discrete_speed_1, R.id.fan_discrete_speed_2, R.id.fan_discrete_speed_3};
-            for (int speed = 1; speed <= 100; speed++) {
-                if (speedCount == 3 && speed != 1 && speed != 2 && speed != 3) {
-                    views.setViewVisibility(SPEED_ZONE_IDS[speed - 1], View.GONE);
-                    continue;
-                }
-                views.setViewVisibility(SPEED_ZONE_IDS[speed - 1], View.VISIBLE);
-                views.setOnClickPendingIntent(
-                        SPEED_ZONE_IDS[speed - 1],
-                        speedCommandIntent(context, id, speed)
-                );
-            }
-            for (int speed = 1; speed <= 3; speed++) {
-                views.setViewVisibility(discreteIds[speed - 1], speedCount == 3 ? View.VISIBLE : View.GONE);
-                if (speedCount == 3) {
-                    views.setOnClickPendingIntent(discreteIds[speed - 1], speedCommandIntent(context, id, speed * 33));
+            if (speedCount == 3) {
+                views.setOnClickPendingIntent(R.id.fan_discrete_speed_1, speedCommandIntent(context, id, 33));
+                views.setOnClickPendingIntent(R.id.fan_discrete_speed_2, speedCommandIntent(context, id, 66));
+                views.setOnClickPendingIntent(R.id.fan_discrete_speed_3, speedCommandIntent(context, id, 100));
+            } else {
+                for (int speed = 1; speed <= 100; speed++) {
+                    views.setOnClickPendingIntent(SPEED_ZONE_IDS[speed - 1], speedCommandIntent(context, id, speed));
                 }
             }
             manager.updateAppWidget(id, views);
