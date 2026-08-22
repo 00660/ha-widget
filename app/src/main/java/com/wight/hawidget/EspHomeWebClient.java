@@ -80,6 +80,8 @@ final class EspHomeWebClient {
         connection.setDoOutput(true);
         connection.setFixedLengthStreamingMode(0);
         try {
+            connection.setRequestProperty("Content-Length", "0");
+            connection.getOutputStream().close();
             int responseCode = connection.getResponseCode();
             if (responseCode < 200 || responseCode >= 300) {
                 throw new IOException("ESPHome HTTP " + responseCode + " for " + url);
