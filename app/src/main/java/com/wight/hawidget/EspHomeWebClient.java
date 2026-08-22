@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +21,8 @@ final class EspHomeWebClient {
     private static final Pattern SPEED_LEVEL = Pattern.compile("\\\"speed_level\\\":(\\d+)");
     private static final Pattern SPEED_COUNT = Pattern.compile("\\\"speed_count\\\":(\\d+)");
     private static final Pattern OSCILLATION = Pattern.compile("\\\"oscillation\\\":(true|false)");
+    private static final ConcurrentHashMap<Integer, String> FAN_ENDPOINTS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, EspHomeClient.FanState> FAN_STATES = new ConcurrentHashMap<>();
 
     private EspHomeWebClient() {
     }
@@ -41,9 +44,12 @@ final class EspHomeWebClient {
                     EspHomeClient.FanState state = parseFanState(line.substring(6));
                     try {
                         LockState lock = fetchLockState(context, slot);
-                        return new EspHomeClient.FanState(state.on, state.available, state.percentage, state.presetMode,
+                        EspHomeClient.FanState result = new EspHomeClient.FanState(state.on, state.available, state.percentage, state.presetMode,
                                 state.speedCount, state.oscillation, lock.on, state.endpointName);
+                        cacheState(slot, result);
+                        return result;
                     } catch (IOException ignored) {
+                        cacheState(slot, state);
                         return state;
                     }
                 }
@@ -59,7 +65,8 @@ final class EspHomeWebClient {
     }
 
     static void toggleFan(Context context, int slot) throws IOException {
-        EspHomeClient.FanState state = fetchFanState(context, slot);
+        EspHomeClient.FanState state = FAN_STATES.get(slot);
+        if (state == null) state = fetchFanState(context, slot);
         postFan(context, slot, state.endpointName, state.on ? "turn_off" : "turn_on", null);
     }
 
@@ -103,10 +110,8 @@ final class EspHomeWebClient {
         String url = WidgetPreferences.loadEspHomeUrl(context, slot) + "/switch/" + encode(endpoint) + "/" + action;
         HttpURLConnection connection = open(url);
         connection.setRequestMethod("POST");
-        connection.setDoOutput(true);
-        connection.setFixedLengthStreamingMode(0);
+        connection.setDoOutput(false);
         connection.setRequestProperty("Content-Length", "0");
-        connection.getOutputStream().close();
         int code = connection.getResponseCode();
         connection.disconnect();
         if (code < 200 || code >= 300) throw new IOException("ESPHome HTTP " + code);
@@ -122,11 +127,9 @@ final class EspHomeWebClient {
         }
         HttpURLConnection connection = open(url);
         connection.setRequestMethod("POST");
-        connection.setDoOutput(true);
-        connection.setFixedLengthStreamingMode(0);
+        connection.setDoOutput(false);
         try {
             connection.setRequestProperty("Content-Length", "0");
-            connection.getOutputStream().close();
             int responseCode = connection.getResponseCode();
             if (responseCode < 200 || responseCode >= 300) {
                 throw new IOException("ESPHome HTTP " + responseCode + " for " + url);
@@ -138,7 +141,18 @@ final class EspHomeWebClient {
     }
 
     private static String discoverEndpoint(Context context, int slot) throws IOException {
+        String cached = FAN_ENDPOINTS.get(slot);
+        if (cached != null && !cached.isEmpty()) return cached;
         return fetchFanState(context, slot).endpointName;
+    }
+
+    private static void cacheState(int slot, EspHomeClient.FanState state) {
+        if (state != null) {
+            FAN_STATES.put(slot, state);
+            if (state.endpointName != null && !state.endpointName.isEmpty()) {
+                FAN_ENDPOINTS.put(slot, state.endpointName);
+            }
+        }
     }
 
     private static EspHomeClient.FanState parseFanState(String json) {
