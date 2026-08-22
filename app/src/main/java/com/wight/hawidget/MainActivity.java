@@ -9,6 +9,7 @@ import android.view.Gravity;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -97,10 +98,16 @@ public final class MainActivity extends Activity {
         address.setSingleLine(true);
         details.addView(address);
 
-        TextView control = text("编辑设备", 12, Color.rgb(15, 118, 110));
-        control.setGravity(Gravity.CENTER);
-        card.addView(control);
-        card.setOnClickListener(view -> showEditDevice(slot));
+        ImageView control = new ImageView(this);
+        control.setContentDescription("开关");
+        control.setImageResource(R.drawable.ic_power);
+        control.setPadding(12, 12, 12, 12);
+        control.setBackgroundResource(R.drawable.fan_control_primary);
+        LinearLayout.LayoutParams controlParams = new LinearLayout.LayoutParams(46, 46);
+        controlParams.gravity = Gravity.CENTER_HORIZONTAL;
+        card.addView(control, controlParams);
+        control.setOnClickListener(view -> toggleFromHome(slot, control));
+        card.setOnLongClickListener(view -> { showEditDevice(slot); return true; });
     }
 
     private TextView text(String value, int size, int color) {
@@ -109,6 +116,21 @@ public final class MainActivity extends Activity {
         view.setTextSize(size);
         view.setTextColor(color);
         return view;
+    }
+
+    private void toggleFromHome(int slot, ImageView control) {
+        control.setAlpha(0.45f);
+        scanExecutor.execute(() -> {
+            try {
+                EspHomeClient.toggleFan(this, slot);
+                runOnUiThread(() -> control.setAlpha(1f));
+            } catch (Exception exception) {
+                runOnUiThread(() -> {
+                    control.setAlpha(1f);
+                    Toast.makeText(this, "设备控制失败", Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
     private void showAddDevice() {
