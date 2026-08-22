@@ -215,6 +215,7 @@ public final class MainActivity extends Activity {
                     if (line.contains("\"domain\":\"light\"") || line.contains("\"id\":\"light-")) light = true;
                     java.util.regex.Matcher matcher = Pattern.compile("\\\"title\\\":\\\"([^\\\"]+)").matcher(line);
                     if (matcher.find()) name = matcher.group(1);
+                    if (fan || light) break;
                 }
             }
             if (!fan && !light) return null;
