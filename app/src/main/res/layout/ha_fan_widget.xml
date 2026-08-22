@@ -884,8 +884,8 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:contentDescription="@string/speed_title"
-                        android:src="@drawable/ic_wind" />
+                        android:contentDescription="@string/child_lock"
+                        android:src="@drawable/ic_lock" />
 
                     <TextView
                         android:layout_width="wrap_content"

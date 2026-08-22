@@ -35,6 +35,7 @@
     <string name="speed_widget_percent">%1$d%%</string>
     <string name="speed_unavailable">风速不可用</string>
     <string name="speed_title">风速调节</string>
+    <string name="child_lock">童锁</string>
     <string name="speed_hint">拖动滑块后保存</string>
     <string name="speed_save">设置风速</string>
     <string name="speed_saved">风速已更新</string>
