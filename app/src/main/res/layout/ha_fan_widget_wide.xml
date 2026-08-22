@@ -22,7 +22,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_weight="1.20"
+        android:layout_weight="1.00"
         android:orientation="vertical">
 
         <TextView
@@ -60,38 +60,38 @@
         android:id="@+id/fan_discrete_speed_1"
         android:layout_width="0dp"
         android:layout_height="48dp"
-        android:layout_weight="0.36"
+        android:layout_weight="0.30"
         android:gravity="center"
         android:text="1"
         android:textColor="#1E293B"
-        android:textSize="22sp" />
+        android:textSize="18sp" />
 
     <TextView
         android:id="@+id/fan_discrete_speed_2"
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:layout_marginStart="2dp"
-        android:layout_weight="0.40"
+        android:layout_weight="0.34"
         android:gravity="center"
         android:text="2"
         android:textColor="#1E293B"
-        android:textSize="22sp" />
+        android:textSize="18sp" />
 
     <TextView
         android:id="@+id/fan_discrete_speed_3"
         android:layout_width="0dp"
         android:layout_height="48dp"
-        android:layout_weight="0.36"
+        android:layout_weight="0.30"
         android:gravity="center"
         android:text="3"
         android:textColor="#1E293B"
-        android:textSize="22sp" />
+        android:textSize="18sp" />
 
     <LinearLayout
         android:id="@+id/fan_speed_tile"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:layout_weight="0.68"
+        android:layout_weight="0.50"
         android:gravity="center"
         android:orientation="vertical">
         <ImageView
@@ -104,14 +104,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#475569"
-            android:textSize="9sp" />
+            android:maxLines="1"
+            android:textSize="8sp" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/fan_natural_button"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:layout_weight="0.68"
+        android:layout_weight="0.50"
         android:gravity="center"
         android:orientation="vertical">
         <ImageView
@@ -126,14 +127,15 @@
             android:layout_height="wrap_content"
             android:text="@string/fan_natural"
             android:textColor="#475569"
-            android:textSize="9sp" />
+            android:maxLines="1"
+            android:textSize="8sp" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/fan_sleep_button"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:layout_weight="0.68"
+        android:layout_weight="0.50"
         android:gravity="center"
         android:orientation="vertical">
         <ImageView
@@ -148,14 +150,15 @@
             android:layout_height="wrap_content"
             android:text="@string/fan_sleep"
             android:textColor="#475569"
-            android:textSize="9sp" />
+            android:maxLines="1"
+            android:textSize="8sp" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/fan_power_tile"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:layout_weight="0.68"
+        android:layout_weight="0.50"
         android:gravity="center"
         android:orientation="vertical">
         <ImageView
@@ -170,7 +173,8 @@
             android:layout_height="wrap_content"
             android:text="@string/fan_power"
             android:textColor="#475569"
-            android:textSize="9sp" />
+            android:maxLines="1"
+            android:textSize="8sp" />
     </LinearLayout>
 
     <TextView

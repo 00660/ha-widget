@@ -77,11 +77,10 @@ public final class MainActivity extends Activity {
         cardParams.setMargins(slot % 2 == 0 ? 0 : 6, 0, slot % 2 == 0 ? 6 : 0, 12);
         grid.addView(card, cardParams);
 
-        TextView icon = new TextView(this);
-        icon.setText("风");
-        icon.setGravity(Gravity.CENTER);
-        icon.setTextColor(Color.WHITE);
-        icon.setTextSize(17);
+        ImageView icon = new ImageView(this);
+        icon.setContentDescription("风扇");
+        icon.setImageResource(R.drawable.ic_fan_on);
+        icon.setPadding(13, 13, 13, 13);
         icon.setBackgroundResource(R.drawable.fan_control_primary);
         card.addView(icon, new LinearLayout.LayoutParams(50, 50));
 
