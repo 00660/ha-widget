@@ -59,7 +59,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
         if (ids.length == 0) {
             return;
         }
-        Intent intent = new Intent(context, getClass())
+        Intent intent = new Intent(context, HaFanWidgetProvider.class)
                 .setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
                 .putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
         context.sendBroadcast(intent);
@@ -298,7 +298,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
     }
 
     private PendingIntent speedCommandIntent(Context context, int appWidgetId, int speed) {
-        Intent intent = new Intent(context, HaFanWidgetProvider.class)
+        Intent intent = new Intent(context, getClass())
                 .setAction(ACTION_SET_SPEED)
                 .setData(Uri.parse(
                         "hawidget://" + context.getPackageName() + "/" + appWidgetId + "/speed/" + speed
