@@ -54,8 +54,15 @@ final class WidgetPreferences {
     }
 
     static String loadEspHomeUrl(Context context, int slot) {
+        String[] defaults = {
+                "http://192.168.2.64",
+                "http://192.168.2.62",
+                "http://192.168.2.10",
+                "http://192.168.2.199",
+                ""
+        };
         return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-                .getString(ESPHOME_URL + slot, slot == 0 ? "http://192.168.2.64" : "");
+                .getString(ESPHOME_URL + slot, defaults[Math.max(0, Math.min(slot, defaults.length - 1))]);
     }
 
     static String loadFanName(Context context) {
@@ -63,8 +70,9 @@ final class WidgetPreferences {
     }
 
     static String loadFanName(Context context, int slot) {
+        String[] defaults = {"风扇 64", "风扇 62", "风扇 10", "风扇 199", ""};
         return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-                .getString(FAN_NAME + slot, "");
+                .getString(FAN_NAME + slot, defaults[Math.max(0, Math.min(slot, defaults.length - 1))]);
     }
 
     static void saveDevice(Context context, String url, String fanName) {
