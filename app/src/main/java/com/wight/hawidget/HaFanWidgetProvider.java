@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 
 public class HaFanWidgetProvider extends AppWidgetProvider {
     protected int deviceSlot() { return 0; }
+    protected boolean isDiscreteWidget() { return false; }
     private static final String ACTION_TOGGLE = "com.wight.hawidget.FAN_TOGGLE";
     private static final String ACTION_NATURAL = "com.wight.hawidget.FAN_NATURAL";
     private static final String ACTION_SLEEP = "com.wight.hawidget.FAN_SLEEP";
@@ -206,8 +207,8 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
     private void render(AppWidgetManager manager, Context context, int[] ids, EspHomeClient.FanState state) {
         String selectedPreset = selectedPreset(context, state);
         for (int id : ids) {
-            int speedCount = state != null && state.available ? state.speedCount : 100;
-            int layout = speedCount == 3 ? R.layout.ha_fan_widget_wide : R.layout.ha_fan_widget;
+            int speedCount = state != null && state.available ? state.speedCount : (isDiscreteWidget() ? 3 : 100);
+            int layout = isDiscreteWidget() || speedCount == 3 ? R.layout.ha_fan_widget_wide : R.layout.ha_fan_widget;
             RemoteViews views = new RemoteViews(context.getPackageName(), layout);
             boolean connected = state != null;
             boolean available = connected && state.available;
