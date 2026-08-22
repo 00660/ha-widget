@@ -66,6 +66,14 @@
                 android:background="@drawable/fan_hero_background">
 
                 <ImageView
+                    android:id="@+id/fan_speed_marker"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="5dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/fan_circle_track" />
+
+                <ImageView
                     android:id="@+id/fan_widget_icon"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -79,6 +87,46 @@
                     android:layout_height="3dp"
                     android:layout_marginStart="49dp"
                     android:layout_marginTop="2dp" />
+
+                <TextView
+                    android:id="@+id/fan_discrete_speed_1"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="-30dp"
+                    android:layout_marginTop="-42dp"
+                    android:gravity="center"
+                    android:text="1"
+                    android:textColor="#2563EB"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/fan_discrete_speed_2"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="2"
+                    android:textColor="#2563EB"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/fan_discrete_speed_3"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="30dp"
+                    android:layout_marginTop="42dp"
+                    android:gravity="center"
+                    android:text="3"
+                    android:textColor="#2563EB"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
 
                 <View
                     android:id="@+id/fan_speed_002"
