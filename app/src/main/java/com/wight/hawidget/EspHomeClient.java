@@ -42,6 +42,10 @@ final class EspHomeClient {
         EspHomeWebClient.setFanPercentage(context, slot, percentage);
     }
 
+    static void toggleChildLock(Context context, int slot) throws IOException {
+        EspHomeWebClient.toggleChildLock(context, slot);
+    }
+
     private static void sendCommand(byte[] command) throws IOException {
         try (Session session = Session.open()) {
             session.send(31, command);

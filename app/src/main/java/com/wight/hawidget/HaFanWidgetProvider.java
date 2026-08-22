@@ -23,6 +23,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
     private static final String ACTION_NATURAL = "com.wight.hawidget.FAN_NATURAL";
     private static final String ACTION_SLEEP = "com.wight.hawidget.FAN_SLEEP";
     private static final String ACTION_SET_SPEED = "com.wight.hawidget.FAN_SET_SPEED";
+    private static final String ACTION_LOCK = "com.wight.hawidget.FAN_LOCK";
     private static final String EXTRA_SPEED = "speed";
     private static final String NATURAL_PRESET = "自然风";
     private static final String SLEEP_PRESET = "睡眠风";
@@ -87,11 +88,22 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
         return ACTION_TOGGLE.equals(action)
                 || ACTION_NATURAL.equals(action)
                 || ACTION_SLEEP.equals(action)
-                || ACTION_SET_SPEED.equals(action);
+                || ACTION_SET_SPEED.equals(action)
+                || ACTION_LOCK.equals(action);
     }
 
     private void runCommand(Context context, String action, int speed) {
         Context applicationContext = context.getApplicationContext();
+        BroadcastReceiver.PendingResult pendingResult = goAsync();
+        if (ACTION_LOCK.equals(action)) {
+            NETWORK_EXECUTOR.execute(() -> {
+                try { EspHomeClient.toggleChildLock(applicationContext, deviceSlot()); }
+                catch (IOException exception) { Log.e("HaFanWidget", "child lock failed", exception); }
+                refresh(applicationContext);
+                pendingResult.finish();
+            });
+            return;
+        }
         if (ACTION_NATURAL.equals(action) || ACTION_SLEEP.equals(action)) {
             String mode = ACTION_NATURAL.equals(action)
                     ? FanModeService.MODE_NATURAL : FanModeService.MODE_SLEEP;
@@ -105,7 +117,6 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
                     .setAction(FanModeService.ACTION_STOP));
             WidgetPreferences.saveMode(applicationContext, "");
         }
-        BroadcastReceiver.PendingResult pendingResult = goAsync();
         NETWORK_EXECUTOR.execute(() -> {
             try {
                 if (ACTION_TOGGLE.equals(action)) {
@@ -200,7 +211,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
                     )
             );
             views.setTextViewText(R.id.fan_widget_speed, speedText(context, state));
-            views.setTextViewText(R.id.fan_speed_tile_value, speedValue(context, state));
+            views.setTextViewText(R.id.fan_speed_tile_value, state != null && state.childLock ? "已锁定" : "童锁");
             if (speedCount != 3) renderSpeedRing(context, views, state);
             views.setInt(
                     R.id.fan_widget_connection_dot,
@@ -233,6 +244,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             views.setTextColor(R.id.fan_natural_label, naturalWind ? Color.WHITE : Color.rgb(71, 85, 105));
             views.setTextColor(R.id.fan_sleep_label, sleepWind ? Color.WHITE : Color.rgb(71, 85, 105));
             views.setOnClickPendingIntent(R.id.fan_power_tile, commandIntent(context, ACTION_TOGGLE, id));
+            views.setOnClickPendingIntent(R.id.fan_speed_tile, commandIntent(context, ACTION_LOCK, id));
             views.setOnClickPendingIntent(R.id.fan_natural_button, commandIntent(context, ACTION_NATURAL, id));
             views.setOnClickPendingIntent(R.id.fan_sleep_button, commandIntent(context, ACTION_SLEEP, id));
             if (speedCount == 3) {

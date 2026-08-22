@@ -137,6 +137,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/fan_speed_tile"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_marginStart="2dp"

@@ -38,7 +38,14 @@ final class EspHomeWebClient {
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("data: {\"name_id\":\"fan/")
                         || line.contains("\"id\":\"fan-")) {
-                    return parseFanState(line.substring(6));
+                    EspHomeClient.FanState state = parseFanState(line.substring(6));
+                    try {
+                        LockState lock = fetchLockState(context, slot);
+                        return new EspHomeClient.FanState(state.on, state.available, state.percentage, state.presetMode,
+                                state.speedCount, state.oscillation, lock.on, state.endpointName);
+                    } catch (IOException ignored) {
+                        return state;
+                    }
                 }
             }
             throw new IOException("ESPHome fan state not found");
@@ -69,6 +76,43 @@ final class EspHomeWebClient {
         int level = clamped <= 33 ? 1 : clamped <= 66 ? 2 : 3;
         postFan(context, slot, discoverEndpoint(context, slot), "turn_on", "speed_level=" + level);
     }
+
+    static void toggleChildLock(Context context, int slot) throws IOException {
+        LockState lock = fetchLockState(context, slot);
+        postSwitch(context, slot, lock.endpoint, lock.on ? "turn_off" : "turn_on");
+    }
+
+    private static LockState fetchLockState(Context context, int slot) throws IOException {
+        String base = WidgetPreferences.loadEspHomeUrl(context, slot);
+        HttpURLConnection connection = open(base + "/events");
+        connection.setRequestProperty("Accept", "text/event-stream");
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains("\"name_id\":\"switch/童锁\"") || line.contains("\"name\":\"童锁\"")) {
+                    boolean on = line.contains("\"state\":\"ON\"");
+                    Matcher id = Pattern.compile("\\\"id\\\":\\\"switch-([^\\\"]+)").matcher(line);
+                    if (id.find()) return new LockState(on, id.group(1));
+                }
+            }
+        } finally { connection.disconnect(); }
+        throw new IOException("child lock endpoint not found");
+    }
+
+    private static void postSwitch(Context context, int slot, String endpoint, String action) throws IOException {
+        String url = WidgetPreferences.loadEspHomeUrl(context, slot) + "/switch/" + encode(endpoint) + "/" + action;
+        HttpURLConnection connection = open(url);
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        connection.setFixedLengthStreamingMode(0);
+        connection.setRequestProperty("Content-Length", "0");
+        connection.getOutputStream().close();
+        int code = connection.getResponseCode();
+        connection.disconnect();
+        if (code < 200 || code >= 300) throw new IOException("ESPHome HTTP " + code);
+    }
+
+    private static final class LockState { final boolean on; final String endpoint; LockState(boolean on, String endpoint) { this.on = on; this.endpoint = endpoint; } }
 
     private static void postFan(Context context, int slot, String endpoint, String action, String query) throws IOException {
         String url = WidgetPreferences.loadEspHomeUrl(context, slot) + "/fan/"
