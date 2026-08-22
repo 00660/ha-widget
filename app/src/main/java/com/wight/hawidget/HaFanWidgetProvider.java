@@ -58,14 +58,22 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
 
     public static void requestRefresh(Context context) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
-        int[] ids = manager.getAppWidgetIds(new ComponentName(context, HaFanWidgetProvider.class));
-        if (ids.length == 0) {
-            return;
+        Class<?>[] providers = {
+                HaFanWidgetProvider.class,
+                ESPHomeFanWidgetProvider1.class,
+                ESPHomeFanWidgetProvider2.class,
+                ESPHomeFanWidgetProvider3.class,
+                ESPHomeFanWidgetProvider4.class,
+                ESPHomeFanWidgetProvider5.class
+        };
+        for (Class<?> provider : providers) {
+            int[] ids = manager.getAppWidgetIds(new ComponentName(context, provider));
+            if (ids.length == 0) continue;
+            Intent intent = new Intent(context, provider)
+                    .setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
+                    .putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
+            context.sendBroadcast(intent);
         }
-        Intent intent = new Intent(context, HaFanWidgetProvider.class)
-                .setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
-                .putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
-        context.sendBroadcast(intent);
     }
 
     @Override
@@ -98,7 +106,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
         if (ACTION_LOCK.equals(action)) {
             NETWORK_EXECUTOR.execute(() -> {
                 try { EspHomeClient.toggleChildLock(applicationContext, deviceSlot()); }
-                catch (IOException exception) { Log.e("HaFanWidget", "child lock failed", exception); }
+                catch (IOException exception) { Log.e("HaFanWidget", "child lock failed", exception); showCommandError(applicationContext, "童锁控制失败"); }
                 refresh(applicationContext);
                 pendingResult.finish();
             });
@@ -127,10 +135,16 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
                 }
             } catch (IOException exception) {
                 Log.e("HaFanWidget", "fan command failed for slot " + deviceSlot(), exception);
+                showCommandError(applicationContext, "风扇控制失败");
             }
             refresh(applicationContext);
             pendingResult.finish();
         });
+    }
+
+    private void showCommandError(Context context, String message) {
+        android.os.Handler handler = new android.os.Handler(context.getMainLooper());
+        handler.post(() -> android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show());
     }
 
     private String presetFor(String action) {
