@@ -30,14 +30,14 @@ final class EspHomeWebClient {
 
     static EspHomeClient.FanState fetchFanState(Context context, int slot) throws IOException {
         String baseUrl = WidgetPreferences.loadEspHomeUrl(context, slot);
-        String fanName = WidgetPreferences.loadFanName(context, slot);
+        String fanName = endpointFanName(context, slot);
         HttpURLConnection connection = open(baseUrl + "/events");
         connection.setRequestProperty("Accept", "text/event-stream");
         try (InputStream input = connection.getInputStream();
              BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                if (line.startsWith("data: {\"name_id\":\"fan/" + fanName)) {
+            if (line.startsWith("data: {\"name_id\":\"fan/" + fanName)) {
                     return parseFanState(line.substring(6));
                 }
             }
@@ -72,7 +72,7 @@ final class EspHomeWebClient {
 
     private static void postFan(Context context, int slot, String action, String query) throws IOException {
         String url = WidgetPreferences.loadEspHomeUrl(context, slot) + "/fan/"
-                + encode(WidgetPreferences.loadFanName(context, slot)) + "/" + action;
+                + encode(endpointFanName(context, slot)) + "/" + action;
         if (query != null) {
             url += "?" + query;
         }
@@ -85,6 +85,11 @@ final class EspHomeWebClient {
         } finally {
             connection.disconnect();
         }
+    }
+
+    private static String endpointFanName(Context context, int slot) {
+        if (slot == 3) return "pwm启用风扇";
+        return WidgetPreferences.loadFanName(context, slot);
     }
 
     private static EspHomeClient.FanState parseFanState(String json) {
