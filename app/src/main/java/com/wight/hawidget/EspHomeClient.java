@@ -106,6 +106,7 @@ final class EspHomeClient {
         final int speedCount;
         final boolean oscillation;
         final boolean childLock;
+        final String endpointName;
 
         FanState(boolean on, boolean available, int percentage, String presetMode) {
             this(on, available, percentage, presetMode, 0, false, false);
@@ -113,6 +114,11 @@ final class EspHomeClient {
 
         FanState(boolean on, boolean available, int percentage, String presetMode,
                  int speedCount, boolean oscillation, boolean childLock) {
+            this(on, available, percentage, presetMode, speedCount, oscillation, childLock, "");
+        }
+
+        FanState(boolean on, boolean available, int percentage, String presetMode,
+                 int speedCount, boolean oscillation, boolean childLock, String endpointName) {
             this.on = on;
             this.available = available;
             this.percentage = percentage;
@@ -120,6 +126,7 @@ final class EspHomeClient {
             this.speedCount = speedCount;
             this.oscillation = oscillation;
             this.childLock = childLock;
+            this.endpointName = endpointName;
         }
     }
 

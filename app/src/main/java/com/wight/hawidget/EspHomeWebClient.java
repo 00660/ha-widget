@@ -30,14 +30,13 @@ final class EspHomeWebClient {
 
     static EspHomeClient.FanState fetchFanState(Context context, int slot) throws IOException {
         String baseUrl = WidgetPreferences.loadEspHomeUrl(context, slot);
-        String fanName = endpointFanName(context, slot);
         HttpURLConnection connection = open(baseUrl + "/events");
         connection.setRequestProperty("Accept", "text/event-stream");
         try (InputStream input = connection.getInputStream();
              BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
-            if (line.startsWith("data: {\"name_id\":\"fan/" + fanName)) {
+                if (line.startsWith("data: {\"name_id\":\"fan/")) {
                     return parseFanState(line.substring(6));
                 }
             }
@@ -53,7 +52,7 @@ final class EspHomeWebClient {
 
     static void toggleFan(Context context, int slot) throws IOException {
         EspHomeClient.FanState state = fetchFanState(context, slot);
-        postFan(context, slot, state.on ? "turn_off" : "turn_on", null);
+        postFan(context, slot, state.endpointName, state.on ? "turn_off" : "turn_on", null);
     }
 
     static void setFanPercentage(Context context, int percentage) throws IOException {
@@ -63,16 +62,16 @@ final class EspHomeWebClient {
     static void setFanPercentage(Context context, int slot, int percentage) throws IOException {
         int clamped = Math.max(0, Math.min(100, percentage));
         if (clamped == 0) {
-            postFan(context, slot, "turn_off", null);
+            postFan(context, slot, discoverEndpoint(context, slot), "turn_off", null);
             return;
         }
         int level = clamped <= 33 ? 1 : clamped <= 66 ? 2 : 3;
-        postFan(context, slot, "turn_on", "speed_level=" + level);
+        postFan(context, slot, discoverEndpoint(context, slot), "turn_on", "speed_level=" + level);
     }
 
-    private static void postFan(Context context, int slot, String action, String query) throws IOException {
+    private static void postFan(Context context, int slot, String endpoint, String action, String query) throws IOException {
         String url = WidgetPreferences.loadEspHomeUrl(context, slot) + "/fan/"
-                + encode(endpointFanName(context, slot)) + "/" + action;
+                + encode(endpoint) + "/" + action;
         if (query != null) {
             url += "?" + query;
         }
@@ -81,15 +80,18 @@ final class EspHomeWebClient {
         connection.setDoOutput(true);
         connection.setFixedLengthStreamingMode(0);
         try {
+            int responseCode = connection.getResponseCode();
+            if (responseCode < 200 || responseCode >= 300) {
+                throw new IOException("ESPHome HTTP " + responseCode + " for " + url);
+            }
             connection.getInputStream().close();
         } finally {
             connection.disconnect();
         }
     }
 
-    private static String endpointFanName(Context context, int slot) {
-        if (slot == 3) return "pwm启用风扇";
-        return WidgetPreferences.loadFanName(context, slot);
+    private static String discoverEndpoint(Context context, int slot) throws IOException {
+        return fetchFanState(context, slot).endpointName;
     }
 
     private static EspHomeClient.FanState parseFanState(String json) {
@@ -99,7 +101,9 @@ final class EspHomeWebClient {
         boolean oscillation = Boolean.parseBoolean(match(OSCILLATION, json, "false"));
         int percentage = count == 3 ? (level >= 3 ? 100 : level * 33) : level;
         if (percentage > 100) percentage = 100;
-        return new EspHomeClient.FanState(on, true, percentage, "", count, oscillation, false);
+        Matcher endpoint = Pattern.compile("\\\"name_id\\\":\\\"fan/([^\\\"]+)").matcher(json);
+        String endpointName = endpoint.find() ? endpoint.group(1) : "";
+        return new EspHomeClient.FanState(on, true, percentage, "", count, oscillation, false, endpointName);
     }
 
     private static String match(Pattern pattern, String value, String fallback) {
