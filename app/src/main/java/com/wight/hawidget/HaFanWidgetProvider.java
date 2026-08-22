@@ -212,7 +212,14 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             );
             views.setTextViewText(R.id.fan_widget_speed, speedText(context, state));
             views.setTextViewText(R.id.fan_speed_tile_value, state != null && state.childLock ? "已锁定" : "童锁");
-            if (speedCount != 3) renderSpeedRing(context, views, state);
+            if (speedCount == 3) {
+                int selectedLevel = state == null ? 0 : state.percentage >= 90 ? 3 : state.percentage >= 45 ? 2 : state.percentage > 0 ? 1 : 0;
+                styleDiscreteSpeed(views, R.id.fan_discrete_speed_1, selectedLevel == 1);
+                styleDiscreteSpeed(views, R.id.fan_discrete_speed_2, selectedLevel == 2);
+                styleDiscreteSpeed(views, R.id.fan_discrete_speed_3, selectedLevel == 3);
+            } else {
+                renderSpeedRing(context, views, state);
+            }
             views.setInt(
                     R.id.fan_widget_connection_dot,
                     "setBackgroundResource",
@@ -258,6 +265,11 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             }
             manager.updateAppWidget(id, views);
         }
+    }
+
+    private void styleDiscreteSpeed(RemoteViews views, int id, boolean selected) {
+        views.setInt(id, "setBackgroundResource", selected ? R.drawable.fan_speed_selected : R.drawable.fan_control_secondary);
+        views.setTextColor(id, selected ? Color.WHITE : Color.rgb(30, 41, 59));
     }
 
     private String selectedPreset(Context context, EspHomeClient.FanState state) {
