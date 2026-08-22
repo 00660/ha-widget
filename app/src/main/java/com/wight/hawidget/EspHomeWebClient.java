@@ -36,7 +36,8 @@ final class EspHomeWebClient {
              BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                if (line.startsWith("data: {\"name_id\":\"fan/")) {
+                if (line.startsWith("data: {\"name_id\":\"fan/")
+                        || line.contains("\"id\":\"fan-")) {
                     return parseFanState(line.substring(6));
                 }
             }
@@ -103,7 +104,7 @@ final class EspHomeWebClient {
         boolean oscillation = Boolean.parseBoolean(match(OSCILLATION, json, "false"));
         int percentage = count == 3 ? (level >= 3 ? 100 : level * 33) : level;
         if (percentage > 100) percentage = 100;
-        Matcher endpoint = Pattern.compile("\\\"name_id\\\":\\\"fan/([^\\\"]+)").matcher(json);
+        Matcher endpoint = Pattern.compile("\\\"id\\\":\\\"fan-([^\\\"]+)").matcher(json);
         String endpointName = endpoint.find() ? endpoint.group(1) : "";
         return new EspHomeClient.FanState(on, true, percentage, "", count, oscillation, false, endpointName);
     }
