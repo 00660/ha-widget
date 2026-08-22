@@ -35,21 +35,18 @@ public final class MainActivity extends Activity {
                 view.setPadding(view.getPaddingLeft(), view.getPaddingTop(), view.getPaddingRight(), 24 + imeBottom);
                 View focused = view.findFocus();
                 if (focused instanceof EditText && imeBottom > 0) {
-                    focused.postDelayed(() -> focused.requestRectangleOnScreen(
-                            new android.graphics.Rect(0, 0, focused.getWidth(), focused.getHeight()), true), 80);
+                    focused.post(() -> {
+                        android.graphics.Rect visible = new android.graphics.Rect();
+                        focused.getWindowVisibleDisplayFrame(visible);
+                        android.graphics.Rect fieldRect = new android.graphics.Rect();
+                        focused.getGlobalVisibleRect(fieldRect);
+                        int delta = fieldRect.bottom - visible.bottom + 24;
+                        if (delta > 0) view.scrollBy(0, delta);
+                    });
                 }
                 return insets;
             });
         }
-        View.OnFocusChangeListener focusListener = (view, hasFocus) -> {
-            if (hasFocus) view.postDelayed(() -> {
-                EditText field = (EditText) view;
-                field.requestRectangleOnScreen(
-                        new android.graphics.Rect(0, 0, field.getWidth(), field.getHeight()), true);
-            }, 350);
-        };
-        for (EditText field : urls) field.setOnFocusChangeListener(focusListener);
-        for (EditText field : names) field.setOnFocusChangeListener(focusListener);
         save.setOnClickListener(view -> {
             String value = url.getText().toString().trim();
             String name = fanName.getText().toString().trim();
