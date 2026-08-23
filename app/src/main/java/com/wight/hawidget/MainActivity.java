@@ -28,7 +28,6 @@ import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 public final class MainActivity extends Activity {
-    private static final int SLOT_COUNT = 6;
     private final ExecutorService scanExecutor = Executors.newFixedThreadPool(24);
     private LinearLayout deviceList;
 
@@ -48,7 +47,7 @@ public final class MainActivity extends Activity {
         GridLayout grid = new GridLayout(this);
         grid.setColumnCount(2);
         grid.setUseDefaultMargins(false);
-        for (int slot = 0; slot < SLOT_COUNT; slot++) {
+        for (int slot = 0; slot < WidgetPreferences.loadDeviceCount(this); slot++) {
             String url = WidgetPreferences.loadEspHomeUrl(this, slot);
             if (url.isEmpty()) continue;
             hasDevice = true;
@@ -135,11 +134,7 @@ public final class MainActivity extends Activity {
     }
 
     private void showAddDevice() {
-        int slot = firstEmptySlot();
-        if (slot < 0) {
-            Toast.makeText(this, "已达到 6 个桌面挂件", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        int slot = WidgetPreferences.loadDeviceCount(this);
         showDeviceDialog(slot, "添加设备");
     }
 
@@ -249,7 +244,6 @@ public final class MainActivity extends Activity {
         } finally { if (connection != null) connection.disconnect(); }
     }
 
-    private int firstEmptySlot() { for (int i = 0; i < SLOT_COUNT; i++) if (WidgetPreferences.loadEspHomeUrl(this, i).isEmpty()) return i; return -1; }
     private String normalizeUrl(String input) { String value = input.trim(); if (value.equals("http://") || value.equals("https://")) return ""; if (!value.isEmpty() && !value.startsWith("http://") && !value.startsWith("https://")) value = "http://" + value; while (value.endsWith("/")) value = value.substring(0, value.length() - 1); return value; }
     private static final class Device { final int host; final String url, name, features; final boolean fan; Device(int host, String url, String name, String features, boolean fan) { this.host = host; this.url = url; this.name = name; this.features = features; this.fan = fan; } }
 }

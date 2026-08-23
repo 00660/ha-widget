@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:configure="com.wight.hawidget.WidgetConfigureActivity"
     android:description="@string/fan_widget_description"
     android:initialLayout="@layout/ha_fan_widget_wide"
     android:minHeight="72dp"

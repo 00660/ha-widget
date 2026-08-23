@@ -49,7 +49,7 @@ public final class FanModeService extends Service {
                 startMode(slot, requestedMode);
             }
         } else if (intent == null) {
-            for (int slot = 0; slot < 6; slot++) {
+            for (int slot = 0; slot < WidgetPreferences.loadDeviceCount(this); slot++) {
                 String savedMode = WidgetPreferences.loadMode(this, slot);
                 if (MODE_NATURAL.equals(savedMode) || MODE_SLEEP.equals(savedMode)) startMode(slot, savedMode);
             }

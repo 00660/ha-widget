@@ -10,6 +10,8 @@ final class WidgetPreferences {
     private static final String ESPHOME_URL = "esphome_url";
     private static final String FAN_NAME = "fan_name";
     private static final String CHILD_LOCK = "child_lock";
+    private static final String DEVICE_COUNT = "device_count";
+    private static final String WIDGET_DEVICE = "widget_device_";
 
     private WidgetPreferences() {
     }
@@ -79,6 +81,26 @@ final class WidgetPreferences {
                 .getString(ESPHOME_URL + slot, slot >= 0 && slot < defaults.length ? defaults[slot] : "");
     }
 
+    static int loadDeviceCount(Context context) {
+        return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .getInt(DEVICE_COUNT, 4);
+    }
+
+    static int loadWidgetDevice(Context context, int appWidgetId) {
+        return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .getInt(WIDGET_DEVICE + appWidgetId, -1);
+    }
+
+    static void bindWidget(Context context, int appWidgetId, int deviceId) {
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .edit().putInt(WIDGET_DEVICE + appWidgetId, deviceId).apply();
+    }
+
+    static void removeWidget(Context context, int appWidgetId) {
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .edit().remove(WIDGET_DEVICE + appWidgetId).apply();
+    }
+
     static String loadFanName(Context context) {
         return loadFanName(context, 0);
     }
@@ -94,10 +116,11 @@ final class WidgetPreferences {
     }
 
     static void saveDevice(Context context, int slot, String url, String fanName) {
-        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-                .edit()
+        android.content.SharedPreferences preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+        android.content.SharedPreferences.Editor editor = preferences.edit()
                 .putString(ESPHOME_URL + slot, url)
-                .putString(FAN_NAME + slot, fanName)
-                .apply();
+                .putString(FAN_NAME + slot, fanName);
+        if (slot >= loadDeviceCount(context)) editor.putInt(DEVICE_COUNT, slot + 1);
+        editor.apply();
     }
 }

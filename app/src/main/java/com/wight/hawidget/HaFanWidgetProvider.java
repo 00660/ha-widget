@@ -27,6 +27,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
     private static final String ACTION_LOCK = "com.wight.hawidget.FAN_LOCK";
     private static final String ACTION_WIDGET_NOOP = "com.wight.hawidget.WIDGET_NOOP";
     private static final String EXTRA_SPEED = "speed";
+    private static final String EXTRA_WIDGET_ID = "widget_id";
     private static final String NATURAL_PRESET = "自然风";
     private static final String SLEEP_PRESET = "睡眠风";
     private static final ExecutorService NETWORK_EXECUTOR = Executors.newSingleThreadExecutor();
@@ -60,14 +61,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
 
     public static void requestRefresh(Context context) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
-        Class<?>[] providers = {
-                HaFanWidgetProvider.class,
-                ESPHomeFanWidgetProvider1.class,
-                ESPHomeFanWidgetProvider2.class,
-                ESPHomeFanWidgetProvider3.class,
-                ESPHomeFanWidgetProvider4.class,
-                ESPHomeFanWidgetProvider5.class
-        };
+        Class<?>[] providers = {HaFanWidgetProvider.class, DiscreteFanWidgetProvider.class};
         for (Class<?> provider : providers) {
             int[] ids = manager.getAppWidgetIds(new ComponentName(context, provider));
             if (ids.length == 0) continue;
@@ -80,8 +74,13 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager manager, int[] appWidgetIds) {
-        render(manager, context, appWidgetIds, null);
+        for (int id : appWidgetIds) render(manager, context, id, null);
         refreshAsync(context);
+    }
+
+    @Override
+    public void onDeleted(Context context, int[] appWidgetIds) {
+        for (int id : appWidgetIds) WidgetPreferences.removeWidget(context, id);
     }
 
     @Override
@@ -91,7 +90,8 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             return;
         }
         if (isControlAction(action)) {
-            runCommand(context, action, intent.getIntExtra(EXTRA_SPEED, -1));
+            runCommand(context, action, intent.getIntExtra(EXTRA_SPEED, -1),
+                    intent.getIntExtra(EXTRA_WIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID));
             return;
         }
         super.onReceive(context, intent);
@@ -105,46 +105,48 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
                 || ACTION_LOCK.equals(action);
     }
 
-    private void runCommand(Context context, String action, int speed) {
+    private void runCommand(Context context, String action, int speed, int appWidgetId) {
         Context applicationContext = context.getApplicationContext();
+        int slot = WidgetPreferences.loadWidgetDevice(applicationContext, appWidgetId);
+        if (slot < 0) return;
         BroadcastReceiver.PendingResult pendingResult = goAsync();
         if (ACTION_LOCK.equals(action)) {
             NETWORK_EXECUTOR.execute(() -> {
-                EspHomeClient.toggleChildLock(applicationContext, deviceSlot());
+                EspHomeClient.toggleChildLock(applicationContext, slot);
                 refresh(applicationContext);
                 pendingResult.finish();
             });
             return;
         }
-        if (WidgetPreferences.loadChildLock(applicationContext, deviceSlot())) {
+        if (WidgetPreferences.loadChildLock(applicationContext, slot)) {
             pendingResult.finish();
             return;
         }
         if (ACTION_NATURAL.equals(action) || ACTION_SLEEP.equals(action)) {
             String mode = ACTION_NATURAL.equals(action)
                     ? FanModeService.MODE_NATURAL : FanModeService.MODE_SLEEP;
-            WidgetPreferences.saveSelectedPreset(applicationContext, deviceSlot(), presetFor(action));
+            WidgetPreferences.saveSelectedPreset(applicationContext, slot, presetFor(action));
             applicationContext.startForegroundService(new Intent(applicationContext, FanModeService.class)
                     .setAction(FanModeService.ACTION_START)
                     .putExtra(FanModeService.EXTRA_MODE, mode)
-                    .putExtra(FanModeService.EXTRA_SLOT, deviceSlot()));
-            renderPresetFeedback(applicationContext, action);
+                    .putExtra(FanModeService.EXTRA_SLOT, slot));
+            renderPresetFeedback(applicationContext, action, appWidgetId);
         } else {
             applicationContext.startService(new Intent(applicationContext, FanModeService.class)
                     .setAction(FanModeService.ACTION_STOP)
-                    .putExtra(FanModeService.EXTRA_SLOT, deviceSlot()));
-            WidgetPreferences.saveMode(applicationContext, deviceSlot(), "");
+                    .putExtra(FanModeService.EXTRA_SLOT, slot));
+            WidgetPreferences.saveMode(applicationContext, slot, "");
         }
         NETWORK_EXECUTOR.execute(() -> {
             try {
                 if (ACTION_TOGGLE.equals(action)) {
-                    EspHomeClient.toggleFan(applicationContext, deviceSlot());
+                    EspHomeClient.toggleFan(applicationContext, slot);
                 } else if (ACTION_SET_SPEED.equals(action) && speed >= 1 && speed <= 100) {
-                    EspHomeClient.setFanPercentage(applicationContext, deviceSlot(), speed);
-                    WidgetPreferences.saveBaseSpeed(applicationContext, deviceSlot(), speed);
+                    EspHomeClient.setFanPercentage(applicationContext, slot, speed);
+                    WidgetPreferences.saveBaseSpeed(applicationContext, slot, speed);
                 }
             } catch (IOException exception) {
-                Log.e("HaFanWidget", "fan command failed for slot " + deviceSlot(), exception);
+                Log.e("HaFanWidget", "fan command failed for slot " + slot, exception);
                 showCommandError(applicationContext, "风扇控制失败");
             }
             refresh(applicationContext);
@@ -161,9 +163,9 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
         return ACTION_NATURAL.equals(action) ? NATURAL_PRESET : SLEEP_PRESET;
     }
 
-    private void renderPresetFeedback(Context context, String action) {
+    private void renderPresetFeedback(Context context, String action, int appWidgetId) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
-        int[] ids = manager.getAppWidgetIds(new ComponentName(context, getClass()));
+        int[] ids = {appWidgetId};
         boolean naturalWind = ACTION_NATURAL.equals(action);
         for (int id : ids) {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ha_fan_widget_wide);
@@ -206,16 +208,21 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
         if (ids.length == 0) {
             return;
         }
-        try {
-            render(manager, context, ids, EspHomeClient.fetchFanState(context, deviceSlot()));
-        } catch (IOException ignored) {
-            render(manager, context, ids, null);
+        for (int id : ids) {
+            int slot = WidgetPreferences.loadWidgetDevice(context, id);
+            if (slot < 0) continue;
+            try {
+                render(manager, context, id, EspHomeClient.fetchFanState(context, slot));
+            } catch (IOException ignored) {
+                render(manager, context, id, null);
+            }
         }
     }
 
-    private void render(AppWidgetManager manager, Context context, int[] ids, EspHomeClient.FanState state) {
-        String selectedPreset = selectedPreset(context, state);
-        for (int id : ids) {
+    private void render(AppWidgetManager manager, Context context, int id, EspHomeClient.FanState state) {
+        int slot = WidgetPreferences.loadWidgetDevice(context, id);
+        if (slot < 0) return;
+        String selectedPreset = selectedPreset(context, slot, state);
             int speedCount = state != null && state.available ? state.speedCount : (isDiscreteWidget() ? 3 : 100);
             int layout = isDiscreteWidget() || speedCount == 3 ? R.layout.ha_fan_widget_wide : R.layout.ha_fan_widget;
             RemoteViews views = new RemoteViews(context.getPackageName(), layout);
@@ -224,7 +231,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             boolean on = available && state.on;
             boolean naturalWind = available && NATURAL_PRESET.equals(selectedPreset);
             boolean sleepWind = available && SLEEP_PRESET.equals(selectedPreset);
-            String fanName = WidgetPreferences.loadFanName(context, deviceSlot()).trim();
+            String fanName = WidgetPreferences.loadFanName(context, slot).trim();
             views.setTextViewText(R.id.fan_widget_title, fanName.isEmpty() ? "未命名" : fanName);
             views.setImageViewResource(R.id.fan_widget_icon, on ? R.drawable.ic_fan_on : R.drawable.ic_fan_off);
             views.setTextViewText(
@@ -236,7 +243,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             );
             views.setTextViewText(R.id.fan_widget_speed, speedText(context, state));
             views.setTextViewText(R.id.fan_speed_tile_value,
-                    WidgetPreferences.loadChildLock(context, deviceSlot()) ? "已锁定" : "童锁");
+                    WidgetPreferences.loadChildLock(context, slot) ? "已锁定" : "童锁");
             if (speedCount == 3) {
                 int selectedLevel = state == null ? 0 : state.percentage >= 90 ? 3 : state.percentage >= 45 ? 2 : state.percentage > 0 ? 1 : 0;
                 styleDiscreteSpeed(views, R.id.fan_discrete_speed_1, selectedLevel == 1);
@@ -290,7 +297,6 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
                 }
             }
             manager.updateAppWidget(id, views);
-        }
     }
 
     private void styleDiscreteSpeed(RemoteViews views, int id, boolean selected) {
@@ -298,8 +304,8 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
         views.setTextColor(id, selected ? Color.WHITE : Color.rgb(30, 41, 59));
     }
 
-    private String selectedPreset(Context context, EspHomeClient.FanState state) {
-        String mode = WidgetPreferences.loadMode(context, deviceSlot());
+    private String selectedPreset(Context context, int slot, EspHomeClient.FanState state) {
+        String mode = WidgetPreferences.loadMode(context, slot);
         if (FanModeService.MODE_NATURAL.equals(mode)) {
             return NATURAL_PRESET;
         }
@@ -310,10 +316,10 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             return "";
         }
         if (NATURAL_PRESET.equals(state.presetMode) || SLEEP_PRESET.equals(state.presetMode)) {
-            WidgetPreferences.saveSelectedPreset(context, deviceSlot(), state.presetMode);
+            WidgetPreferences.saveSelectedPreset(context, slot, state.presetMode);
             return state.presetMode;
         }
-        return WidgetPreferences.loadSelectedPreset(context, deviceSlot());
+        return WidgetPreferences.loadSelectedPreset(context, slot);
     }
 
     private String speedText(Context context, EspHomeClient.FanState state) {
@@ -346,6 +352,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
     private PendingIntent commandIntent(Context context, String action, int appWidgetId) {
         Intent intent = new Intent(context, getClass())
                 .setAction(action)
+                .putExtra(EXTRA_WIDGET_ID, appWidgetId)
                 .setData(Uri.parse("hawidget://" + context.getPackageName() + "/" + appWidgetId + "/" + action));
         return PendingIntent.getBroadcast(
                 context,
@@ -361,6 +368,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
                 .setData(Uri.parse(
                         "hawidget://" + context.getPackageName() + "/" + appWidgetId + "/speed/" + speed
                 ))
+                .putExtra(EXTRA_WIDGET_ID, appWidgetId)
                 .putExtra(EXTRA_SPEED, speed);
         return PendingIntent.getBroadcast(
                 context,

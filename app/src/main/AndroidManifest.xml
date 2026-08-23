@@ -20,11 +20,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".WidgetConfigureActivity"
+            android:exported="true"
+            android:theme="@style/Theme.HaWidget" />
 
         <receiver
             android:name=".HaFanWidgetProvider"
             android:exported="false"
-            android:label="风扇 64">
+            android:label="ESPHome 风扇">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -33,11 +37,17 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/fan_widget_info" />
         </receiver>
-        <receiver android:name=".ESPHomeFanWidgetProvider1" android:exported="false" android:label="风扇 62"><intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter><meta-data android:name="android.appwidget.provider" android:resource="@xml/fan_widget_info" /></receiver>
-        <receiver android:name=".ESPHomeFanWidgetProvider2" android:exported="false" android:label="风扇 10（自动识别）"><intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter><meta-data android:name="android.appwidget.provider" android:resource="@xml/fan_widget_info" /></receiver>
-        <receiver android:name=".ESPHomeFanWidgetProvider3" android:exported="false" android:label="风扇 199"><intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter><meta-data android:name="android.appwidget.provider" android:resource="@xml/fan_widget_info" /></receiver>
-        <receiver android:name=".ESPHomeFanWidgetProvider4" android:exported="false" android:label="未配置风扇"><intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter><meta-data android:name="android.appwidget.provider" android:resource="@xml/fan_widget_info" /></receiver>
-        <receiver android:name=".ESPHomeFanWidgetProvider5" android:exported="false" android:label="未配置风扇 2"><intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter><meta-data android:name="android.appwidget.provider" android:resource="@xml/fan_widget_info" /></receiver>
+        <receiver
+            android:name=".DiscreteFanWidgetProvider"
+            android:exported="false"
+            android:label="ESPHome 三档风扇">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/fan_widget_info_discrete" />
+        </receiver>
 
         <service
             android:name=".FanModeService"

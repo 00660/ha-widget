@@ -61,7 +61,10 @@ final class EspHomeWebClient {
     static void toggleFan(Context context, int slot) throws IOException {
         EspHomeClient.FanState state = FAN_STATES.get(slot);
         if (state == null) state = fetchFanState(context, slot);
-        postFan(context, slot, state.endpointName, state.on ? "turn_off" : "turn_on", null);
+        boolean nextOn = !state.on;
+        postFan(context, slot, state.endpointName, nextOn ? "turn_on" : "turn_off", null);
+        cacheState(slot, new EspHomeClient.FanState(nextOn, state.available, state.percentage,
+                state.presetMode, state.speedCount, state.oscillation, state.childLock, state.endpointName));
     }
 
     static void setFanPercentage(Context context, int percentage) throws IOException {
@@ -74,8 +77,13 @@ final class EspHomeWebClient {
             postFan(context, slot, discoverEndpoint(context, slot), "turn_off", null);
             return;
         }
-        int level = clamped <= 33 ? 1 : clamped <= 66 ? 2 : 3;
-        postFan(context, slot, discoverEndpoint(context, slot), "turn_on", "speed_level=" + level);
+        EspHomeClient.FanState state = FAN_STATES.get(slot);
+        if (state == null) state = fetchFanState(context, slot);
+        int count = Math.max(1, state.speedCount);
+        int level = Math.max(1, Math.min(count, (int) Math.round(clamped * count / 100.0)));
+        postFan(context, slot, state.endpointName, "turn_on", "speed_level=" + level);
+        cacheState(slot, new EspHomeClient.FanState(true, state.available, clamped,
+                state.presetMode, state.speedCount, state.oscillation, state.childLock, state.endpointName));
     }
 
     static void toggleChildLock(Context context, int slot) {
