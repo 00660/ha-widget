@@ -2,6 +2,7 @@ package com.wight.hawidget;
 
 import android.app.Activity;
 import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -77,7 +78,10 @@ public final class WidgetConfigureActivity extends Activity {
 
     private void bind(int deviceId) {
         WidgetPreferences.bindWidget(this, appWidgetId, deviceId);
-        Intent update = new Intent(this, HaFanWidgetProvider.class)
+        ComponentName provider = AppWidgetManager.getInstance(this)
+                .getAppWidgetInfo(appWidgetId).provider;
+        Intent update = new Intent()
+                .setComponent(provider)
                 .setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
                 .putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, new int[]{appWidgetId});
         sendBroadcast(update);

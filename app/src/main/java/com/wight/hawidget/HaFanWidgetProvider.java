@@ -236,90 +236,110 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
 
     private void render(AppWidgetManager manager, Context context, int id, EspHomeClient.FanState state) {
         int slot = WidgetPreferences.loadWidgetDevice(context, id);
-        if (slot < 0) return;
+        if (slot < 0) {
+            renderUnbound(manager, context, id);
+            return;
+        }
         String selectedPreset = selectedPreset(context, slot, state);
-            int speedCount = state != null && state.available ? state.speedCount : (isDiscreteWidget() ? 3 : 100);
-            int layout = isDiscreteWidget() || speedCount == 3 ? R.layout.ha_fan_widget_wide : R.layout.ha_fan_widget;
-            RemoteViews views = new RemoteViews(context.getPackageName(), layout);
-            boolean connected = state != null;
-            boolean available = connected && state.available;
-            boolean on = available && state.on;
-            if (available && state.percentage >= 0) {
-                WidgetPreferences.saveLastKnownSpeed(context, slot, state.percentage);
-            }
-            boolean naturalWind = available && NATURAL_PRESET.equals(selectedPreset);
-            boolean sleepWind = available && SLEEP_PRESET.equals(selectedPreset);
-            String fanName = WidgetPreferences.loadFanName(context, slot).trim();
+        int speedCount = state != null && state.available ? state.speedCount : (isDiscreteWidget() ? 3 : 100);
+        boolean wideLayout = isDiscreteWidget() || speedCount == 3;
+        int layout = wideLayout ? R.layout.ha_fan_widget_wide : R.layout.ha_fan_widget;
+        RemoteViews views = new RemoteViews(context.getPackageName(), layout);
+        boolean connected = state != null;
+        boolean available = connected && state.available;
+        boolean on = available && state.on;
+        if (available && state.percentage >= 0) {
+            WidgetPreferences.saveLastKnownSpeed(context, slot, state.percentage);
+        }
+        boolean naturalWind = available && NATURAL_PRESET.equals(selectedPreset);
+        boolean sleepWind = available && SLEEP_PRESET.equals(selectedPreset);
+        String fanName = WidgetPreferences.loadFanName(context, slot).trim();
+        if (wideLayout) {
             views.setTextViewText(R.id.fan_widget_title, fanName.isEmpty() ? "未命名" : fanName);
-            views.setImageViewResource(R.id.fan_widget_icon, on ? R.drawable.ic_fan_on : R.drawable.ic_fan_off);
-            views.setTextViewText(
-                    R.id.fan_widget_state,
-                    context.getString(
-                            !connected ? R.string.fan_disconnected
-                                    : available ? R.string.fan_connected : R.string.fan_unavailable
-                    )
-            );
-            views.setTextViewText(R.id.fan_widget_speed, speedText(context, state));
-            views.setTextViewText(R.id.fan_speed_tile_value,
-                    WidgetPreferences.loadChildLock(context, slot) ? "已锁定" : "童锁");
-            views.setInt(R.id.fan_speed_tile, "setBackgroundResource",
-                    WidgetPreferences.loadChildLock(context, slot)
-                            ? R.drawable.fan_control_primary : R.drawable.fan_control_secondary);
-            views.setTextColor(R.id.fan_speed_tile_value,
-                    WidgetPreferences.loadChildLock(context, slot) ? Color.WHITE : Color.rgb(71, 85, 105));
-            if (speedCount == 3) {
-                int selectedLevel = state == null ? 0 : state.percentage >= 90 ? 3 : state.percentage >= 45 ? 2 : state.percentage > 0 ? 1 : 0;
-                styleDiscreteSpeed(views, R.id.fan_discrete_speed_1, selectedLevel == 1);
-                styleDiscreteSpeed(views, R.id.fan_discrete_speed_2, selectedLevel == 2);
-                styleDiscreteSpeed(views, R.id.fan_discrete_speed_3, selectedLevel == 3);
-            } else {
-                renderSpeedRing(context, views, slot, state);
+        }
+        views.setImageViewResource(R.id.fan_widget_icon, on ? R.drawable.ic_fan_on : R.drawable.ic_fan_off);
+        views.setTextViewText(
+                R.id.fan_widget_state,
+                context.getString(
+                        !connected ? R.string.fan_disconnected
+                                : available ? R.string.fan_connected : R.string.fan_unavailable
+                )
+        );
+        views.setTextViewText(R.id.fan_widget_speed, speedText(context, state));
+        views.setTextViewText(R.id.fan_speed_tile_value,
+                WidgetPreferences.loadChildLock(context, slot) ? "已锁定" : "童锁");
+        views.setInt(R.id.fan_speed_tile, "setBackgroundResource",
+                WidgetPreferences.loadChildLock(context, slot)
+                        ? R.drawable.fan_control_primary : R.drawable.fan_control_secondary);
+        views.setTextColor(R.id.fan_speed_tile_value,
+                WidgetPreferences.loadChildLock(context, slot) ? Color.WHITE : Color.rgb(71, 85, 105));
+        if (speedCount == 3) {
+            int selectedLevel = state == null ? 0 : state.percentage >= 90 ? 3 : state.percentage >= 45 ? 2 : state.percentage > 0 ? 1 : 0;
+            styleDiscreteSpeed(views, R.id.fan_discrete_speed_1, selectedLevel == 1);
+            styleDiscreteSpeed(views, R.id.fan_discrete_speed_2, selectedLevel == 2);
+            styleDiscreteSpeed(views, R.id.fan_discrete_speed_3, selectedLevel == 3);
+        } else {
+            renderSpeedRing(context, views, slot, state);
+        }
+        views.setInt(
+                R.id.fan_widget_connection_dot,
+                "setBackgroundResource",
+                available ? R.drawable.fan_connection_dot : R.drawable.fan_connection_off_dot
+        );
+        views.setInt(
+                R.id.fan_power_tile,
+                "setBackgroundResource",
+                on ? R.drawable.fan_control_primary : R.drawable.fan_control_power_off
+        );
+        views.setInt(
+                R.id.fan_natural_button,
+                "setBackgroundResource",
+                naturalWind ? R.drawable.fan_control_primary : R.drawable.fan_control_secondary
+        );
+        views.setInt(
+                R.id.fan_sleep_button,
+                "setBackgroundResource",
+                sleepWind ? R.drawable.fan_control_primary : R.drawable.fan_control_secondary
+        );
+        views.setImageViewResource(
+                R.id.fan_natural_icon,
+                naturalWind ? R.drawable.ic_wind_light : R.drawable.ic_wind
+        );
+        views.setImageViewResource(
+                R.id.fan_sleep_icon,
+                sleepWind ? R.drawable.ic_sleep_light : R.drawable.ic_sleep
+        );
+        views.setTextColor(R.id.fan_natural_label, naturalWind ? Color.WHITE : Color.rgb(71, 85, 105));
+        views.setTextColor(R.id.fan_sleep_label, sleepWind ? Color.WHITE : Color.rgb(71, 85, 105));
+        views.setOnClickPendingIntent(R.id.fan_power_tile, commandIntent(context, ACTION_TOGGLE, id));
+        views.setOnClickPendingIntent(R.id.fan_widget_root, commandIntent(context, ACTION_WIDGET_NOOP, id));
+        views.setOnClickPendingIntent(R.id.fan_speed_tile, commandIntent(context, ACTION_LOCK, id));
+        views.setOnClickPendingIntent(R.id.fan_natural_button, commandIntent(context, ACTION_NATURAL, id));
+        views.setOnClickPendingIntent(R.id.fan_sleep_button, commandIntent(context, ACTION_SLEEP, id));
+        if (isDiscreteWidget() || speedCount == 3) {
+            views.setOnClickPendingIntent(R.id.fan_discrete_speed_1, speedCommandIntent(context, id, 33));
+            views.setOnClickPendingIntent(R.id.fan_discrete_speed_2, speedCommandIntent(context, id, 66));
+            views.setOnClickPendingIntent(R.id.fan_discrete_speed_3, speedCommandIntent(context, id, 100));
+        } else {
+            for (int speed = 1; speed <= 100; speed++) {
+                views.setOnClickPendingIntent(SPEED_ZONE_IDS[speed - 1], speedCommandIntent(context, id, speed));
             }
-            views.setInt(
-                    R.id.fan_widget_connection_dot,
-                    "setBackgroundResource",
-                    available ? R.drawable.fan_connection_dot : R.drawable.fan_connection_off_dot
-            );
-            views.setInt(
-                    R.id.fan_power_tile,
-                    "setBackgroundResource",
-                    on ? R.drawable.fan_control_primary : R.drawable.fan_control_power_off
-            );
-            views.setInt(
-                    R.id.fan_natural_button,
-                    "setBackgroundResource",
-                    naturalWind ? R.drawable.fan_control_primary : R.drawable.fan_control_secondary
-            );
-            views.setInt(
-                    R.id.fan_sleep_button,
-                    "setBackgroundResource",
-                    sleepWind ? R.drawable.fan_control_primary : R.drawable.fan_control_secondary
-            );
-            views.setImageViewResource(
-                    R.id.fan_natural_icon,
-                    naturalWind ? R.drawable.ic_wind_light : R.drawable.ic_wind
-            );
-            views.setImageViewResource(
-                    R.id.fan_sleep_icon,
-                    sleepWind ? R.drawable.ic_sleep_light : R.drawable.ic_sleep
-            );
-            views.setTextColor(R.id.fan_natural_label, naturalWind ? Color.WHITE : Color.rgb(71, 85, 105));
-            views.setTextColor(R.id.fan_sleep_label, sleepWind ? Color.WHITE : Color.rgb(71, 85, 105));
-            views.setOnClickPendingIntent(R.id.fan_power_tile, commandIntent(context, ACTION_TOGGLE, id));
-            views.setOnClickPendingIntent(R.id.fan_widget_root, commandIntent(context, ACTION_WIDGET_NOOP, id));
-            views.setOnClickPendingIntent(R.id.fan_speed_tile, commandIntent(context, ACTION_LOCK, id));
-            views.setOnClickPendingIntent(R.id.fan_natural_button, commandIntent(context, ACTION_NATURAL, id));
-            views.setOnClickPendingIntent(R.id.fan_sleep_button, commandIntent(context, ACTION_SLEEP, id));
-            if (isDiscreteWidget() || speedCount == 3) {
-                views.setOnClickPendingIntent(R.id.fan_discrete_speed_1, speedCommandIntent(context, id, 33));
-                views.setOnClickPendingIntent(R.id.fan_discrete_speed_2, speedCommandIntent(context, id, 66));
-                views.setOnClickPendingIntent(R.id.fan_discrete_speed_3, speedCommandIntent(context, id, 100));
-            } else {
-                for (int speed = 1; speed <= 100; speed++) {
-                    views.setOnClickPendingIntent(SPEED_ZONE_IDS[speed - 1], speedCommandIntent(context, id, speed));
-                }
-            }
-            manager.updateAppWidget(id, views);
+        }
+        manager.updateAppWidget(id, views);
+    }
+
+    private void renderUnbound(AppWidgetManager manager, Context context, int id) {
+        int layout = isDiscreteWidget() ? R.layout.ha_fan_widget_wide : R.layout.ha_fan_widget;
+        RemoteViews views = new RemoteViews(context.getPackageName(), layout);
+        if (isDiscreteWidget()) {
+            views.setTextViewText(R.id.fan_widget_title, "未配置");
+        }
+        views.setTextViewText(R.id.fan_widget_state, "请打开应用配置");
+        views.setTextViewText(R.id.fan_widget_speed, "--");
+        views.setImageViewResource(R.id.fan_widget_icon, R.drawable.ic_fan_off);
+        views.setInt(R.id.fan_widget_connection_dot, "setBackgroundResource",
+                R.drawable.fan_connection_off_dot);
+        manager.updateAppWidget(id, views);
     }
 
     private void styleDiscreteSpeed(RemoteViews views, int id, boolean selected) {
