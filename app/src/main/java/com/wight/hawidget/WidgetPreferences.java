@@ -14,27 +14,27 @@ final class WidgetPreferences {
     private WidgetPreferences() {
     }
 
-    static String loadSelectedPreset(Context context) {
+    static String loadSelectedPreset(Context context, int slot) {
         return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-                .getString(SELECTED_PRESET, "");
+                .getString(SELECTED_PRESET + slot, "");
     }
 
-    static void saveSelectedPreset(Context context, String preset) {
+    static void saveSelectedPreset(Context context, int slot, String preset) {
         context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
                 .edit()
-                .putString(SELECTED_PRESET, preset)
+                .putString(SELECTED_PRESET + slot, preset)
                 .apply();
     }
 
-    static int loadBaseSpeed(Context context) {
+    static int loadBaseSpeed(Context context, int slot) {
         return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-                .getInt(BASE_SPEED, 100);
+                .getInt(BASE_SPEED + slot, 100);
     }
 
-    static void saveBaseSpeed(Context context, int percentage) {
+    static void saveBaseSpeed(Context context, int slot, int percentage) {
         context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
                 .edit()
-                .putInt(BASE_SPEED, Math.max(0, Math.min(100, percentage)))
+                .putInt(BASE_SPEED + slot, Math.max(0, Math.min(100, percentage)))
                 .apply();
     }
 
@@ -50,15 +50,15 @@ final class WidgetPreferences {
         return locked;
     }
 
-    static String loadMode(Context context) {
+    static String loadMode(Context context, int slot) {
         return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-                .getString(MODE, "");
+                .getString(MODE + slot, "");
     }
 
-    static void saveMode(Context context, String mode) {
+    static void saveMode(Context context, int slot, String mode) {
         context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
                 .edit()
-                .putString(MODE, mode == null ? "" : mode)
+                .putString(MODE + slot, mode == null ? "" : mode)
                 .apply();
     }
 

@@ -11,11 +11,14 @@ import android.os.IBinder;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 public final class FanModeService extends Service {
     static final String ACTION_START = "com.wight.hawidget.MODE_START";
     static final String ACTION_STOP = "com.wight.hawidget.MODE_STOP";
     static final String EXTRA_MODE = "mode";
+    static final String EXTRA_SLOT = "slot";
     static final String MODE_NATURAL = "natural";
     static final String MODE_SLEEP = "sleep";
     private static final String CHANNEL_ID = "fan_mode";
@@ -24,9 +27,7 @@ public final class FanModeService extends Service {
     private static final long SLEEP_INTERVAL = 60_000L;
     private static final ExecutorService COMMANDS = Executors.newSingleThreadExecutor();
 
-    private volatile boolean running;
-    private volatile String mode = "";
-    private Thread worker;
+    private final Map<Integer, ModeTask> tasks = new ConcurrentHashMap<>();
 
     @Override
     public void onCreate() {
@@ -38,57 +39,58 @@ public final class FanModeService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent == null ? null : intent.getAction();
         if (ACTION_STOP.equals(action)) {
-            stopMode();
+            stopMode(intent == null ? 0 : intent.getIntExtra(EXTRA_SLOT, 0));
             return START_NOT_STICKY;
         }
         if (ACTION_START.equals(action)) {
             String requestedMode = intent.getStringExtra(EXTRA_MODE);
+            int slot = intent.getIntExtra(EXTRA_SLOT, 0);
             if (MODE_NATURAL.equals(requestedMode) || MODE_SLEEP.equals(requestedMode)) {
-                startMode(requestedMode);
+                startMode(slot, requestedMode);
             }
         } else if (intent == null) {
-            String savedMode = WidgetPreferences.loadMode(this);
-            if (MODE_NATURAL.equals(savedMode) || MODE_SLEEP.equals(savedMode)) {
-                startMode(savedMode);
+            for (int slot = 0; slot < 6; slot++) {
+                String savedMode = WidgetPreferences.loadMode(this, slot);
+                if (MODE_NATURAL.equals(savedMode) || MODE_SLEEP.equals(savedMode)) startMode(slot, savedMode);
             }
         }
         return START_STICKY;
     }
 
-    private synchronized void startMode(String requestedMode) {
-        mode = requestedMode;
-        running = true;
-        WidgetPreferences.saveMode(this, mode);
+    private synchronized void startMode(int slot, String requestedMode) {
+        stopMode(slot);
+        ModeTask task = new ModeTask(slot, requestedMode);
+        tasks.put(slot, task);
+        WidgetPreferences.saveMode(this, slot, requestedMode);
         startForeground(NOTIFICATION_ID, notification());
-        if (worker == null || !worker.isAlive()) {
-            worker = new Thread(this::runLoop, "fan-mode");
-            worker.start();
+        task.thread.start();
+    }
+
+    private synchronized void stopMode(int slot) {
+        ModeTask task = tasks.remove(slot);
+        if (task != null) task.running = false;
+        WidgetPreferences.saveMode(this, slot, "");
+        if (tasks.isEmpty()) {
+            stopForeground(STOP_FOREGROUND_REMOVE);
+            stopSelf();
         }
     }
 
-    private synchronized void stopMode() {
-        running = false;
-        mode = "";
-        WidgetPreferences.saveMode(this, "");
-        stopForeground(STOP_FOREGROUND_REMOVE);
-        stopSelf();
-    }
-
-    private void runLoop() {
+    private void runLoop(ModeTask task) {
         long phase = 0;
-        while (running) {
-            int base = WidgetPreferences.loadBaseSpeed(this);
-            int speed = MODE_NATURAL.equals(mode)
+        while (task.running) {
+            int base = WidgetPreferences.loadBaseSpeed(this, task.slot);
+            int speed = MODE_NATURAL.equals(task.mode)
                     ? naturalSpeed(base, phase)
                     : sleepSpeed(base, phase);
             COMMANDS.execute(() -> {
                 try {
-                    EspHomeClient.setFanPercentage(this, speed);
+                    EspHomeClient.setFanPercentage(this, task.slot, speed);
                     HaFanWidgetProvider.requestRefresh(this);
                 } catch (IOException ignored) {
                 }
             });
-            long interval = MODE_NATURAL.equals(mode) ? NATURAL_INTERVAL : SLEEP_INTERVAL;
+            long interval = MODE_NATURAL.equals(task.mode) ? NATURAL_INTERVAL : SLEEP_INTERVAL;
             try {
                 Thread.sleep(interval);
             } catch (InterruptedException ignored) {
@@ -96,6 +98,18 @@ public final class FanModeService extends Service {
                 return;
             }
             phase++;
+        }
+    }
+
+    private final class ModeTask {
+        final int slot;
+        final String mode;
+        volatile boolean running = true;
+        final Thread thread;
+        ModeTask(int slot, String mode) {
+            this.slot = slot;
+            this.mode = mode;
+            this.thread = new Thread(() -> runLoop(this), "fan-mode-" + slot);
         }
     }
 
@@ -114,7 +128,7 @@ public final class FanModeService extends Service {
     }
 
     private Notification notification() {
-        String title = MODE_NATURAL.equals(mode) ? "自然风运行中" : "睡眠风运行中";
+        String title = "风扇模式运行中";
         return new Notification.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_fan_on)
                 .setContentTitle(title)

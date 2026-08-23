@@ -123,15 +123,17 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
         if (ACTION_NATURAL.equals(action) || ACTION_SLEEP.equals(action)) {
             String mode = ACTION_NATURAL.equals(action)
                     ? FanModeService.MODE_NATURAL : FanModeService.MODE_SLEEP;
-            WidgetPreferences.saveSelectedPreset(applicationContext, presetFor(action));
+            WidgetPreferences.saveSelectedPreset(applicationContext, deviceSlot(), presetFor(action));
             applicationContext.startForegroundService(new Intent(applicationContext, FanModeService.class)
                     .setAction(FanModeService.ACTION_START)
-                    .putExtra(FanModeService.EXTRA_MODE, mode));
+                    .putExtra(FanModeService.EXTRA_MODE, mode)
+                    .putExtra(FanModeService.EXTRA_SLOT, deviceSlot()));
             renderPresetFeedback(applicationContext, action);
         } else {
             applicationContext.startService(new Intent(applicationContext, FanModeService.class)
-                    .setAction(FanModeService.ACTION_STOP));
-            WidgetPreferences.saveMode(applicationContext, "");
+                    .setAction(FanModeService.ACTION_STOP)
+                    .putExtra(FanModeService.EXTRA_SLOT, deviceSlot()));
+            WidgetPreferences.saveMode(applicationContext, deviceSlot(), "");
         }
         NETWORK_EXECUTOR.execute(() -> {
             try {
@@ -139,7 +141,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
                     EspHomeClient.toggleFan(applicationContext, deviceSlot());
                 } else if (ACTION_SET_SPEED.equals(action) && speed >= 1 && speed <= 100) {
                     EspHomeClient.setFanPercentage(applicationContext, deviceSlot(), speed);
-                    WidgetPreferences.saveBaseSpeed(applicationContext, speed);
+                    WidgetPreferences.saveBaseSpeed(applicationContext, deviceSlot(), speed);
                 }
             } catch (IOException exception) {
                 Log.e("HaFanWidget", "fan command failed for slot " + deviceSlot(), exception);
@@ -297,7 +299,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
     }
 
     private String selectedPreset(Context context, EspHomeClient.FanState state) {
-        String mode = WidgetPreferences.loadMode(context);
+        String mode = WidgetPreferences.loadMode(context, deviceSlot());
         if (FanModeService.MODE_NATURAL.equals(mode)) {
             return NATURAL_PRESET;
         }
@@ -308,10 +310,10 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             return "";
         }
         if (NATURAL_PRESET.equals(state.presetMode) || SLEEP_PRESET.equals(state.presetMode)) {
-            WidgetPreferences.saveSelectedPreset(context, state.presetMode);
+            WidgetPreferences.saveSelectedPreset(context, deviceSlot(), state.presetMode);
             return state.presetMode;
         }
-        return WidgetPreferences.loadSelectedPreset(context);
+        return WidgetPreferences.loadSelectedPreset(context, deviceSlot());
     }
 
     private String speedText(Context context, EspHomeClient.FanState state) {
