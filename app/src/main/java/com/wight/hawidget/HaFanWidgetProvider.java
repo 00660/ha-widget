@@ -280,7 +280,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             views.setOnClickPendingIntent(R.id.fan_speed_tile, commandIntent(context, ACTION_LOCK, id));
             views.setOnClickPendingIntent(R.id.fan_natural_button, commandIntent(context, ACTION_NATURAL, id));
             views.setOnClickPendingIntent(R.id.fan_sleep_button, commandIntent(context, ACTION_SLEEP, id));
-            if (speedCount == 3) {
+            if (isDiscreteWidget() || speedCount == 3) {
                 views.setOnClickPendingIntent(R.id.fan_discrete_speed_1, speedCommandIntent(context, id, 33));
                 views.setOnClickPendingIntent(R.id.fan_discrete_speed_2, speedCommandIntent(context, id, 66));
                 views.setOnClickPendingIntent(R.id.fan_discrete_speed_3, speedCommandIntent(context, id, 100));
