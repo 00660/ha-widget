@@ -125,6 +125,18 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
         if (ACTION_NATURAL.equals(action) || ACTION_SLEEP.equals(action)) {
             String mode = ACTION_NATURAL.equals(action)
                     ? FanModeService.MODE_NATURAL : FanModeService.MODE_SLEEP;
+            if (mode.equals(WidgetPreferences.loadMode(applicationContext, slot))) {
+                applicationContext.startForegroundService(new Intent(applicationContext, FanModeService.class)
+                        .setAction(FanModeService.ACTION_STOP)
+                        .putExtra(FanModeService.EXTRA_SLOT, slot));
+                WidgetPreferences.saveMode(applicationContext, slot, "");
+                WidgetPreferences.saveSelectedPreset(applicationContext, slot, "");
+                NETWORK_EXECUTOR.execute(() -> {
+                    refresh(applicationContext);
+                    pendingResult.finish();
+                });
+                return;
+            }
             WidgetPreferences.saveSelectedPreset(applicationContext, slot, presetFor(action));
             applicationContext.startForegroundService(new Intent(applicationContext, FanModeService.class)
                     .setAction(FanModeService.ACTION_START)
@@ -138,6 +150,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
                         .putExtra(FanModeService.EXTRA_SLOT, slot));
             }
             WidgetPreferences.saveMode(applicationContext, slot, "");
+            WidgetPreferences.saveSelectedPreset(applicationContext, slot, "");
         }
         NETWORK_EXECUTOR.execute(() -> {
             try {
@@ -319,14 +332,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
         if (FanModeService.MODE_SLEEP.equals(mode)) {
             return SLEEP_PRESET;
         }
-        if (state == null || !state.available) {
-            return "";
-        }
-        if (NATURAL_PRESET.equals(state.presetMode) || SLEEP_PRESET.equals(state.presetMode)) {
-            WidgetPreferences.saveSelectedPreset(context, slot, state.presetMode);
-            return state.presetMode;
-        }
-        return WidgetPreferences.loadSelectedPreset(context, slot);
+        return "";
     }
 
     private String speedText(Context context, EspHomeClient.FanState state) {
