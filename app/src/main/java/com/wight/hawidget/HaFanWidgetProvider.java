@@ -110,11 +110,14 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
         BroadcastReceiver.PendingResult pendingResult = goAsync();
         if (ACTION_LOCK.equals(action)) {
             NETWORK_EXECUTOR.execute(() -> {
-                try { EspHomeClient.toggleChildLock(applicationContext, deviceSlot()); }
-                catch (IOException exception) { Log.e("HaFanWidget", "child lock failed", exception); showCommandError(applicationContext, "童锁控制失败"); }
+                EspHomeClient.toggleChildLock(applicationContext, deviceSlot());
                 refresh(applicationContext);
                 pendingResult.finish();
             });
+            return;
+        }
+        if (WidgetPreferences.loadChildLock(applicationContext, deviceSlot())) {
+            pendingResult.finish();
             return;
         }
         if (ACTION_NATURAL.equals(action) || ACTION_SLEEP.equals(action)) {
@@ -230,7 +233,8 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
                     )
             );
             views.setTextViewText(R.id.fan_widget_speed, speedText(context, state));
-            views.setTextViewText(R.id.fan_speed_tile_value, state != null && state.childLock ? "已锁定" : "童锁");
+            views.setTextViewText(R.id.fan_speed_tile_value,
+                    WidgetPreferences.loadChildLock(context, deviceSlot()) ? "已锁定" : "童锁");
             if (speedCount == 3) {
                 int selectedLevel = state == null ? 0 : state.percentage >= 90 ? 3 : state.percentage >= 45 ? 2 : state.percentage > 0 ? 1 : 0;
                 styleDiscreteSpeed(views, R.id.fan_discrete_speed_1, selectedLevel == 1);

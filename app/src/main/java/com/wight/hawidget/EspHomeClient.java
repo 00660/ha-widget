@@ -42,7 +42,7 @@ final class EspHomeClient {
         EspHomeWebClient.setFanPercentage(context, slot, percentage);
     }
 
-    static void toggleChildLock(Context context, int slot) throws IOException {
+    static void toggleChildLock(Context context, int slot) {
         EspHomeWebClient.toggleChildLock(context, slot);
     }
 

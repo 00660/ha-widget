@@ -9,6 +9,7 @@ final class WidgetPreferences {
     private static final String MODE = "mode";
     private static final String ESPHOME_URL = "esphome_url";
     private static final String FAN_NAME = "fan_name";
+    private static final String CHILD_LOCK = "child_lock";
 
     private WidgetPreferences() {
     }
@@ -35,6 +36,18 @@ final class WidgetPreferences {
                 .edit()
                 .putInt(BASE_SPEED, Math.max(0, Math.min(100, percentage)))
                 .apply();
+    }
+
+    static boolean loadChildLock(Context context, int slot) {
+        return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .getBoolean(CHILD_LOCK + slot, false);
+    }
+
+    static boolean toggleChildLock(Context context, int slot) {
+        boolean locked = !loadChildLock(context, slot);
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .edit().putBoolean(CHILD_LOCK + slot, locked).apply();
+        return locked;
     }
 
     static String loadMode(Context context) {

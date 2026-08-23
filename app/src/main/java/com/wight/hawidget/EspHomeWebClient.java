@@ -78,9 +78,8 @@ final class EspHomeWebClient {
         postFan(context, slot, discoverEndpoint(context, slot), "turn_on", "speed_level=" + level);
     }
 
-    static void toggleChildLock(Context context, int slot) throws IOException {
-        LockState lock = fetchLockState(context, slot);
-        postSwitch(context, slot, lock.endpoint, lock.on ? "turn_off" : "turn_on");
+    static void toggleChildLock(Context context, int slot) {
+        WidgetPreferences.toggleChildLock(context, slot);
     }
 
     private static LockState fetchLockState(Context context, int slot) throws IOException {
