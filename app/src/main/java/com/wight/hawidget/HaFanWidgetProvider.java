@@ -25,6 +25,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
     private static final String ACTION_SLEEP = "com.wight.hawidget.FAN_SLEEP";
     private static final String ACTION_SET_SPEED = "com.wight.hawidget.FAN_SET_SPEED";
     private static final String ACTION_LOCK = "com.wight.hawidget.FAN_LOCK";
+    private static final String ACTION_WIDGET_NOOP = "com.wight.hawidget.WIDGET_NOOP";
     private static final String EXTRA_SPEED = "speed";
     private static final String NATURAL_PRESET = "自然风";
     private static final String SLEEP_PRESET = "睡眠风";
@@ -86,6 +87,9 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
+        if (ACTION_WIDGET_NOOP.equals(action)) {
+            return;
+        }
         if (isControlAction(action)) {
             runCommand(context, action, intent.getIntExtra(EXTRA_SPEED, -1));
             return;
@@ -266,6 +270,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             views.setTextColor(R.id.fan_natural_label, naturalWind ? Color.WHITE : Color.rgb(71, 85, 105));
             views.setTextColor(R.id.fan_sleep_label, sleepWind ? Color.WHITE : Color.rgb(71, 85, 105));
             views.setOnClickPendingIntent(R.id.fan_power_tile, commandIntent(context, ACTION_TOGGLE, id));
+            views.setOnClickPendingIntent(R.id.fan_widget_root, commandIntent(context, ACTION_WIDGET_NOOP, id));
             views.setOnClickPendingIntent(R.id.fan_speed_tile, commandIntent(context, ACTION_LOCK, id));
             views.setOnClickPendingIntent(R.id.fan_natural_button, commandIntent(context, ACTION_NATURAL, id));
             views.setOnClickPendingIntent(R.id.fan_sleep_button, commandIntent(context, ACTION_SLEEP, id));
