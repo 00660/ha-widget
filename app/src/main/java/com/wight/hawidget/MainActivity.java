@@ -37,6 +37,8 @@ public final class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         deviceList = findViewById(R.id.device_list);
         findViewById(R.id.add_device).setOnClickListener(view -> showAddDevice());
+        // Reapply current RemoteViews so restored widgets cannot retain old click actions.
+        HaFanWidgetProvider.requestRefresh(this);
         renderDeviceList();
     }
 
