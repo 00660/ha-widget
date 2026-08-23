@@ -355,11 +355,12 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
     private void renderSpeedRing(Context context, RemoteViews views, int slot, EspHomeClient.FanState state) {
         int percentage = state != null && state.available
                 ? state.percentage : WidgetPreferences.loadLastKnownSpeed(context, slot);
-        if (percentage < 1 || percentage > 100) {
+        if (percentage < 0 || percentage > 100) {
             return;
         }
+        int drawablePercentage = percentage == 0 ? 1 : percentage;
         int progressDrawable = context.getResources().getIdentifier(
-                String.format("fan_circle_marker_%03d", percentage),
+                String.format("fan_circle_marker_%03d", drawablePercentage),
                 "drawable",
                 context.getPackageName()
         );
