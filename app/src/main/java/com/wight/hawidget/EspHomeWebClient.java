@@ -42,16 +42,10 @@ final class EspHomeWebClient {
                 if (line.startsWith("data: {\"name_id\":\"fan/")
                         || line.contains("\"id\":\"fan-")) {
                     EspHomeClient.FanState state = parseFanState(line.substring(6));
-                    try {
-                        LockState lock = fetchLockState(context, slot);
-                        EspHomeClient.FanState result = new EspHomeClient.FanState(state.on, state.available, state.percentage, state.presetMode,
-                                state.speedCount, state.oscillation, lock.on, state.endpointName);
-                        cacheState(slot, result);
-                        return result;
-                    } catch (IOException ignored) {
-                        cacheState(slot, state);
-                        return state;
-                    }
+                    // Fan control must not wait for an optional child-lock event stream.
+                    // The lock endpoint is queried only when the lock button is pressed.
+                    cacheState(slot, state);
+                    return state;
                 }
             }
             throw new IOException("ESPHome fan state not found");
