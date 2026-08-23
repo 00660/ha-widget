@@ -22,7 +22,7 @@
         android:layout_width="1dp"
         android:layout_height="1dp"
         android:visibility="gone" />
-    <View
+    <TextView
         android:id="@+id/fan_widget_connection_dot"
         android:layout_width="1dp"
         android:layout_height="1dp"
