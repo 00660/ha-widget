@@ -48,6 +48,9 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/fan_widget_info_discrete" />
         </receiver>
+        <receiver
+            android:name=".WidgetPinReceiver"
+            android:exported="false" />
 
         <service
             android:name=".FanModeService"

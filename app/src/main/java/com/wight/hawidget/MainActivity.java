@@ -2,6 +2,10 @@ package com.wight.hawidget;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.InputType;
@@ -108,6 +112,7 @@ public final class MainActivity extends Activity {
         card.addView(control, controlParams);
         control.setOnClickListener(view -> toggleFromHome(slot, control));
         card.setOnLongClickListener(view -> { showEditDevice(slot); return true; });
+        card.setOnClickListener(view -> pinDevice(slot));
     }
 
     private TextView text(String value, int size, int color) {
@@ -168,10 +173,36 @@ public final class MainActivity extends Activity {
                 HaFanWidgetProvider.requestRefresh(this);
                 dialog.dismiss();
                 renderDeviceList();
+                pinDevice(slot);
             });
             scan.setOnClickListener(view -> scanDevices(scan, results, name, address));
         });
         dialog.show();
+    }
+
+    private void pinDevice(int deviceId) {
+        scanExecutor.execute(() -> {
+            try {
+                EspHomeClient.FanState state = EspHomeClient.fetchFanState(this, deviceId);
+                Class<?> provider = state.speedCount == 3
+                        ? DiscreteFanWidgetProvider.class : HaFanWidgetProvider.class;
+                AppWidgetManager manager = AppWidgetManager.getInstance(this);
+                if (!manager.isRequestPinAppWidgetSupported()) {
+                    runOnUiThread(() -> Toast.makeText(this,
+                            "当前桌面不支持自动添加挂件", Toast.LENGTH_SHORT).show());
+                    return;
+                }
+                Intent callback = new Intent(this, WidgetPinReceiver.class)
+                        .putExtra(WidgetPinReceiver.EXTRA_DEVICE_ID, deviceId);
+                PendingIntent success = PendingIntent.getBroadcast(this, 5000 + deviceId, callback,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
+                manager.requestPinAppWidget(new ComponentName(this, provider), null,
+                        success);
+            } catch (Exception exception) {
+                runOnUiThread(() -> Toast.makeText(this,
+                        "无法读取设备调速能力", Toast.LENGTH_SHORT).show());
+            }
+        });
     }
 
     private EditText input(String hint, String value, int inputType) {
