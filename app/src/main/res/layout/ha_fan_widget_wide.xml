@@ -30,9 +30,8 @@
 
     <TextView
         android:id="@+id/fan_discrete_speed_1"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:layout_weight="1"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:gravity="center"
         android:text="1"
         android:textColor="#1E293B"
@@ -40,10 +39,9 @@
 
     <TextView
         android:id="@+id/fan_discrete_speed_2"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_marginStart="2dp"
-        android:layout_weight="1"
         android:gravity="center"
         android:text="2"
         android:textColor="#1E293B"
@@ -51,10 +49,9 @@
 
     <TextView
         android:id="@+id/fan_discrete_speed_3"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_marginStart="2dp"
-        android:layout_weight="1"
         android:gravity="center"
         android:text="3"
         android:textColor="#1E293B"
