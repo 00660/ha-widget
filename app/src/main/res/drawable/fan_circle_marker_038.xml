@@ -12,7 +12,7 @@
         android:strokeLineCap="round" />
     <path
         android:fillColor="#2F6AF3"
-        android:pathData="104.65,113.81a12,12 0,1 0,24.00,0a12,12 0,1 0,-24.00,0"
+        android:pathData="M104.65,113.81a12,12 0,1 0,24.00,0a12,12 0,1 0,-24.00,0"
         android:strokeColor="#FFFFFF"
         android:strokeWidth="2" />
 </vector>
