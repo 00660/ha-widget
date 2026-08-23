@@ -244,6 +244,9 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             boolean connected = state != null;
             boolean available = connected && state.available;
             boolean on = available && state.on;
+            if (available && state.percentage >= 0) {
+                WidgetPreferences.saveLastKnownSpeed(context, slot, state.percentage);
+            }
             boolean naturalWind = available && NATURAL_PRESET.equals(selectedPreset);
             boolean sleepWind = available && SLEEP_PRESET.equals(selectedPreset);
             String fanName = WidgetPreferences.loadFanName(context, slot).trim();
@@ -270,7 +273,7 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
                 styleDiscreteSpeed(views, R.id.fan_discrete_speed_2, selectedLevel == 2);
                 styleDiscreteSpeed(views, R.id.fan_discrete_speed_3, selectedLevel == 3);
             } else {
-                renderSpeedRing(context, views, state);
+                renderSpeedRing(context, views, slot, state);
             }
             views.setInt(
                     R.id.fan_widget_connection_dot,
@@ -349,8 +352,9 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
         return context.getString(R.string.speed_widget_percent, state.percentage);
     }
 
-    private void renderSpeedRing(Context context, RemoteViews views, EspHomeClient.FanState state) {
-        int percentage = state != null && state.available ? state.percentage : -1;
+    private void renderSpeedRing(Context context, RemoteViews views, int slot, EspHomeClient.FanState state) {
+        int percentage = state != null && state.available
+                ? state.percentage : WidgetPreferences.loadLastKnownSpeed(context, slot);
         if (percentage < 1 || percentage > 100) {
             return;
         }

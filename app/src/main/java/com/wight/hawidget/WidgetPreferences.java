@@ -6,6 +6,7 @@ final class WidgetPreferences {
     private static final String PREFERENCES = "widget_preferences";
     private static final String SELECTED_PRESET = "selected_preset";
     private static final String BASE_SPEED = "base_speed";
+    private static final String LAST_KNOWN_SPEED = "last_known_speed";
     private static final String MODE = "mode";
     private static final String ESPHOME_URL = "esphome_url";
     private static final String FAN_NAME = "fan_name";
@@ -38,6 +39,16 @@ final class WidgetPreferences {
                 .edit()
                 .putInt(BASE_SPEED + slot, Math.max(0, Math.min(100, percentage)))
                 .apply();
+    }
+
+    static int loadLastKnownSpeed(Context context, int slot) {
+        return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .getInt(LAST_KNOWN_SPEED + slot, -1);
+    }
+
+    static void saveLastKnownSpeed(Context context, int slot, int percentage) {
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .edit().putInt(LAST_KNOWN_SPEED + slot, Math.max(0, Math.min(100, percentage))).apply();
     }
 
     static boolean loadChildLock(Context context, int slot) {
