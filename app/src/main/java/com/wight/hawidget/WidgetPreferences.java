@@ -10,6 +10,7 @@ final class WidgetPreferences {
     private static final String MODE = "mode";
     private static final String ESPHOME_URL = "esphome_url";
     private static final String FAN_NAME = "fan_name";
+    private static final String ROOM = "room";
     private static final String CHILD_LOCK = "child_lock";
     private static final String DEVICE_COUNT = "device_count";
     private static final String WIDGET_DEVICE = "widget_device_";
@@ -120,6 +121,16 @@ final class WidgetPreferences {
         String[] defaults = {"风扇 64", "风扇 62", "风扇 10", "风扇 199", "", ""};
         return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
                 .getString(FAN_NAME + slot, slot >= 0 && slot < defaults.length ? defaults[slot] : "");
+    }
+
+    static String loadRoom(Context context, int slot) {
+        return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .getString(ROOM + slot, "未分配");
+    }
+
+    static void saveRoom(Context context, int slot, String room) {
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .edit().putString(ROOM + slot, room == null ? "未分配" : room).apply();
     }
 
     static void saveDevice(Context context, String url, String fanName) {

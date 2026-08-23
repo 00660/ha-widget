@@ -16,6 +16,8 @@ import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,18 +36,34 @@ import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 public final class MainActivity extends Activity {
+    private static final String ALL_ROOMS = "全部";
+    private static final String[] ROOMS = {"未分配", "客厅", "卧室", "厨房", "卫生间"};
     private final ExecutorService scanExecutor = Executors.newFixedThreadPool(24);
     private LinearLayout deviceList;
     private TextView deviceCount;
+    private TextView homeSummary;
+    private String selectedRoom = ALL_ROOMS;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         deviceList = findViewById(R.id.device_list);
         deviceCount = findViewById(R.id.device_count);
+        homeSummary = findViewById(R.id.home_summary);
         findViewById(R.id.add_device).setOnClickListener(view -> showAddDevice());
+        findViewById(R.id.room_all).setOnClickListener(view -> setRoomFilter(ALL_ROOMS));
+        findViewById(R.id.room_living).setOnClickListener(view -> setRoomFilter("客厅"));
+        findViewById(R.id.room_bedroom).setOnClickListener(view -> setRoomFilter("卧室"));
+        findViewById(R.id.room_kitchen).setOnClickListener(view -> setRoomFilter("厨房"));
+        findViewById(R.id.room_bathroom).setOnClickListener(view -> setRoomFilter("卫生间"));
+        findViewById(R.id.room_manage).setOnClickListener(view -> showRoomManager());
+        findViewById(R.id.nav_home).setOnClickListener(view -> setRoomFilter(ALL_ROOMS));
+        findViewById(R.id.nav_scenes).setOnClickListener(view -> showSceneManager());
+        findViewById(R.id.nav_rooms).setOnClickListener(view -> showRoomManager());
+        findViewById(R.id.nav_profile).setOnClickListener(view -> showAddDevice());
         // Reapply current RemoteViews so restored widgets cannot retain old click actions.
         HaFanWidgetProvider.requestRefresh(this);
+        updateRoomTabColors();
         renderDeviceList();
     }
 
@@ -59,13 +77,18 @@ public final class MainActivity extends Activity {
         for (int slot = 0; slot < WidgetPreferences.loadDeviceCount(this); slot++) {
             String url = WidgetPreferences.loadEspHomeUrl(this, slot);
             if (url.isEmpty()) continue;
+            String room = WidgetPreferences.loadRoom(this, slot);
+            if (!ALL_ROOMS.equals(selectedRoom) && !selectedRoom.equals(room)) continue;
             hasDevice = true;
             addDeviceCard(grid, configuredCount, slot,
-                    WidgetPreferences.loadFanName(this, slot), url);
+                    WidgetPreferences.loadFanName(this, slot), url, room);
             configuredCount++;
         }
         if (hasDevice) deviceList.addView(grid, new LinearLayout.LayoutParams(-1, -2));
         deviceCount.setText(configuredCount + " 台");
+        homeSummary.setText(ALL_ROOMS.equals(selectedRoom)
+                ? "ESPHome 局域网设备 · 全部房间"
+                : "ESPHome 局域网设备 · " + selectedRoom);
         if (!hasDevice) {
             TextView empty = new TextView(this);
             empty.setText("还没有设备\n点击右上角 + 扫描 ESPHome 设备");
@@ -77,7 +100,7 @@ public final class MainActivity extends Activity {
         }
     }
 
-    private void addDeviceCard(GridLayout grid, int index, int slot, String name, String url) {
+    private void addDeviceCard(GridLayout grid, int index, int slot, String name, String url, String room) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
         card.setBackgroundResource(R.drawable.settings_card_background);
@@ -111,6 +134,10 @@ public final class MainActivity extends Activity {
                 12, Color.rgb(100, 116, 139));
         address.setSingleLine(true);
         details.addView(address);
+        TextView roomTag = text(room, 11, Color.rgb(37, 99, 235));
+        roomTag.setSingleLine(true);
+        roomTag.setOnClickListener(view -> showRoomChooser(slot));
+        details.addView(roomTag);
 
         Switch control = new Switch(this);
         control.setContentDescription("开关");
@@ -139,6 +166,108 @@ public final class MainActivity extends Activity {
         card.setOnLongClickListener(view -> { showEditDevice(slot); return true; });
         card.setOnClickListener(view -> pinDevice(slot));
         card.setContentDescription("配置 " + (name.isEmpty() ? "未命名风扇" : name) + " 挂件");
+    }
+
+    private void setRoomFilter(String room) {
+        selectedRoom = room;
+        updateRoomTabColors();
+        renderDeviceList();
+    }
+
+    private void updateRoomTabColors() {
+        int active = Color.rgb(15, 23, 42);
+        int inactive = Color.rgb(100, 116, 139);
+        updateRoomTab((TextView) findViewById(R.id.room_all), ALL_ROOMS, active, inactive);
+        updateRoomTab((TextView) findViewById(R.id.room_living), "客厅", active, inactive);
+        updateRoomTab((TextView) findViewById(R.id.room_bedroom), "卧室", active, inactive);
+        updateRoomTab((TextView) findViewById(R.id.room_kitchen), "厨房", active, inactive);
+        updateRoomTab((TextView) findViewById(R.id.room_bathroom), "卫生间", active, inactive);
+    }
+
+    private void updateRoomTab(TextView tab, String room, int active, int inactive) {
+        boolean selected = room.equals(selectedRoom);
+        tab.setTextColor(selected ? active : inactive);
+        tab.setTypeface(null, selected ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        tab.setBackgroundResource(selected ? R.drawable.home_tab_selected : android.R.color.transparent);
+    }
+
+    private void showRoomChooser(int slot) {
+        String current = WidgetPreferences.loadRoom(this, slot);
+        int checked = 0;
+        for (int i = 0; i < ROOMS.length; i++) {
+            if (ROOMS[i].equals(current)) {
+                checked = i;
+                break;
+            }
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("分配房间")
+                .setSingleChoiceItems(ROOMS, checked, (dialog, which) -> {
+                    WidgetPreferences.saveRoom(this, slot, ROOMS[which]);
+                    dialog.dismiss();
+                    updateRoomTabColors();
+                    renderDeviceList();
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
+    private void showRoomManager() {
+        LinearLayout rows = new LinearLayout(this);
+        rows.setOrientation(LinearLayout.VERTICAL);
+        rows.setPadding(dp(20), dp(4), dp(20), 0);
+        TextView hint = text("选择房间后，首页只显示该房间的设备", 13, Color.rgb(100, 116, 139));
+        rows.addView(hint, new LinearLayout.LayoutParams(-1, dp(42)));
+        String[] roomOptions = {ALL_ROOMS, "未分配", "客厅", "卧室", "厨房", "卫生间"};
+        for (String room : roomOptions) {
+            int count = countDevices(room);
+            Button row = new Button(this);
+            row.setAllCaps(false);
+            row.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+            row.setText(room + "    " + count + " 台设备");
+            row.setOnClickListener(view -> {
+                setRoomFilter(room);
+                ((AlertDialog) view.getTag()).dismiss();
+            });
+            rows.addView(row, new LinearLayout.LayoutParams(-1, dp(48)));
+        }
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("房间管理").setView(rows)
+                .setNegativeButton("关闭", null).create();
+        for (int i = 1; i < rows.getChildCount(); i++) rows.getChildAt(i).setTag(dialog);
+        dialog.show();
+    }
+
+    private int countDevices(String room) {
+        int count = 0;
+        for (int slot = 0; slot < WidgetPreferences.loadDeviceCount(this); slot++) {
+            if (WidgetPreferences.loadEspHomeUrl(this, slot).isEmpty()) continue;
+            if (ALL_ROOMS.equals(room) || room.equals(WidgetPreferences.loadRoom(this, slot))) count++;
+        }
+        return count;
+    }
+
+    private void showSceneManager() {
+        new AlertDialog.Builder(this)
+                .setTitle("场景")
+                .setItems(new String[]{"回家模式：开启所有风扇", "离家模式：关闭所有风扇"},
+                        (dialog, which) -> applyScene(which == 0))
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
+    private void applyScene(boolean targetOn) {
+        scanExecutor.execute(() -> {
+            for (int slot = 0; slot < WidgetPreferences.loadDeviceCount(this); slot++) {
+                if (WidgetPreferences.loadEspHomeUrl(this, slot).isEmpty()) continue;
+                try {
+                    EspHomeClient.FanState state = EspHomeClient.fetchFanState(this, slot);
+                    if (state.available && state.on != targetOn) EspHomeClient.toggleFan(this, slot);
+                } catch (Exception ignored) {
+                    // A single offline device must not prevent the scene from reaching others.
+                }
+            }
+            runOnUiThread(this::renderDeviceList);
+        });
     }
 
     private void refreshHomeState(int slot, Switch control, TextView status, ProgressBar progress) {
@@ -226,6 +355,14 @@ public final class MainActivity extends Activity {
         EditText address = input("ESPHome 地址", WidgetPreferences.loadEspHomeUrl(this, slot), InputType.TYPE_TEXT_VARIATION_URI);
         form.addView(name);
         form.addView(address);
+        TextView roomLabel = text("所属房间", 13, Color.rgb(51, 65, 85));
+        roomLabel.setPadding(0, dp(12), 0, dp(4));
+        form.addView(roomLabel);
+        Spinner roomPicker = new Spinner(this);
+        roomPicker.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, ROOMS));
+        roomPicker.setSelection(roomIndex(WidgetPreferences.loadRoom(this, slot)));
+        form.addView(roomPicker, new LinearLayout.LayoutParams(-1, dp(48)));
         Button scan = new Button(this);
         scan.setText("扫描局域网 ESPHome 设备");
         scan.setAllCaps(false);
@@ -242,6 +379,7 @@ public final class MainActivity extends Activity {
                 String url = normalizeUrl(address.getText().toString());
                 if (url.isEmpty()) { address.setError("请输入 ESPHome 地址"); return; }
                 WidgetPreferences.saveDevice(this, slot, url, name.getText().toString().trim());
+                WidgetPreferences.saveRoom(this, slot, ROOMS[roomPicker.getSelectedItemPosition()]);
                 HaFanWidgetProvider.requestRefresh(this);
                 dialog.dismiss();
                 renderDeviceList();
@@ -250,6 +388,11 @@ public final class MainActivity extends Activity {
             scan.setOnClickListener(view -> scanDevices(scan, results, name, address));
         });
         dialog.show();
+    }
+
+    private int roomIndex(String room) {
+        for (int i = 0; i < ROOMS.length; i++) if (ROOMS[i].equals(room)) return i;
+        return 0;
     }
 
     private void pinDevice(int deviceId) {
