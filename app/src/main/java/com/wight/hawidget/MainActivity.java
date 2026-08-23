@@ -1,23 +1,25 @@
 package com.wight.hawidget;
 
 import android.app.Activity;
-import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
-import android.widget.Button;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
+import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -193,48 +195,44 @@ public final class MainActivity extends Activity {
 
     private void showRoomChooser(int slot) {
         String current = WidgetPreferences.loadRoom(this, slot);
-        int checked = 0;
-        for (int i = 0; i < ROOMS.length; i++) {
-            if (ROOMS[i].equals(current)) {
-                checked = i;
-                break;
-            }
+        LinearLayout panel = panel("分配房间");
+        panel.addView(text("选择后立即保存到设备", 13, Color.rgb(100, 116, 139)),
+                new LinearLayout.LayoutParams(-1, dp(36)));
+        Dialog dialog = panelDialog(panel);
+        for (String room : ROOMS) {
+            TextView row = panelRow(room, room.equals(current));
+            row.setOnClickListener(view -> {
+                WidgetPreferences.saveRoom(this, slot, room);
+                dialog.dismiss();
+                updateRoomTabColors();
+                renderDeviceList();
+            });
+            panel.addView(row, rowParams());
         }
-        new AlertDialog.Builder(this)
-                .setTitle("分配房间")
-                .setSingleChoiceItems(ROOMS, checked, (dialog, which) -> {
-                    WidgetPreferences.saveRoom(this, slot, ROOMS[which]);
-                    dialog.dismiss();
-                    updateRoomTabColors();
-                    renderDeviceList();
-                })
-                .setNegativeButton("取消", null)
-                .show();
+        panel.addView(actionText("取消", Color.rgb(37, 99, 235), false), actionParams());
+        ((TextView) panel.getChildAt(panel.getChildCount() - 1)).setOnClickListener(view -> dialog.dismiss());
+        showPanel(dialog);
     }
 
     private void showRoomManager() {
-        LinearLayout rows = new LinearLayout(this);
-        rows.setOrientation(LinearLayout.VERTICAL);
-        rows.setPadding(dp(20), dp(4), dp(20), 0);
-        TextView hint = text("选择房间后，首页只显示该房间的设备", 13, Color.rgb(100, 116, 139));
-        rows.addView(hint, new LinearLayout.LayoutParams(-1, dp(42)));
+        LinearLayout panel = panel("房间");
+        panel.addView(text("选择房间后，首页只显示该房间的设备", 13, Color.rgb(100, 116, 139)),
+                new LinearLayout.LayoutParams(-1, dp(42)));
         String[] roomOptions = {ALL_ROOMS, "未分配", "客厅", "卧室", "厨房", "卫生间"};
+        Dialog dialog = panelDialog(panel);
         for (String room : roomOptions) {
             int count = countDevices(room);
-            Button row = new Button(this);
-            row.setAllCaps(false);
-            row.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-            row.setText(room + "    " + count + " 台设备");
+            TextView row = panelRow(room + "    " + count + " 台设备", room.equals(selectedRoom));
             row.setOnClickListener(view -> {
                 setRoomFilter(room);
-                ((AlertDialog) view.getTag()).dismiss();
+                dialog.dismiss();
             });
-            rows.addView(row, new LinearLayout.LayoutParams(-1, dp(48)));
+            panel.addView(row, rowParams());
         }
-        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("房间管理").setView(rows)
-                .setNegativeButton("关闭", null).create();
-        for (int i = 1; i < rows.getChildCount(); i++) rows.getChildAt(i).setTag(dialog);
-        dialog.show();
+        TextView close = actionText("关闭", Color.rgb(37, 99, 235), false);
+        close.setOnClickListener(view -> dialog.dismiss());
+        panel.addView(close, actionParams());
+        showPanel(dialog);
     }
 
     private int countDevices(String room) {
@@ -247,12 +245,20 @@ public final class MainActivity extends Activity {
     }
 
     private void showSceneManager() {
-        new AlertDialog.Builder(this)
-                .setTitle("场景")
-                .setItems(new String[]{"回家模式：开启所有风扇", "离家模式：关闭所有风扇"},
-                        (dialog, which) -> applyScene(which == 0))
-                .setNegativeButton("取消", null)
-                .show();
+        LinearLayout panel = panel("场景");
+        panel.addView(text("批量控制所有已配置风扇", 13, Color.rgb(100, 116, 139)),
+                new LinearLayout.LayoutParams(-1, dp(36)));
+        Dialog dialog = panelDialog(panel);
+        TextView home = panelRow("回家模式    开启所有风扇", false);
+        home.setOnClickListener(view -> { dialog.dismiss(); applyScene(true); });
+        panel.addView(home, rowParams());
+        TextView away = panelRow("离家模式    关闭所有风扇", false);
+        away.setOnClickListener(view -> { dialog.dismiss(); applyScene(false); });
+        panel.addView(away, rowParams());
+        TextView close = actionText("取消", Color.rgb(37, 99, 235), false);
+        close.setOnClickListener(view -> dialog.dismiss());
+        panel.addView(close, actionParams());
+        showPanel(dialog);
     }
 
     private void applyScene(boolean targetOn) {
@@ -339,6 +345,96 @@ public final class MainActivity extends Activity {
         return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
     }
 
+    private LinearLayout panel(String title) {
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(dp(22), dp(18), dp(22), dp(14));
+        panel.setBackgroundResource(R.drawable.settings_card_background);
+        TextView heading = text(title, 22, Color.rgb(15, 23, 42));
+        heading.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        panel.addView(heading, new LinearLayout.LayoutParams(-1, dp(42)));
+        return panel;
+    }
+
+    private Dialog panelDialog(View content) {
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(content);
+        dialog.setCanceledOnTouchOutside(true);
+        return dialog;
+    }
+
+    private void showPanel(Dialog dialog) {
+        dialog.show();
+        Window window = dialog.getWindow();
+        if (window == null) return;
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        WindowManager.LayoutParams attributes = window.getAttributes();
+        attributes.dimAmount = 0.38f;
+        attributes.gravity = Gravity.CENTER;
+        window.setAttributes(attributes);
+        int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.90f);
+        window.setLayout(width, WindowManager.LayoutParams.WRAP_CONTENT);
+    }
+
+    private TextView panelRow(String label, boolean selected) {
+        TextView row = text(label, 15, selected ? Color.rgb(37, 99, 235) : Color.rgb(15, 23, 42));
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(14), dp(8), dp(14), dp(8));
+        row.setMinHeight(dp(48));
+        row.setTypeface(Typeface.DEFAULT, selected ? Typeface.BOLD : Typeface.NORMAL);
+        row.setBackgroundResource(selected
+                ? R.drawable.fan_control_natural_active : R.drawable.settings_input_background);
+        return row;
+    }
+
+    private TextView actionText(String label, int color, boolean filled) {
+        TextView action = text(label, 15, color);
+        action.setGravity(Gravity.CENTER);
+        action.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        action.setPadding(dp(16), 0, dp(16), 0);
+        action.setBackgroundResource(filled
+                ? R.drawable.fan_control_primary : R.drawable.fan_control_secondary);
+        return action;
+    }
+
+    private LinearLayout.LayoutParams rowParams() {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(50));
+        params.bottomMargin = dp(8);
+        return params;
+    }
+
+    private LinearLayout.LayoutParams actionParams() {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, dp(46));
+        params.leftMargin = dp(8);
+        params.topMargin = dp(8);
+        return params;
+    }
+
+    private LinearLayout.LayoutParams fieldParams() {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(50));
+        params.bottomMargin = dp(10);
+        return params;
+    }
+
+    private void renderRoomChoices(LinearLayout container, String[] selectedRoom) {
+        container.removeAllViews();
+        for (String room : ROOMS) {
+            TextView chip = panelRow(room, room.equals(selectedRoom[0]));
+            chip.setTextSize(12);
+            chip.setGravity(Gravity.CENTER);
+            chip.setPadding(dp(4), 0, dp(4), 0);
+            chip.setOnClickListener(view -> {
+                selectedRoom[0] = room;
+                renderRoomChoices(container, selectedRoom);
+            });
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -1, 1f);
+            params.leftMargin = dp(2);
+            params.rightMargin = dp(2);
+            container.addView(chip, params);
+        }
+    }
+
     private void showAddDevice() {
         int slot = WidgetPreferences.loadDeviceCount(this);
         showDeviceDialog(slot, "添加设备");
@@ -347,52 +443,56 @@ public final class MainActivity extends Activity {
     private void showEditDevice(int slot) { showDeviceDialog(slot, "编辑设备"); }
 
     private void showDeviceDialog(int slot, String title) {
+        String[] selectedRoom = {WidgetPreferences.loadRoom(this, slot)};
+        LinearLayout panel = panel(title);
+        ScrollView scroll = new ScrollView(this);
         LinearLayout form = new LinearLayout(this);
         form.setOrientation(LinearLayout.VERTICAL);
-        int pad = (int) (20 * getResources().getDisplayMetrics().density);
-        form.setPadding(pad, 8, pad, 0);
+        form.setPadding(0, dp(4), 0, 0);
         EditText name = input("设备名称", WidgetPreferences.loadFanName(this, slot), InputType.TYPE_CLASS_TEXT);
         EditText address = input("ESPHome 地址", WidgetPreferences.loadEspHomeUrl(this, slot), InputType.TYPE_TEXT_VARIATION_URI);
-        form.addView(name);
-        form.addView(address);
+        form.addView(name, fieldParams());
+        form.addView(address, fieldParams());
         TextView roomLabel = text("所属房间", 13, Color.rgb(51, 65, 85));
-        roomLabel.setPadding(0, dp(12), 0, dp(4));
-        form.addView(roomLabel);
-        Spinner roomPicker = new Spinner(this);
-        roomPicker.setAdapter(new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_dropdown_item, ROOMS));
-        roomPicker.setSelection(roomIndex(WidgetPreferences.loadRoom(this, slot)));
-        form.addView(roomPicker, new LinearLayout.LayoutParams(-1, dp(48)));
-        Button scan = new Button(this);
-        scan.setText("扫描局域网 ESPHome 设备");
-        scan.setAllCaps(false);
-        form.addView(scan, new LinearLayout.LayoutParams(-1, -2));
+        roomLabel.setPadding(0, dp(12), 0, dp(8));
+        form.addView(roomLabel, new LinearLayout.LayoutParams(-1, -2));
+        LinearLayout roomPicker = new LinearLayout(this);
+        roomPicker.setOrientation(LinearLayout.HORIZONTAL);
+        roomPicker.setGravity(Gravity.CENTER_VERTICAL);
+        form.addView(roomPicker, new LinearLayout.LayoutParams(-1, dp(44)));
+        renderRoomChoices(roomPicker, selectedRoom);
+        TextView scan = actionText("扫描局域网 ESPHome 设备", Color.rgb(37, 99, 235), true);
+        LinearLayout.LayoutParams scanParams = new LinearLayout.LayoutParams(-1, dp(46));
+        scanParams.bottomMargin = dp(10);
+        form.addView(scan, scanParams);
         LinearLayout results = new LinearLayout(this);
         results.setOrientation(LinearLayout.VERTICAL);
-        form.addView(results);
+        form.addView(results, new LinearLayout.LayoutParams(-1, -2));
+        scroll.addView(form, new ScrollView.LayoutParams(-1, -2));
+        panel.addView(scroll, new LinearLayout.LayoutParams(-1, -2));
 
-        AlertDialog dialog = new AlertDialog.Builder(this).setTitle(title).setView(form)
-                .setNegativeButton("取消", null)
-                .setPositiveButton("保存", null).create();
-        dialog.setOnShowListener(ignored -> {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
-                String url = normalizeUrl(address.getText().toString());
-                if (url.isEmpty()) { address.setError("请输入 ESPHome 地址"); return; }
-                WidgetPreferences.saveDevice(this, slot, url, name.getText().toString().trim());
-                WidgetPreferences.saveRoom(this, slot, ROOMS[roomPicker.getSelectedItemPosition()]);
-                HaFanWidgetProvider.requestRefresh(this);
-                dialog.dismiss();
-                renderDeviceList();
-                pinDevice(slot);
-            });
-            scan.setOnClickListener(view -> scanDevices(scan, results, name, address));
+        LinearLayout actions = new LinearLayout(this);
+        actions.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        TextView cancel = actionText("取消", Color.rgb(100, 116, 139), false);
+        TextView save = actionText("保存", Color.rgb(37, 99, 235), false);
+        actions.addView(cancel, actionParams());
+        actions.addView(save, actionParams());
+        panel.addView(actions, new LinearLayout.LayoutParams(-1, dp(56)));
+
+        Dialog dialog = panelDialog(panel);
+        cancel.setOnClickListener(view -> dialog.dismiss());
+        save.setOnClickListener(view -> {
+            String url = normalizeUrl(address.getText().toString());
+            if (url.isEmpty()) { address.setError("请输入 ESPHome 地址"); return; }
+            WidgetPreferences.saveDevice(this, slot, url, name.getText().toString().trim());
+            WidgetPreferences.saveRoom(this, slot, selectedRoom[0]);
+            HaFanWidgetProvider.requestRefresh(this);
+            dialog.dismiss();
+            renderDeviceList();
+            pinDevice(slot);
         });
-        dialog.show();
-    }
-
-    private int roomIndex(String room) {
-        for (int i = 0; i < ROOMS.length; i++) if (ROOMS[i].equals(room)) return i;
-        return 0;
+        scan.setOnClickListener(view -> scanDevices(scan, results, name, address));
+        showPanel(dialog);
     }
 
     private void pinDevice(int deviceId) {
@@ -426,10 +526,14 @@ public final class MainActivity extends Activity {
         input.setText(value);
         input.setSingleLine(true);
         input.setInputType(inputType);
+        input.setTextColor(Color.rgb(15, 23, 42));
+        input.setHintTextColor(Color.rgb(100, 116, 139));
+        input.setBackgroundResource(R.drawable.settings_input_background);
+        input.setPadding(dp(14), 0, dp(14), 0);
         return input;
     }
 
-    private void scanDevices(Button scan, LinearLayout results, EditText name, EditText address) {
+    private void scanDevices(TextView scan, LinearLayout results, EditText name, EditText address) {
         scan.setEnabled(false);
         scan.setText("正在扫描...");
         scanExecutor.execute(() -> {
@@ -444,15 +548,13 @@ public final class MainActivity extends Activity {
                 found.sort((left, right) -> Integer.compare(left.host, right.host));
                 results.removeAllViews();
                 for (Device device : found) {
-                    Button choice = new Button(this);
-                    choice.setAllCaps(false);
-                    choice.setText(device.name + "  " + device.features + "\n" + device.url);
+                    TextView choice = panelRow(device.name + "  " + device.features + "\n" + device.url, false);
                     choice.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
                     choice.setEnabled(device.fan);
                     if (device.fan) {
                         choice.setOnClickListener(view -> { name.setText(device.name); address.setText(device.url); results.removeAllViews(); });
                     }
-                    results.addView(choice, new LinearLayout.LayoutParams(-1, -2));
+                    results.addView(choice, rowParams());
                 }
                 if (found.isEmpty()) results.addView(text("未发现公开 ESPHome Web Server 的设备", 14, Color.rgb(100, 116, 139)));
                 scan.setEnabled(true);

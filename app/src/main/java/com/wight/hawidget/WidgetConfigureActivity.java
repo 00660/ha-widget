@@ -4,9 +4,10 @@ import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,21 +30,40 @@ public final class WidgetConfigureActivity extends Activity {
         list.setOrientation(LinearLayout.VERTICAL);
         int padding = (int) (24 * getResources().getDisplayMetrics().density);
         list.setPadding(padding, padding, padding, padding);
+        list.setBackgroundColor(Color.rgb(244, 247, 251));
         TextView title = new TextView(this);
         title.setText("选择风扇设备");
         title.setTextSize(24);
+        title.setTextColor(Color.rgb(15, 23, 42));
+        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         list.addView(title, new LinearLayout.LayoutParams(-1, -2));
+        TextView hint = new TextView(this);
+        hint.setText("选择后，桌面挂件会连接到对应设备");
+        hint.setTextSize(13);
+        hint.setTextColor(Color.rgb(100, 116, 139));
+        LinearLayout.LayoutParams hintParams = new LinearLayout.LayoutParams(-1, -2);
+        hintParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        list.addView(hint, hintParams);
 
         int count = WidgetPreferences.loadDeviceCount(this);
         for (int deviceId = 0; deviceId < count; deviceId++) {
             String url = WidgetPreferences.loadEspHomeUrl(this, deviceId);
             if (url.isEmpty()) continue;
-            Button device = new Button(this);
-            device.setAllCaps(false);
+            TextView device = new TextView(this);
             device.setText(WidgetPreferences.loadFanName(this, deviceId) + "\n" + url);
+            device.setTextSize(16);
+            device.setTextColor(Color.rgb(15, 23, 42));
+            device.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            device.setPadding((int) (16 * getResources().getDisplayMetrics().density), 0,
+                    (int) (16 * getResources().getDisplayMetrics().density), 0);
+            device.setBackgroundResource(R.drawable.settings_card_background);
+            device.setMinHeight((int) (64 * getResources().getDisplayMetrics().density));
             final int selected = deviceId;
             device.setOnClickListener(view -> validateAndBind(view, selected));
-            list.addView(device, new LinearLayout.LayoutParams(-1, -2));
+            LinearLayout.LayoutParams deviceParams = new LinearLayout.LayoutParams(-1,
+                    (int) (72 * getResources().getDisplayMetrics().density));
+            deviceParams.topMargin = (int) (12 * getResources().getDisplayMetrics().density);
+            list.addView(device, deviceParams);
         }
         setContentView(list);
     }
