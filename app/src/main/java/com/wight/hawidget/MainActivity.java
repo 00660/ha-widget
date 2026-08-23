@@ -15,6 +15,8 @@ import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,11 +36,13 @@ import java.util.regex.Pattern;
 public final class MainActivity extends Activity {
     private final ExecutorService scanExecutor = Executors.newFixedThreadPool(24);
     private LinearLayout deviceList;
+    private TextView deviceCount;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         deviceList = findViewById(R.id.device_list);
+        deviceCount = findViewById(R.id.device_count);
         findViewById(R.id.add_device).setOnClickListener(view -> showAddDevice());
         // Reapply current RemoteViews so restored widgets cannot retain old click actions.
         HaFanWidgetProvider.requestRefresh(this);
@@ -51,13 +55,17 @@ public final class MainActivity extends Activity {
         GridLayout grid = new GridLayout(this);
         grid.setColumnCount(2);
         grid.setUseDefaultMargins(false);
+        int configuredCount = 0;
         for (int slot = 0; slot < WidgetPreferences.loadDeviceCount(this); slot++) {
             String url = WidgetPreferences.loadEspHomeUrl(this, slot);
             if (url.isEmpty()) continue;
             hasDevice = true;
-            addDeviceCard(grid, slot, WidgetPreferences.loadFanName(this, slot), url);
+            addDeviceCard(grid, configuredCount, slot,
+                    WidgetPreferences.loadFanName(this, slot), url);
+            configuredCount++;
         }
         if (hasDevice) deviceList.addView(grid, new LinearLayout.LayoutParams(-1, -2));
+        deviceCount.setText(configuredCount + " 台");
         if (!hasDevice) {
             TextView empty = new TextView(this);
             empty.setText("还没有设备\n点击右上角 + 扫描 ESPHome 设备");
@@ -69,50 +77,102 @@ public final class MainActivity extends Activity {
         }
     }
 
-    private void addDeviceCard(GridLayout grid, int slot, String name, String url) {
+    private void addDeviceCard(GridLayout grid, int index, int slot, String name, String url) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setGravity(Gravity.CENTER_HORIZONTAL);
-        card.setPadding(14, 18, 14, 16);
         card.setBackgroundResource(R.drawable.settings_card_background);
         GridLayout.LayoutParams cardParams = new GridLayout.LayoutParams();
         cardParams.width = 0;
-        cardParams.height = (int) (164 * getResources().getDisplayMetrics().density);
+        cardParams.height = dp(182);
         cardParams.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
-        cardParams.setMargins(slot % 2 == 0 ? 0 : 6, 0, slot % 2 == 0 ? 6 : 0, 12);
+        cardParams.setMargins(index % 2 == 0 ? 0 : dp(6), 0,
+                index % 2 == 0 ? dp(6) : 0, dp(12));
         grid.addView(card, cardParams);
 
+        LinearLayout header = new LinearLayout(this);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        card.addView(header, new LinearLayout.LayoutParams(-1, dp(48)));
         ImageView icon = new ImageView(this);
         icon.setContentDescription("风扇");
         icon.setImageResource(R.drawable.ic_fan_on);
-        icon.setPadding(13, 13, 13, 13);
-        icon.setBackgroundResource(R.drawable.fan_control_primary);
-        card.addView(icon, new LinearLayout.LayoutParams(50, 50));
+        icon.setPadding(dp(10), dp(10), dp(10), dp(10));
+        icon.setBackgroundResource(R.drawable.fan_title_badge);
+        header.addView(icon, new LinearLayout.LayoutParams(dp(44), dp(44)));
 
         LinearLayout details = new LinearLayout(this);
         details.setOrientation(LinearLayout.VERTICAL);
-        details.setGravity(Gravity.CENTER_HORIZONTAL);
-        LinearLayout.LayoutParams detailsParams = new LinearLayout.LayoutParams(-1, 0, 1);
-        detailsParams.topMargin = 12;
-        card.addView(details, detailsParams);
+        LinearLayout.LayoutParams detailsParams = new LinearLayout.LayoutParams(0, -2, 1);
+        detailsParams.leftMargin = dp(12);
+        header.addView(details, detailsParams);
         TextView title = text(name.isEmpty() ? "未命名风扇" : name, 17, Color.rgb(15, 23, 42));
         title.setSingleLine(true);
         details.addView(title);
-        TextView address = text(url.replace("http://", ""), 12, Color.rgb(100, 116, 139));
+        TextView address = text("局域网 · " + url.replace("http://", "").replace("https://", ""),
+                12, Color.rgb(100, 116, 139));
         address.setSingleLine(true);
         details.addView(address);
 
-        ImageView control = new ImageView(this);
+        Switch control = new Switch(this);
         control.setContentDescription("开关");
-        control.setImageResource(R.drawable.ic_power);
-        control.setPadding(12, 12, 12, 12);
-        control.setBackgroundResource(R.drawable.fan_control_primary);
-        LinearLayout.LayoutParams controlParams = new LinearLayout.LayoutParams(46, 46);
-        controlParams.gravity = Gravity.CENTER_HORIZONTAL;
-        card.addView(control, controlParams);
-        control.setOnClickListener(view -> toggleFromHome(slot, control));
+        control.setShowText(false);
+        header.addView(control, new LinearLayout.LayoutParams(dp(52), dp(48)));
+
+        LinearLayout footer = new LinearLayout(this);
+        footer.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams footerParams = new LinearLayout.LayoutParams(-1, dp(30));
+        footerParams.topMargin = dp(10);
+        card.addView(footer, footerParams);
+        TextView status = text("正在读取设备状态…", 12, Color.rgb(100, 116, 139));
+        footer.addView(status, new LinearLayout.LayoutParams(0, -2, 1));
+        TextView action = text("点击添加挂件", 12, Color.rgb(37, 99, 235));
+        footer.addView(action, new LinearLayout.LayoutParams(-2, -2));
+
+        ProgressBar progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        progress.setMax(100);
+        progress.setProgress(0);
+        LinearLayout.LayoutParams progressParams = new LinearLayout.LayoutParams(-1, dp(4));
+        progressParams.topMargin = dp(4);
+        card.addView(progress, progressParams);
+
+        control.setOnClickListener(view -> toggleFromHome(slot, control, status, progress));
+        refreshHomeState(slot, control, status, progress);
         card.setOnLongClickListener(view -> { showEditDevice(slot); return true; });
         card.setOnClickListener(view -> pinDevice(slot));
+        card.setContentDescription("配置 " + (name.isEmpty() ? "未命名风扇" : name) + " 挂件");
+    }
+
+    private void refreshHomeState(int slot, Switch control, TextView status, ProgressBar progress) {
+        scanExecutor.execute(() -> {
+            try {
+                EspHomeClient.FanState state = EspHomeClient.fetchFanState(this, slot);
+                runOnUiThread(() -> applyHomeState(control, status, progress, state));
+            } catch (Exception exception) {
+                runOnUiThread(() -> {
+                    control.setEnabled(false);
+                    progress.setProgress(0);
+                    status.setText("设备离线");
+                    status.setTextColor(Color.rgb(148, 163, 184));
+                });
+            }
+        });
+    }
+
+    private void applyHomeState(Switch control, TextView status, ProgressBar progress,
+                                EspHomeClient.FanState state) {
+        control.setEnabled(state.available);
+        control.setChecked(state.available && state.on);
+        progress.setProgress(state.available && state.percentage >= 0 ? state.percentage : 0);
+        if (!state.available) {
+            status.setText("设备离线");
+            status.setTextColor(Color.rgb(148, 163, 184));
+        } else if (state.on) {
+            String speed = state.percentage >= 0 ? " · 风速 " + state.percentage + "%" : "";
+            status.setText("已开启" + speed);
+            status.setTextColor(Color.rgb(22, 163, 74));
+        } else {
+            status.setText("已关闭 · 可直接控制");
+            status.setTextColor(Color.rgb(100, 116, 139));
+        }
     }
 
     private TextView text(String value, int size, int color) {
@@ -123,19 +183,31 @@ public final class MainActivity extends Activity {
         return view;
     }
 
-    private void toggleFromHome(int slot, ImageView control) {
+    private void toggleFromHome(int slot, Switch control, TextView status, ProgressBar progress) {
+        boolean requestedState = control.isChecked();
         control.setAlpha(0.45f);
+        control.setEnabled(false);
         scanExecutor.execute(() -> {
             try {
                 EspHomeClient.toggleFan(this, slot);
-                runOnUiThread(() -> control.setAlpha(1f));
+                EspHomeClient.FanState state = EspHomeClient.fetchFanState(this, slot);
+                runOnUiThread(() -> {
+                    control.setAlpha(1f);
+                    applyHomeState(control, status, progress, state);
+                });
             } catch (Exception exception) {
                 runOnUiThread(() -> {
                     control.setAlpha(1f);
+                    control.setChecked(!requestedState);
+                    control.setEnabled(true);
                     Toast.makeText(this, "设备控制失败", Toast.LENGTH_SHORT).show();
                 });
             }
         });
+    }
+
+    private int dp(int value) {
+        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
     }
 
     private void showAddDevice() {
