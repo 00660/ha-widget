@@ -132,9 +132,11 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
                     .putExtra(FanModeService.EXTRA_SLOT, slot));
             renderPresetFeedback(applicationContext, action, appWidgetId);
         } else {
-            applicationContext.startService(new Intent(applicationContext, FanModeService.class)
-                    .setAction(FanModeService.ACTION_STOP)
-                    .putExtra(FanModeService.EXTRA_SLOT, slot));
+            if (!WidgetPreferences.loadMode(applicationContext, slot).isEmpty()) {
+                applicationContext.startForegroundService(new Intent(applicationContext, FanModeService.class)
+                        .setAction(FanModeService.ACTION_STOP)
+                        .putExtra(FanModeService.EXTRA_SLOT, slot));
+            }
             WidgetPreferences.saveMode(applicationContext, slot, "");
         }
         NETWORK_EXECUTOR.execute(() -> {
@@ -244,6 +246,11 @@ public class HaFanWidgetProvider extends AppWidgetProvider {
             views.setTextViewText(R.id.fan_widget_speed, speedText(context, state));
             views.setTextViewText(R.id.fan_speed_tile_value,
                     WidgetPreferences.loadChildLock(context, slot) ? "已锁定" : "童锁");
+            views.setInt(R.id.fan_speed_tile, "setBackgroundResource",
+                    WidgetPreferences.loadChildLock(context, slot)
+                            ? R.drawable.fan_control_primary : R.drawable.fan_control_secondary);
+            views.setTextColor(R.id.fan_speed_tile_value,
+                    WidgetPreferences.loadChildLock(context, slot) ? Color.WHITE : Color.rgb(71, 85, 105));
             if (speedCount == 3) {
                 int selectedLevel = state == null ? 0 : state.percentage >= 90 ? 3 : state.percentage >= 45 ? 2 : state.percentage > 0 ? 1 : 0;
                 styleDiscreteSpeed(views, R.id.fan_discrete_speed_1, selectedLevel == 1);

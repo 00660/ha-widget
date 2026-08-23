@@ -31,8 +31,8 @@
     <TextView
         android:id="@+id/fan_discrete_speed_1"
         android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:layout_weight="0.32"
+        android:layout_height="56dp"
+        android:layout_weight="1"
         android:gravity="center"
         android:text="1"
         android:textColor="#1E293B"
@@ -41,9 +41,9 @@
     <TextView
         android:id="@+id/fan_discrete_speed_2"
         android:layout_width="0dp"
-        android:layout_height="48dp"
+        android:layout_height="56dp"
         android:layout_marginStart="2dp"
-        android:layout_weight="0.32"
+        android:layout_weight="1"
         android:gravity="center"
         android:text="2"
         android:textColor="#1E293B"
@@ -52,8 +52,9 @@
     <TextView
         android:id="@+id/fan_discrete_speed_3"
         android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:layout_weight="0.32"
+        android:layout_height="56dp"
+        android:layout_marginStart="2dp"
+        android:layout_weight="1"
         android:gravity="center"
         android:text="3"
         android:textColor="#1E293B"
@@ -63,7 +64,8 @@
         android:id="@+id/fan_speed_tile"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:layout_weight="0.62"
+        android:layout_marginStart="2dp"
+        android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical">
         <ImageView
@@ -84,7 +86,8 @@
         android:id="@+id/fan_natural_button"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:layout_weight="0.62"
+        android:layout_marginStart="2dp"
+        android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical">
         <ImageView
@@ -107,7 +110,8 @@
         android:id="@+id/fan_sleep_button"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:layout_weight="0.62"
+        android:layout_marginStart="2dp"
+        android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical">
         <ImageView
@@ -130,7 +134,8 @@
         android:id="@+id/fan_power_tile"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:layout_weight="0.62"
+        android:layout_marginStart="2dp"
+        android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical">
         <ImageView

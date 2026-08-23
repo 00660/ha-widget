@@ -37,6 +37,7 @@ public final class FanModeService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        startForeground(NOTIFICATION_ID, notification());
         String action = intent == null ? null : intent.getAction();
         if (ACTION_STOP.equals(action)) {
             stopMode(intent == null ? 0 : intent.getIntExtra(EXTRA_SLOT, 0));
@@ -58,11 +59,11 @@ public final class FanModeService extends Service {
     }
 
     private synchronized void startMode(int slot, String requestedMode) {
-        stopMode(slot);
+        ModeTask previous = tasks.remove(slot);
+        if (previous != null) previous.running = false;
         ModeTask task = new ModeTask(slot, requestedMode);
         tasks.put(slot, task);
         WidgetPreferences.saveMode(this, slot, requestedMode);
-        startForeground(NOTIFICATION_ID, notification());
         task.thread.start();
     }
 
