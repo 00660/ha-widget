@@ -13,7 +13,10 @@ final class WidgetPreferences {
     private static final String ROOM = "room";
     private static final String CHILD_LOCK = "child_lock";
     private static final String DEVICE_COUNT = "device_count";
+    private static final String DEVICE_TYPE = "device_type";
+    private static final String DEVICE_ENDPOINT = "device_endpoint";
     private static final String WIDGET_DEVICE = "widget_device_";
+    private static final String WIDGET_STYLE = "widget_style_";
 
     private WidgetPreferences() {
     }
@@ -108,9 +111,21 @@ final class WidgetPreferences {
                 .edit().putInt(WIDGET_DEVICE + appWidgetId, deviceId).apply();
     }
 
+    static void bindEntityWidget(Context context, int appWidgetId, int deviceId, String style) {
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit()
+                .putInt(WIDGET_DEVICE + appWidgetId, deviceId)
+                .putString(WIDGET_STYLE + appWidgetId, style == null ? "compact" : style)
+                .apply();
+    }
+
+    static String loadWidgetStyle(Context context, int appWidgetId) {
+        return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .getString(WIDGET_STYLE + appWidgetId, "compact");
+    }
+
     static void removeWidget(Context context, int appWidgetId) {
         context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-                .edit().remove(WIDGET_DEVICE + appWidgetId).apply();
+                .edit().remove(WIDGET_DEVICE + appWidgetId).remove(WIDGET_STYLE + appWidgetId).apply();
     }
 
     static String loadFanName(Context context) {
@@ -121,6 +136,17 @@ final class WidgetPreferences {
         String[] defaults = {"风扇 64", "风扇 62", "风扇 10", "风扇 199", "", ""};
         return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
                 .getString(FAN_NAME + slot, slot >= 0 && slot < defaults.length ? defaults[slot] : "");
+    }
+
+    static String loadDeviceType(Context context, int slot) {
+        String type = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .getString(DEVICE_TYPE + slot, "fan");
+        return "light".equals(type) || "switch".equals(type) ? type : "fan";
+    }
+
+    static String loadDeviceEndpoint(Context context, int slot) {
+        return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .getString(DEVICE_ENDPOINT + slot, "");
     }
 
     static String loadRoom(Context context, int slot) {
@@ -134,14 +160,21 @@ final class WidgetPreferences {
     }
 
     static void saveDevice(Context context, String url, String fanName) {
-        saveDevice(context, 0, url, fanName);
+        saveDevice(context, 0, url, fanName, "fan", "");
     }
 
     static void saveDevice(Context context, int slot, String url, String fanName) {
+        saveDevice(context, slot, url, fanName, "fan", "");
+    }
+
+    static void saveDevice(Context context, int slot, String url, String fanName,
+                           String type, String endpoint) {
         android.content.SharedPreferences preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
         android.content.SharedPreferences.Editor editor = preferences.edit()
                 .putString(ESPHOME_URL + slot, url)
-                .putString(FAN_NAME + slot, fanName);
+                .putString(FAN_NAME + slot, fanName)
+                .putString(DEVICE_TYPE + slot, type == null ? "fan" : type)
+                .putString(DEVICE_ENDPOINT + slot, endpoint == null ? "" : endpoint);
         if (slot >= loadDeviceCount(context)) editor.putInt(DEVICE_COUNT, slot + 1);
         editor.apply();
     }

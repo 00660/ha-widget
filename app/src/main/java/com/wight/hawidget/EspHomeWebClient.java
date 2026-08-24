@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.json.JSONObject;
 
 final class EspHomeWebClient {
     private static final String BASE_URL = "http://192.168.2.64";
@@ -90,6 +91,46 @@ final class EspHomeWebClient {
         WidgetPreferences.toggleChildLock(context, slot);
     }
 
+    static EspHomeClient.DeviceState fetchDeviceState(Context context, int slot) throws IOException {
+        String type = WidgetPreferences.loadDeviceType(context, slot);
+        if ("fan".equals(type)) throw new IOException("fan uses the fan control path");
+        String configuredEndpoint = WidgetPreferences.loadDeviceEndpoint(context, slot);
+        HttpURLConnection connection = open(WidgetPreferences.loadEspHomeUrl(context, slot) + "/events");
+        connection.setRequestProperty("Accept", "text/event-stream");
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                connection.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.startsWith("data:")) continue;
+                String json = line.substring(5).trim();
+                if (!json.startsWith("{")) continue;
+                try {
+                    JSONObject event = new JSONObject(json);
+                    String id = event.optString("id", "");
+                    String domain = event.optString("domain", "");
+                    String endpoint = eventEndpoint(event, type);
+                    if (!type.equals(domain) && !id.startsWith(type + "-")) continue;
+                    if (endpoint.isEmpty()) continue;
+                    if (configuredEndpoint.isEmpty() && isChildLock(event)) continue;
+                    if (!configuredEndpoint.isEmpty() && !configuredEndpoint.equals(endpoint)) continue;
+                    return new EspHomeClient.DeviceState(eventOn(event), true, endpoint);
+                } catch (Exception ignored) {
+                    // Ignore non-JSON SSE lines and continue until a matching entity arrives.
+                }
+            }
+        } finally {
+            connection.disconnect();
+        }
+        throw new IOException("ESPHome entity state not found");
+    }
+
+    static void toggleDevice(Context context, int slot) throws IOException {
+        String type = WidgetPreferences.loadDeviceType(context, slot);
+        if ("fan".equals(type)) throw new IOException("fan uses the fan control path");
+        EspHomeClient.DeviceState state = fetchDeviceState(context, slot);
+        postEntity(context, slot, type, state.endpointName, state.on ? "turn_off" : "turn_on");
+    }
+
     private static LockState fetchLockState(Context context, int slot) throws IOException {
         String base = WidgetPreferences.loadEspHomeUrl(context, slot);
         HttpURLConnection connection = open(base + "/events");
@@ -116,6 +157,43 @@ final class EspHomeWebClient {
         int code = connection.getResponseCode();
         connection.disconnect();
         if (code < 200 || code >= 300) throw new IOException("ESPHome HTTP " + code);
+    }
+
+    private static void postEntity(Context context, int slot, String type, String endpoint,
+                                   String action) throws IOException {
+        if (endpoint == null || endpoint.isEmpty()) throw new IOException("entity endpoint missing");
+        String url = WidgetPreferences.loadEspHomeUrl(context, slot) + "/" + type + "/"
+                + encode(endpoint) + "/" + action;
+        HttpURLConnection connection = open(url);
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(false);
+        connection.setRequestProperty("Content-Length", "0");
+        try {
+            int code = connection.getResponseCode();
+            if (code < 200 || code >= 300) throw new IOException("ESPHome HTTP " + code);
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private static String eventEndpoint(JSONObject event, String type) {
+        String id = event.optString("id", "");
+        String prefix = type + "-";
+        if (id.startsWith(prefix)) return id.substring(prefix.length());
+        String nameId = event.optString("name_id", "");
+        prefix = type + "/";
+        return nameId.startsWith(prefix) ? nameId.substring(prefix.length()) : "";
+    }
+
+    private static boolean eventOn(JSONObject event) {
+        Object state = event.opt("state");
+        if (state instanceof Boolean) return (Boolean) state;
+        return "ON".equalsIgnoreCase(String.valueOf(state));
+    }
+
+    private static boolean isChildLock(JSONObject event) {
+        return "童锁".equals(event.optString("name", ""))
+                || event.optString("name_id", "").endsWith("/童锁");
     }
 
     private static final class LockState { final boolean on; final String endpoint; LockState(boolean on, String endpoint) { this.on = on; this.endpoint = endpoint; } }

@@ -46,6 +46,14 @@ final class EspHomeClient {
         EspHomeWebClient.toggleChildLock(context, slot);
     }
 
+    static DeviceState fetchDeviceState(Context context, int slot) throws IOException {
+        return EspHomeWebClient.fetchDeviceState(context, slot);
+    }
+
+    static void toggleDevice(Context context, int slot) throws IOException {
+        EspHomeWebClient.toggleDevice(context, slot);
+    }
+
     private static void sendCommand(byte[] command) throws IOException {
         try (Session session = Session.open()) {
             session.send(31, command);
@@ -131,6 +139,18 @@ final class EspHomeClient {
             this.oscillation = oscillation;
             this.childLock = childLock;
             this.endpointName = endpointName;
+        }
+    }
+
+    static final class DeviceState {
+        final boolean on;
+        final boolean available;
+        final String endpointName;
+
+        DeviceState(boolean on, boolean available, String endpointName) {
+            this.on = on;
+            this.available = available;
+            this.endpointName = endpointName == null ? "" : endpointName;
         }
     }
 

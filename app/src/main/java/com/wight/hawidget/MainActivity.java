@@ -83,8 +83,14 @@ public final class MainActivity extends Activity {
             String room = WidgetPreferences.loadRoom(this, slot);
             if (!ALL_ROOMS.equals(selectedRoom) && !selectedRoom.equals(room)) continue;
             hasDevice = true;
-            addDeviceCard(grid, configuredCount, slot,
-                    WidgetPreferences.loadFanName(this, slot), url, room);
+            String type = WidgetPreferences.loadDeviceType(this, slot);
+            if ("fan".equals(type)) {
+                addDeviceCard(grid, configuredCount, slot,
+                        WidgetPreferences.loadFanName(this, slot), url, room);
+            } else {
+                addEntityCard(grid, configuredCount, slot,
+                        WidgetPreferences.loadFanName(this, slot), url, room, type);
+            }
             configuredCount++;
         }
         if (hasDevice) deviceList.addView(grid, new LinearLayout.LayoutParams(-1, -2));
@@ -175,6 +181,154 @@ public final class MainActivity extends Activity {
         card.setContentDescription("配置 " + (name.isEmpty() ? "未命名风扇" : name) + " 挂件");
     }
 
+    private void addEntityCard(GridLayout grid, int index, int slot, String name, String url,
+                               String room, String type) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setBackgroundResource(R.drawable.settings_card_background);
+        GridLayout.LayoutParams cardParams = new GridLayout.LayoutParams();
+        cardParams.width = 0;
+        cardParams.height = -2;
+        cardParams.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
+        cardParams.setMargins(index % 2 == 0 ? 0 : dp(6), 0,
+                index % 2 == 0 ? dp(6) : 0, dp(12));
+        grid.addView(card, cardParams);
+
+        LinearLayout header = new LinearLayout(this);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        card.addView(header, new LinearLayout.LayoutParams(-1, -2));
+        ImageView icon = new ImageView(this);
+        icon.setContentDescription(entityLabel(type));
+        icon.setImageResource("light".equals(type) ? R.drawable.ic_light : R.drawable.ic_switch);
+        icon.setPadding(dp(9), dp(9), dp(9), dp(9));
+        icon.setBackgroundResource(R.drawable.fan_title_badge);
+        header.addView(icon, new LinearLayout.LayoutParams(dp(44), dp(44)));
+
+        LinearLayout details = new LinearLayout(this);
+        details.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams detailsParams = new LinearLayout.LayoutParams(0, -2, 1);
+        detailsParams.leftMargin = dp(12);
+        header.addView(details, detailsParams);
+        TextView title = text(name.isEmpty() ? "未命名" + entityLabel(type) : name,
+                16, Color.rgb(15, 23, 42));
+        title.setSingleLine(true);
+        title.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        details.addView(title);
+        TextView address = text("局域网 · " + url.replace("http://", "").replace("https://", ""),
+                12, Color.rgb(100, 116, 139));
+        address.setSingleLine(true);
+        address.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        details.addView(address);
+        TextView roomTag = text(room, 11, Color.rgb(37, 99, 235));
+        roomTag.setSingleLine(true);
+        roomTag.setOnClickListener(view -> showRoomChooser(slot));
+        details.addView(roomTag);
+
+        Switch control = new Switch(this);
+        control.setContentDescription("开关");
+        control.setShowText(false);
+        header.addView(control, new LinearLayout.LayoutParams(dp(52), dp(34)));
+
+        LinearLayout footer = new LinearLayout(this);
+        footer.setGravity(Gravity.CENTER_VERTICAL);
+        card.addView(footer, new LinearLayout.LayoutParams(-1, dp(30)));
+        TextView status = text("正在读取设备状态…", 12, Color.rgb(100, 116, 139));
+        footer.addView(status, new LinearLayout.LayoutParams(0, -2, 1));
+        TextView action = text("添加挂件", 12, Color.rgb(37, 99, 235));
+        action.setOnClickListener(view -> showEntityWidgetChooser(slot, type));
+        footer.addView(action, new LinearLayout.LayoutParams(-2, -2));
+
+        ProgressBar progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        progress.setVisibility(android.view.View.GONE);
+        card.addView(progress, new LinearLayout.LayoutParams(-1, dp(4)));
+        control.setOnClickListener(view -> toggleEntityFromHome(slot, control, status, progress));
+        refreshEntityState(slot, control, status, progress);
+        card.setOnLongClickListener(view -> { showEditDevice(slot); return true; });
+        card.setContentDescription("配置 " + (name.isEmpty() ? "未命名" + entityLabel(type) : name));
+    }
+
+    private String entityLabel(String type) {
+        return "light".equals(type) ? "灯具" : "开关";
+    }
+
+    private void refreshEntityState(int slot, Switch control, TextView status, ProgressBar progress) {
+        scanExecutor.execute(() -> {
+            try {
+                EspHomeClient.DeviceState state = EspHomeClient.fetchDeviceState(this, slot);
+                runOnUiThread(() -> {
+                    control.setEnabled(state.available);
+                    control.setChecked(state.available && state.on);
+                    status.setText(state.available ? (state.on ? "已开启" : "已关闭") : "设备离线");
+                    status.setTextColor(state.available && state.on
+                            ? Color.rgb(22, 163, 74) : Color.rgb(100, 116, 139));
+                });
+            } catch (Exception ignored) {
+                runOnUiThread(() -> {
+                    control.setEnabled(false);
+                    status.setText("设备离线");
+                    status.setTextColor(Color.rgb(148, 163, 184));
+                });
+            }
+        });
+    }
+
+    private void toggleEntityFromHome(int slot, Switch control, TextView status, ProgressBar progress) {
+        boolean requested = control.isChecked();
+        control.setEnabled(false);
+        control.setAlpha(0.45f);
+        scanExecutor.execute(() -> {
+            try {
+                EspHomeClient.toggleDevice(this, slot);
+                EspHomeClient.DeviceState state = EspHomeClient.fetchDeviceState(this, slot);
+                runOnUiThread(() -> {
+                    control.setAlpha(1f);
+                    control.setEnabled(state.available);
+                    control.setChecked(state.available && state.on);
+                    status.setText(state.on ? "已开启" : "已关闭");
+                    status.setTextColor(state.on ? Color.rgb(22, 163, 74) : Color.rgb(100, 116, 139));
+                });
+            } catch (Exception ignored) {
+                runOnUiThread(() -> {
+                    control.setAlpha(1f);
+                    control.setChecked(!requested);
+                    control.setEnabled(true);
+                    Toast.makeText(this, "设备控制失败", Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
+    private void showEntityWidgetChooser(int slot, String type) {
+        LinearLayout panel = panel("添加" + entityLabel(type) + "挂件");
+        panel.addView(text("选择桌面卡片样式", 13, Color.rgb(100, 116, 139)),
+                new LinearLayout.LayoutParams(-1, dp(36)));
+        Dialog dialog = panelDialog(panel);
+        TextView compact = panelRow("紧凑卡片    名称、房间、开关", false);
+        compact.setOnClickListener(view -> { dialog.dismiss(); pinEntityWidget(slot, type, "compact"); });
+        panel.addView(compact, rowParams());
+        TextView tile = panelRow("设备卡片    大图、状态、开关", false);
+        tile.setOnClickListener(view -> { dialog.dismiss(); pinEntityWidget(slot, type, "tile"); });
+        panel.addView(tile, rowParams());
+        TextView cancel = actionText("取消", Color.rgb(100, 116, 139), false);
+        cancel.setOnClickListener(view -> dialog.dismiss());
+        panel.addView(cancel, actionParams());
+        showPanel(dialog);
+    }
+
+    private void pinEntityWidget(int slot, String type, String style) {
+        AppWidgetManager manager = AppWidgetManager.getInstance(this);
+        if (!manager.isRequestPinAppWidgetSupported()) {
+            Toast.makeText(this, "当前桌面不支持自动添加挂件，请从桌面挂件列表添加", Toast.LENGTH_LONG).show();
+            return;
+        }
+        Intent callback = new Intent(this, WidgetPinReceiver.class)
+                .putExtra(WidgetPinReceiver.EXTRA_DEVICE_ID, slot)
+                .putExtra(WidgetPinReceiver.EXTRA_WIDGET_STYLE, style);
+        PendingIntent success = PendingIntent.getBroadcast(this, 7000 + slot,
+                callback, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
+        manager.requestPinAppWidget(new ComponentName(this, EntityWidgetProvider.class), null, success);
+    }
+
     private void setRoomFilter(String room) {
         selectedRoom = room;
         updateRoomTabColors();
@@ -211,6 +365,7 @@ public final class MainActivity extends Activity {
                 dialog.dismiss();
                 updateRoomTabColors();
                 renderDeviceList();
+                EntityWidgetProvider.requestRefresh(this);
             });
             panel.addView(row, rowParams());
         }
@@ -449,6 +604,8 @@ public final class MainActivity extends Activity {
 
     private void showDeviceDialog(int slot, String title) {
         String[] selectedRoom = {WidgetPreferences.loadRoom(this, slot)};
+        String[] selectedType = {WidgetPreferences.loadDeviceType(this, slot)};
+        String[] selectedEndpoint = {WidgetPreferences.loadDeviceEndpoint(this, slot)};
         LinearLayout panel = panel(title);
         ScrollView scroll = new ScrollView(this);
         LinearLayout form = new LinearLayout(this);
@@ -489,14 +646,17 @@ public final class MainActivity extends Activity {
         save.setOnClickListener(view -> {
             String url = normalizeUrl(address.getText().toString());
             if (url.isEmpty()) { address.setError("请输入 ESPHome 地址"); return; }
-            WidgetPreferences.saveDevice(this, slot, url, name.getText().toString().trim());
+            WidgetPreferences.saveDevice(this, slot, url, name.getText().toString().trim(),
+                    selectedType[0], selectedEndpoint[0]);
             WidgetPreferences.saveRoom(this, slot, selectedRoom[0]);
             HaFanWidgetProvider.requestRefresh(this);
+            EntityWidgetProvider.requestRefresh(this);
             dialog.dismiss();
             renderDeviceList();
-            pinDevice(slot);
+            if ("fan".equals(selectedType[0])) pinDevice(slot);
         });
-        scan.setOnClickListener(view -> scanDevices(scan, results, name, address));
+        scan.setOnClickListener(view -> scanDevices(scan, results, name, address,
+                selectedType, selectedEndpoint));
         showPanel(dialog);
     }
 
@@ -538,7 +698,8 @@ public final class MainActivity extends Activity {
         return input;
     }
 
-    private void scanDevices(TextView scan, LinearLayout results, EditText name, EditText address) {
+    private void scanDevices(TextView scan, LinearLayout results, EditText name, EditText address,
+                             String[] selectedType, String[] selectedEndpoint) {
         scan.setEnabled(false);
         scan.setText("正在扫描...");
         scanExecutor.execute(() -> {
@@ -555,10 +716,13 @@ public final class MainActivity extends Activity {
                 for (Device device : found) {
                     TextView choice = panelRow(device.name + "  " + device.features + "\n" + device.url, false);
                     choice.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-                    choice.setEnabled(device.fan);
-                    if (device.fan) {
-                        choice.setOnClickListener(view -> { name.setText(device.name); address.setText(device.url); results.removeAllViews(); });
-                    }
+                    choice.setOnClickListener(view -> {
+                        name.setText(device.name);
+                        address.setText(device.url);
+                        selectedType[0] = device.type;
+                        selectedEndpoint[0] = device.endpoint;
+                        results.removeAllViews();
+                    });
                     results.addView(choice, rowParams());
                 }
                 if (found.isEmpty()) results.addView(text("未发现公开 ESPHome Web Server 的设备", 14, Color.rgb(100, 116, 139)));
@@ -577,26 +741,50 @@ public final class MainActivity extends Activity {
             connection.setReadTimeout(800);
             connection.setRequestProperty("Accept", "text/event-stream");
             String name = "ESPHome " + host;
-            boolean fan = false, light = false;
+            boolean fan = false, light = false, sw = false;
+            String endpoint = "";
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
                 String line;
                 int seen = 0;
                 while ((line = reader.readLine()) != null && seen++ < 40) {
                     if (line.contains("\"domain\":\"fan\"") || line.contains("\"id\":\"fan-")) fan = true;
                     if (line.contains("\"domain\":\"light\"") || line.contains("\"id\":\"light-")) light = true;
-                    java.util.regex.Matcher matcher = Pattern.compile("\\\"title\\\":\\\"([^\\\"]+)").matcher(line);
-                    if (matcher.find()) name = matcher.group(1);
-                    if (fan || light) break;
+                    if (line.contains("\"domain\":\"switch\"") || line.contains("\"id\":\"switch-")) sw = true;
+                    if (sw && (line.contains("\"name\":\"童锁\"")
+                            || line.contains("\"name_id\":\"switch/童锁\""))) {
+                        sw = false;
+                        endpoint = "";
+                        continue;
+                    }
+                    Matcher endpointMatcher = Pattern.compile("\\\"id\\\":\\\"(fan|light|switch)-([^\\\"]+)").matcher(line);
+                    if (endpointMatcher.find()) endpoint = endpointMatcher.group(2);
+                    Matcher titleMatcher = Pattern.compile("\\\"title\\\":\\\"([^\\\"]+)").matcher(line);
+                    Matcher nameMatcher = Pattern.compile("\\\"name\\\":\\\"([^\\\"]+)").matcher(line);
+                    if (titleMatcher.find()) name = titleMatcher.group(1);
+                    else if (nameMatcher.find()) name = nameMatcher.group(1);
+                    if (fan || light || sw) break;
                 }
             }
-            if (!fan && !light) return null;
-            String features = fan && light ? "风扇 · 灯光" : fan ? "风扇" : "灯光";
-            return new Device(host, url, name, features, fan);
+            if (!fan && !light && !sw) return null;
+            String type = fan ? "fan" : light ? "light" : "switch";
+            String features = "fan".equals(type) ? "风扇" : entityLabel(type);
+            return new Device(host, url, name, features, type, endpoint);
         } catch (Exception ignored) {
             return null;
         } finally { if (connection != null) connection.disconnect(); }
     }
 
     private String normalizeUrl(String input) { String value = input.trim(); if (value.equals("http://") || value.equals("https://")) return ""; if (!value.isEmpty() && !value.startsWith("http://") && !value.startsWith("https://")) value = "http://" + value; while (value.endsWith("/")) value = value.substring(0, value.length() - 1); return value; }
-    private static final class Device { final int host; final String url, name, features; final boolean fan; Device(int host, String url, String name, String features, boolean fan) { this.host = host; this.url = url; this.name = name; this.features = features; this.fan = fan; } }
+    private static final class Device {
+        final int host;
+        final String url, name, features, type, endpoint;
+        Device(int host, String url, String name, String features, String type, String endpoint) {
+            this.host = host;
+            this.url = url;
+            this.name = name;
+            this.features = features;
+            this.type = type;
+            this.endpoint = endpoint;
+        }
+    }
 }

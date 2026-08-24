@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/entity_widget_background"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="12dp">
+    <TextView
+        android:id="@+id/entity_widget_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="#0F172A"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/entity_widget_state"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="#64748B"
+        android:textSize="11sp" />
+    <ImageView
+        android:id="@+id/entity_widget_icon"
+        android:layout_width="62dp"
+        android:layout_height="62dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/fan_title_badge"
+        android:padding="12dp"
+        android:contentDescription="设备" />
+    <TextView
+        android:id="@+id/entity_widget_room"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="#64748B"
+        android:textSize="11sp" />
+    <TextView
+        android:id="@+id/entity_widget_power"
+        android:layout_width="52dp"
+        android:layout_height="32dp"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:text="开关"
+        android:textColor="#2563EB"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+</LinearLayout>

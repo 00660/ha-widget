@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:configure="com.wight.hawidget.EntityWidgetConfigureActivity"
+    android:description="@string/entity_widget_description"
+    android:initialLayout="@layout/entity_widget_compact"
+    android:minHeight="72dp"
+    android:minWidth="160dp"
+    android:previewLayout="@layout/entity_widget_compact"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellHeight="1"
+    android:targetCellWidth="2"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />
