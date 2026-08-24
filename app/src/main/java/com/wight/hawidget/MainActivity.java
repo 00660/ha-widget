@@ -67,6 +67,7 @@ public final class MainActivity extends Activity {
         findViewById(R.id.nav_profile).setOnClickListener(view -> showAddDevice());
         // Reapply current RemoteViews so restored widgets cannot retain old click actions.
         HaFanWidgetProvider.requestRefresh(this);
+        EntityWidgetProvider.requestRefresh(this);
         updateRoomTabColors();
         renderDeviceList();
     }
