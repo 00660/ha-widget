@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/entity_widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/entity_widget_background"
-    android:padding="10dp">
+    android:background="@android:color/transparent">
+
+    <FrameLayout
+        android:id="@+id/entity_widget_root"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:layout_gravity="top|start"
+        android:background="@drawable/entity_widget_background"
+        android:padding="10dp">
 
     <ImageView
         android:id="@+id/entity_widget_icon"
@@ -63,4 +69,5 @@
         android:contentDescription="切换设备"
         android:focusable="true"
         android:text="" />
+    </FrameLayout>
 </FrameLayout>
