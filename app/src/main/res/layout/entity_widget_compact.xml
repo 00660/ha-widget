@@ -3,14 +3,14 @@
     android:id="@+id/entity_widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/transparent">
+    android:background="@drawable/entity_widget_background">
 
     <FrameLayout
         android:id="@+id/entity_widget_card"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="match_parent"
         android:layout_gravity="top"
-        android:background="@drawable/entity_widget_background"
+        android:background="@android:color/transparent"
         android:padding="6dp">
 
         <ImageView
