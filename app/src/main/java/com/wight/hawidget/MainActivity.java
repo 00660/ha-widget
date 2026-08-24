@@ -117,7 +117,7 @@ public final class MainActivity extends Activity {
 
         LinearLayout header = new LinearLayout(this);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        card.addView(header, new LinearLayout.LayoutParams(-1, dp(48)));
+        card.addView(header, new LinearLayout.LayoutParams(-1, -2));
         ImageView icon = new ImageView(this);
         icon.setContentDescription("风扇");
         icon.setImageResource(R.drawable.ic_fan_on);
@@ -130,7 +130,7 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams detailsParams = new LinearLayout.LayoutParams(0, -2, 1);
         detailsParams.leftMargin = dp(12);
         header.addView(details, detailsParams);
-        TextView title = text(name.isEmpty() ? "未命名风扇" : name, 17, Color.rgb(15, 23, 42));
+        TextView title = text(name.isEmpty() ? "未命名风扇" : name, 16, Color.rgb(15, 23, 42));
         title.setSingleLine(true);
         title.setEllipsize(android.text.TextUtils.TruncateAt.END);
         details.addView(title);
@@ -155,7 +155,6 @@ public final class MainActivity extends Activity {
         LinearLayout footer = new LinearLayout(this);
         footer.setGravity(Gravity.CENTER_VERTICAL);
         LinearLayout.LayoutParams footerParams = new LinearLayout.LayoutParams(-1, dp(30));
-        footerParams.topMargin = dp(10);
         card.addView(footer, footerParams);
         TextView status = text("正在读取设备状态…", 12, Color.rgb(100, 116, 139));
         footer.addView(status, new LinearLayout.LayoutParams(0, -2, 1));
@@ -307,8 +306,8 @@ public final class MainActivity extends Activity {
             status.setText("设备离线");
             status.setTextColor(Color.rgb(148, 163, 184));
         } else if (state.on) {
-            String speed = state.percentage >= 0 ? " · 风速 " + state.percentage + "%" : "";
-            status.setText("已开启" + speed);
+            String speed = state.percentage >= 0 ? " " + state.percentage + "%" : "";
+            status.setText("开启" + speed);
             status.setTextColor(Color.rgb(22, 163, 74));
         } else {
             status.setText("已关闭");
