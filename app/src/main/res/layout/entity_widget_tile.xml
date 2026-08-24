@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/entity_widget_root"
-    android:layout_width="64dp"
-    android:layout_height="68dp"
-    android:layout_gravity="center"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:background="@drawable/entity_widget_background"
     android:paddingStart="9dp"
     android:paddingTop="6dp"
