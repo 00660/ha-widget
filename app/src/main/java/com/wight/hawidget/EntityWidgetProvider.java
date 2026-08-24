@@ -6,7 +6,6 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.Uri;
 import android.widget.RemoteViews;
 
@@ -14,16 +13,21 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public final class EntityWidgetProvider extends AppWidgetProvider {
+public class EntityWidgetProvider extends AppWidgetProvider {
     private static final String ACTION_TOGGLE = "com.wight.hawidget.ENTITY_TOGGLE";
     private static final String EXTRA_WIDGET_ID = "widget_id";
     private static final ExecutorService NETWORK = Executors.newSingleThreadExecutor();
 
     static void requestRefresh(Context context) {
+        requestRefresh(context, EntityWidgetProvider.class);
+        requestRefresh(context, EntityWidgetTileProvider.class);
+    }
+
+    private static void requestRefresh(Context context, Class<?> provider) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
-        int[] ids = manager.getAppWidgetIds(new ComponentName(context, EntityWidgetProvider.class));
+        int[] ids = manager.getAppWidgetIds(new ComponentName(context, provider));
         if (ids.length == 0) return;
-        Intent update = new Intent(context, EntityWidgetProvider.class)
+        Intent update = new Intent(context, provider)
                 .setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
                 .putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
         context.sendBroadcast(update);
@@ -91,17 +95,20 @@ public final class EntityWidgetProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.entity_widget_name, name.isEmpty() ? entityLabel(type) : name);
         views.setTextViewText(R.id.entity_widget_room, room);
         views.setTextViewText(R.id.entity_widget_state, available ? (on ? "已开启" : "已关闭") : "未连接");
+        views.setViewVisibility(R.id.entity_widget_online_dot, available
+                ? android.view.View.VISIBLE : android.view.View.INVISIBLE);
         views.setImageViewResource(R.id.entity_widget_icon,
                 "switch".equals(type) ? R.drawable.ic_switch : on ? R.drawable.ic_light_on : R.drawable.ic_light);
         views.setInt(R.id.entity_widget_power, "setBackgroundResource",
-                on ? R.drawable.fan_control_primary : R.drawable.fan_control_secondary);
-        views.setTextColor(R.id.entity_widget_power, on ? Color.WHITE : Color.rgb(37, 99, 235));
-        views.setOnClickPendingIntent(R.id.entity_widget_power, commandIntent(context, id));
+                on ? R.drawable.entity_widget_state_on : R.drawable.entity_widget_state_off);
+        PendingIntent command = commandIntent(context, id);
+        views.setOnClickPendingIntent(R.id.entity_widget_root, command);
+        views.setOnClickPendingIntent(R.id.entity_widget_power, command);
         manager.updateAppWidget(id, views);
     }
 
     private PendingIntent commandIntent(Context context, int id) {
-        Intent intent = new Intent(context, EntityWidgetProvider.class)
+        Intent intent = new Intent(context, getClass())
                 .setAction(ACTION_TOGGLE)
                 .setData(Uri.parse("hawidget://entity/" + id))
                 .putExtra(EXTRA_WIDGET_ID, id);

@@ -1,51 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/entity_widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/entity_widget_background"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="12dp">
-    <TextView
-        android:id="@+id/entity_widget_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textColor="#0F172A"
-        android:textSize="15sp"
-        android:textStyle="bold" />
-    <TextView
-        android:id="@+id/entity_widget_state"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textColor="#64748B"
-        android:textSize="11sp" />
+    android:padding="14dp">
+
     <ImageView
         android:id="@+id/entity_widget_icon"
-        android:layout_width="62dp"
-        android:layout_height="62dp"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/fan_title_badge"
-        android:padding="12dp"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_gravity="top|center_horizontal"
         android:contentDescription="设备" />
-    <TextView
-        android:id="@+id/entity_widget_room"
+
+    <View
+        android:id="@+id/entity_widget_online_dot"
+        android:layout_width="9dp"
+        android:layout_height="9dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="1dp"
+        android:background="@drawable/entity_widget_online_dot" />
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textColor="#64748B"
-        android:textSize="11sp" />
+        android:layout_gravity="bottom|start"
+        android:layout_marginEnd="10dp"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/entity_widget_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="#30343B"
+            android:textSize="16sp" />
+        <TextView
+            android:id="@+id/entity_widget_room"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="#8B919B"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/entity_widget_state"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/entity_widget_power"
-        android:layout_width="52dp"
-        android:layout_height="32dp"
-        android:layout_marginTop="8dp"
-        android:gravity="center"
-        android:text="开关"
-        android:textColor="#2563EB"
-        android:textSize="11sp"
-        android:textStyle="bold" />
-</LinearLayout>
+        android:layout_width="5dp"
+        android:layout_height="20dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="1dp"
+        android:background="@drawable/entity_widget_state_on"
+        android:clickable="true"
+        android:contentDescription="切换设备"
+        android:focusable="true"
+        android:text="" />
+</FrameLayout>

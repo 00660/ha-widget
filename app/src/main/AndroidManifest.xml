@@ -24,11 +24,6 @@
             android:name=".WidgetConfigureActivity"
             android:exported="true"
             android:theme="@style/Theme.HaWidget" />
-        <activity
-            android:name=".EntityWidgetConfigureActivity"
-            android:exported="true"
-            android:theme="@style/Theme.HaWidget" />
-
         <receiver
             android:name=".HaFanWidgetProvider"
             android:exported="true"
@@ -65,6 +60,17 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/entity_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".EntityWidgetTileProvider"
+            android:exported="true"
+            android:label="ESPHome 灯具和开关（大卡片）">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/entity_widget_tile_info" />
         </receiver>
 
         <service

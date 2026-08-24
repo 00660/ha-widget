@@ -304,10 +304,10 @@ public final class MainActivity extends Activity {
         panel.addView(text("选择桌面卡片样式", 13, Color.rgb(100, 116, 139)),
                 new LinearLayout.LayoutParams(-1, dp(36)));
         Dialog dialog = panelDialog(panel);
-        TextView compact = panelRow("紧凑卡片    名称、房间、开关", false);
+        TextView compact = panelRow("标准方卡    2 × 2", false);
         compact.setOnClickListener(view -> { dialog.dismiss(); pinEntityWidget(slot, type, "compact"); });
         panel.addView(compact, rowParams());
-        TextView tile = panelRow("设备卡片    大图、状态、开关", false);
+        TextView tile = panelRow("大尺寸方卡    3 × 3", false);
         tile.setOnClickListener(view -> { dialog.dismiss(); pinEntityWidget(slot, type, "tile"); });
         panel.addView(tile, rowParams());
         TextView cancel = actionText("取消", Color.rgb(100, 116, 139), false);
@@ -327,7 +327,9 @@ public final class MainActivity extends Activity {
                 .putExtra(WidgetPinReceiver.EXTRA_WIDGET_STYLE, style);
         PendingIntent success = PendingIntent.getBroadcast(this, 7000 + slot,
                 callback, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
-        manager.requestPinAppWidget(new ComponentName(this, EntityWidgetProvider.class), null, success);
+        Class<?> provider = "tile".equals(style)
+                ? EntityWidgetTileProvider.class : EntityWidgetProvider.class;
+        manager.requestPinAppWidget(new ComponentName(this, provider), null, success);
     }
 
     private void setRoomFilter(String room) {
