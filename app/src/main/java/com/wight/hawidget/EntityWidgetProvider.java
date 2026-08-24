@@ -87,7 +87,8 @@ public class EntityWidgetProvider extends AppWidgetProvider {
         String type = slot < 0 ? "light" : WidgetPreferences.loadDeviceType(context, slot);
         String name = slot < 0 ? "未配置" : WidgetPreferences.loadFanName(context, slot);
         String room = slot < 0 ? "" : WidgetPreferences.loadRoom(context, slot);
-        boolean compact = "compact".equals(WidgetPreferences.loadWidgetStyle(context, id));
+        boolean compact = !(this instanceof EntityWidgetTileProvider)
+                && "compact".equals(WidgetPreferences.loadWidgetStyle(context, id));
         int layout = compact ? R.layout.entity_widget_compact : R.layout.entity_widget_tile;
         RemoteViews views = new RemoteViews(context.getPackageName(), layout);
         boolean available = state != null && state.available;
