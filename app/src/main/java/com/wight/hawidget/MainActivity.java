@@ -394,7 +394,7 @@ public final class MainActivity extends Activity {
     }
 
     private TextView actionText(String label, int color, boolean filled) {
-        TextView action = text(label, 15, color);
+        TextView action = text(label, 15, filled ? Color.WHITE : color);
         action.setGravity(Gravity.CENTER);
         action.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         action.setPadding(dp(16), 0, dp(16), 0);
