@@ -8,7 +8,7 @@
     <FrameLayout
         android:id="@+id/entity_widget_card"
         android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_height="68dp"
         android:layout_gravity="top"
         android:background="@drawable/entity_widget_background_compact"
         android:paddingStart="9dp"
