@@ -51,20 +51,9 @@
             android:name=".WidgetPinReceiver"
             android:exported="false" />
         <receiver
-            android:name=".EntityWidgetProvider"
-            android:exported="true"
-            android:label="ESPHome 灯具和开关">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/entity_widget_info" />
-        </receiver>
-        <receiver
             android:name=".EntityWidgetTileProvider"
             android:exported="true"
-            android:label="ESPHome 灯具和开关（大卡片）">
+            android:label="ESPHome 灯具和开关">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>

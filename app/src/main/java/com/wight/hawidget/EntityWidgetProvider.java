@@ -19,7 +19,6 @@ public class EntityWidgetProvider extends AppWidgetProvider {
     private static final ExecutorService NETWORK = Executors.newSingleThreadExecutor();
 
     static void requestRefresh(Context context) {
-        requestRefresh(context, EntityWidgetProvider.class);
         requestRefresh(context, EntityWidgetTileProvider.class);
     }
 
@@ -87,10 +86,7 @@ public class EntityWidgetProvider extends AppWidgetProvider {
         String type = slot < 0 ? "light" : WidgetPreferences.loadDeviceType(context, slot);
         String name = slot < 0 ? "未配置" : WidgetPreferences.loadFanName(context, slot);
         String room = slot < 0 ? "" : WidgetPreferences.loadRoom(context, slot);
-        boolean compact = !(this instanceof EntityWidgetTileProvider)
-                && "compact".equals(WidgetPreferences.loadWidgetStyle(context, id));
-        int layout = compact ? R.layout.entity_widget_compact : R.layout.entity_widget_tile;
-        RemoteViews views = new RemoteViews(context.getPackageName(), layout);
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.entity_widget_tile);
         boolean available = state != null && state.available;
         boolean on = available && state.on;
         views.setTextViewText(R.id.entity_widget_name, name.isEmpty() ? entityLabel(type) : name);

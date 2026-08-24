@@ -16,7 +16,6 @@ final class WidgetPreferences {
     private static final String DEVICE_TYPE = "device_type";
     private static final String DEVICE_ENDPOINT = "device_endpoint";
     private static final String WIDGET_DEVICE = "widget_device_";
-    private static final String WIDGET_STYLE = "widget_style_";
 
     private WidgetPreferences() {
     }
@@ -111,21 +110,9 @@ final class WidgetPreferences {
                 .edit().putInt(WIDGET_DEVICE + appWidgetId, deviceId).apply();
     }
 
-    static void bindEntityWidget(Context context, int appWidgetId, int deviceId, String style) {
-        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit()
-                .putInt(WIDGET_DEVICE + appWidgetId, deviceId)
-                .putString(WIDGET_STYLE + appWidgetId, style == null ? "compact" : style)
-                .apply();
-    }
-
-    static String loadWidgetStyle(Context context, int appWidgetId) {
-        return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-                .getString(WIDGET_STYLE + appWidgetId, "compact");
-    }
-
     static void removeWidget(Context context, int appWidgetId) {
         context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-                .edit().remove(WIDGET_DEVICE + appWidgetId).remove(WIDGET_STYLE + appWidgetId).apply();
+                .edit().remove(WIDGET_DEVICE + appWidgetId).apply();
     }
 
     static String loadFanName(Context context) {

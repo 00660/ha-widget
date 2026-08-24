@@ -305,11 +305,8 @@ public final class MainActivity extends Activity {
         panel.addView(text("选择桌面卡片样式", 13, Color.rgb(100, 116, 139)),
                 new LinearLayout.LayoutParams(-1, dp(36)));
         Dialog dialog = panelDialog(panel);
-        TextView compact = panelRow("标准方卡    1 × 1", false);
-        compact.setOnClickListener(view -> { dialog.dismiss(); pinEntityWidget(slot, type, "compact"); });
-        panel.addView(compact, rowParams());
-        TextView tile = panelRow("大尺寸方卡    2 × 2", false);
-        tile.setOnClickListener(view -> { dialog.dismiss(); pinEntityWidget(slot, type, "tile"); });
+        TextView tile = panelRow("方卡    2 × 2", false);
+        tile.setOnClickListener(view -> { dialog.dismiss(); pinEntityWidget(slot); });
         panel.addView(tile, rowParams());
         TextView cancel = actionText("取消", Color.rgb(100, 116, 139), false);
         cancel.setOnClickListener(view -> dialog.dismiss());
@@ -317,20 +314,17 @@ public final class MainActivity extends Activity {
         showPanel(dialog);
     }
 
-    private void pinEntityWidget(int slot, String type, String style) {
+    private void pinEntityWidget(int slot) {
         AppWidgetManager manager = AppWidgetManager.getInstance(this);
         if (!manager.isRequestPinAppWidgetSupported()) {
             Toast.makeText(this, "当前桌面不支持自动添加挂件，请从桌面挂件列表添加", Toast.LENGTH_LONG).show();
             return;
         }
         Intent callback = new Intent(this, WidgetPinReceiver.class)
-                .putExtra(WidgetPinReceiver.EXTRA_DEVICE_ID, slot)
-                .putExtra(WidgetPinReceiver.EXTRA_WIDGET_STYLE, style);
+                .putExtra(WidgetPinReceiver.EXTRA_DEVICE_ID, slot);
         PendingIntent success = PendingIntent.getBroadcast(this, 7000 + slot,
                 callback, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
-        Class<?> provider = "tile".equals(style)
-                ? EntityWidgetTileProvider.class : EntityWidgetProvider.class;
-        manager.requestPinAppWidget(new ComponentName(this, provider), null, success);
+        manager.requestPinAppWidget(new ComponentName(this, EntityWidgetTileProvider.class), null, success);
     }
 
     private void setRoomFilter(String room) {
