@@ -67,7 +67,7 @@ public final class MainActivity extends Activity {
         findViewById(R.id.nav_profile).setOnClickListener(view -> showAddDevice());
         // Reapply current RemoteViews so restored widgets cannot retain old click actions.
         HaFanWidgetProvider.requestRefresh(this);
-        EntityWidgetProvider.requestRefresh(this);
+        EntityWidgetTileProvider.requestRefresh(this);
         updateRoomTabColors();
         renderDeviceList();
     }
@@ -305,7 +305,7 @@ public final class MainActivity extends Activity {
         panel.addView(text("选择桌面卡片样式", 13, Color.rgb(100, 116, 139)),
                 new LinearLayout.LayoutParams(-1, dp(36)));
         Dialog dialog = panelDialog(panel);
-        TextView tile = panelRow("方卡    2 × 2", false);
+        TextView tile = panelRow("方卡    64 × 64", false);
         tile.setOnClickListener(view -> { dialog.dismiss(); pinEntityWidget(slot); });
         panel.addView(tile, rowParams());
         TextView cancel = actionText("取消", Color.rgb(100, 116, 139), false);
@@ -363,7 +363,7 @@ public final class MainActivity extends Activity {
                 dialog.dismiss();
                 updateRoomTabColors();
                 renderDeviceList();
-                EntityWidgetProvider.requestRefresh(this);
+                EntityWidgetTileProvider.requestRefresh(this);
             });
             panel.addView(row, rowParams());
         }
@@ -648,7 +648,7 @@ public final class MainActivity extends Activity {
                     selectedType[0], selectedEndpoint[0]);
             WidgetPreferences.saveRoom(this, slot, selectedRoom[0]);
             HaFanWidgetProvider.requestRefresh(this);
-            EntityWidgetProvider.requestRefresh(this);
+                EntityWidgetTileProvider.requestRefresh(this);
             dialog.dismiss();
             renderDeviceList();
             if ("fan".equals(selectedType[0])) pinDevice(slot);

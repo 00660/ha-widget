@@ -15,7 +15,7 @@ public final class WidgetPinReceiver extends BroadcastReceiver {
         int deviceId = intent.getIntExtra(EXTRA_DEVICE_ID, -1);
         if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID || deviceId < 0) return;
         WidgetPreferences.bindWidget(context, appWidgetId, deviceId);
-        EntityWidgetProvider.requestRefresh(context);
+        EntityWidgetTileProvider.requestRefresh(context);
         HaFanWidgetProvider.requestRefresh(context);
     }
 }
