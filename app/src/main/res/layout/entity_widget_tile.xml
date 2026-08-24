@@ -11,7 +11,10 @@
         android:layout_height="128dp"
         android:layout_gravity="top"
         android:background="@drawable/entity_widget_background"
-        android:padding="10dp">
+        android:paddingStart="16dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="6dp">
 
         <ImageView
             android:id="@+id/entity_widget_icon"
@@ -25,7 +28,7 @@
             android:layout_width="7dp"
             android:layout_height="7dp"
             android:layout_gravity="top|end"
-            android:layout_marginTop="1dp"
+            android:layout_marginTop="4dp"
             android:background="@drawable/entity_widget_online_dot" />
 
         <LinearLayout
@@ -61,9 +64,8 @@
         <TextView
             android:id="@+id/entity_widget_power"
             android:layout_width="3dp"
-            android:layout_height="18dp"
+            android:layout_height="14dp"
             android:layout_gravity="bottom|end"
-            android:layout_marginBottom="1dp"
             android:background="@drawable/entity_widget_state_on"
             android:contentDescription="切换设备"
             android:text="" />
