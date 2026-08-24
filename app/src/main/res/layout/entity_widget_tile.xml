@@ -6,19 +6,19 @@
 
     <FrameLayout
         android:id="@+id/entity_widget_card"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:layout_gravity="center"
         android:background="@drawable/entity_widget_background"
-        android:paddingStart="9dp"
-        android:paddingTop="6dp"
-        android:paddingEnd="7dp"
+        android:paddingStart="8dp"
+        android:paddingTop="5dp"
+        android:paddingEnd="6dp"
         android:paddingBottom="3dp">
 
         <ImageView
             android:id="@+id/entity_widget_icon"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_gravity="top|center_horizontal"
             android:contentDescription="设备" />
 
@@ -43,7 +43,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="#30343B"
-                android:textSize="10sp" />
+                android:textSize="9sp" />
             <TextView
                 android:id="@+id/entity_widget_room"
                 android:layout_width="match_parent"
@@ -51,7 +51,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="#8B919B"
-                android:textSize="8sp" />
+                android:textSize="7sp" />
         </LinearLayout>
 
         <TextView
