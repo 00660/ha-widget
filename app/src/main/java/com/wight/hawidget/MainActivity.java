@@ -109,7 +109,7 @@ public final class MainActivity extends Activity {
         card.setBackgroundResource(R.drawable.settings_card_background);
         GridLayout.LayoutParams cardParams = new GridLayout.LayoutParams();
         cardParams.width = 0;
-        cardParams.height = dp(182);
+        cardParams.height = -2;
         cardParams.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
         cardParams.setMargins(index % 2 == 0 ? 0 : dp(6), 0,
                 index % 2 == 0 ? dp(6) : 0, dp(12));
@@ -132,10 +132,12 @@ public final class MainActivity extends Activity {
         header.addView(details, detailsParams);
         TextView title = text(name.isEmpty() ? "未命名风扇" : name, 17, Color.rgb(15, 23, 42));
         title.setSingleLine(true);
+        title.setEllipsize(android.text.TextUtils.TruncateAt.END);
         details.addView(title);
         TextView address = text("局域网 · " + url.replace("http://", "").replace("https://", ""),
                 12, Color.rgb(100, 116, 139));
         address.setSingleLine(true);
+        address.setEllipsize(android.text.TextUtils.TruncateAt.END);
         details.addView(address);
         TextView roomTag = text(room, 11, Color.rgb(37, 99, 235));
         roomTag.setSingleLine(true);
@@ -145,7 +147,10 @@ public final class MainActivity extends Activity {
         Switch control = new Switch(this);
         control.setContentDescription("开关");
         control.setShowText(false);
-        header.addView(control, new LinearLayout.LayoutParams(dp(52), dp(48)));
+        LinearLayout controlRow = new LinearLayout(this);
+        controlRow.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        card.addView(controlRow, new LinearLayout.LayoutParams(-1, dp(34)));
+        controlRow.addView(control, new LinearLayout.LayoutParams(dp(52), dp(34)));
 
         LinearLayout footer = new LinearLayout(this);
         footer.setGravity(Gravity.CENTER_VERTICAL);
@@ -154,7 +159,7 @@ public final class MainActivity extends Activity {
         card.addView(footer, footerParams);
         TextView status = text("正在读取设备状态…", 12, Color.rgb(100, 116, 139));
         footer.addView(status, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView action = text("点击添加挂件", 12, Color.rgb(37, 99, 235));
+        TextView action = text("添加挂件", 12, Color.rgb(37, 99, 235));
         footer.addView(action, new LinearLayout.LayoutParams(-2, -2));
 
         ProgressBar progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
@@ -306,7 +311,7 @@ public final class MainActivity extends Activity {
             status.setText("已开启" + speed);
             status.setTextColor(Color.rgb(22, 163, 74));
         } else {
-            status.setText("已关闭 · 可直接控制");
+            status.setText("已关闭");
             status.setTextColor(Color.rgb(100, 116, 139));
         }
     }
