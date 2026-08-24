@@ -10,7 +10,7 @@
     android:maxResizeWidth="64dp"
     android:previewImage="@drawable/entity_widget_preview_tile"
     android:resizeMode="none"
-    android:targetCellHeight="2"
-    android:targetCellWidth="2"
+    android:targetCellHeight="1"
+    android:targetCellWidth="1"
     android:updatePeriodMillis="1800000"
     android:widgetCategory="home_screen" />
