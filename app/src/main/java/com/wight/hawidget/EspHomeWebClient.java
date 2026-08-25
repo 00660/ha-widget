@@ -111,7 +111,7 @@ final class EspHomeWebClient {
                     String endpoint = eventEndpoint(event, type);
                     if (!type.equals(domain) && !id.startsWith(type + "-")) continue;
                     if (endpoint.isEmpty()) continue;
-                    if (configuredEndpoint.isEmpty() && isChildLock(event)) continue;
+                    if ("switch".equals(type) && isChildLock(event)) continue;
                     if (!configuredEndpoint.isEmpty() && !configuredEndpoint.equals(endpoint)) continue;
                     return new EspHomeClient.DeviceState(eventOn(event), true, endpoint);
                 } catch (Exception ignored) {

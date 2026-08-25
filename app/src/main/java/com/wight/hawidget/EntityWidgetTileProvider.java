@@ -90,8 +90,9 @@ public final class EntityWidgetTileProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.entity_widget_room, room);
         views.setTextViewText(R.id.entity_widget_state,
                 available ? (on ? "已开启" : "已关闭") : "未连接");
-        views.setInt(R.id.entity_widget_root, "setBackgroundResource",
-                on ? R.drawable.entity_widget_background_on : R.drawable.entity_widget_background);
+        // 卡片始终保持白底，开关状态由右下角色条表示。
+        views.setInt(R.id.entity_widget_card, "setBackgroundResource",
+                R.drawable.entity_widget_background);
         views.setViewVisibility(R.id.entity_widget_online_dot,
                 available ? View.VISIBLE : View.INVISIBLE);
         views.setImageViewResource(R.id.entity_widget_icon,
@@ -102,7 +103,6 @@ public final class EntityWidgetTileProvider extends AppWidgetProvider {
 
         PendingIntent command = commandIntent(context, id);
         views.setOnClickPendingIntent(R.id.entity_widget_root, command);
-        views.setOnClickPendingIntent(R.id.entity_widget_power, command);
         manager.updateAppWidget(id, views);
     }
 

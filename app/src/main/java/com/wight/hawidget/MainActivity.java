@@ -739,32 +739,30 @@ public final class MainActivity extends Activity {
             connection.setReadTimeout(800);
             connection.setRequestProperty("Accept", "text/event-stream");
             String name = "ESPHome " + host;
-            boolean fan = false, light = false, sw = false;
+            String type = "";
             String endpoint = "";
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
                 String line;
                 int seen = 0;
                 while ((line = reader.readLine()) != null && seen++ < 40) {
-                    if (line.contains("\"domain\":\"fan\"") || line.contains("\"id\":\"fan-")) fan = true;
-                    if (line.contains("\"domain\":\"light\"") || line.contains("\"id\":\"light-")) light = true;
-                    if (line.contains("\"domain\":\"switch\"") || line.contains("\"id\":\"switch-")) sw = true;
-                    if (sw && (line.contains("\"name\":\"童锁\"")
+                    Matcher titleMatcher = Pattern.compile("\\\"title\\\":\\\"([^\\\"]+)").matcher(line);
+                    if (titleMatcher.find()) name = titleMatcher.group(1);
+                    Matcher endpointMatcher = Pattern.compile("\\\"id\\\":\\\"(fan|light|switch)-([^\\\"]+)").matcher(line);
+                    if (!endpointMatcher.find()) continue;
+                    String candidateType = endpointMatcher.group(1);
+                    if ("switch".equals(candidateType)
+                            && (line.contains("\"name\":\"童锁\"")
                             || line.contains("\"name_id\":\"switch/童锁\""))) {
-                        sw = false;
-                        endpoint = "";
                         continue;
                     }
-                    Matcher endpointMatcher = Pattern.compile("\\\"id\\\":\\\"(fan|light|switch)-([^\\\"]+)").matcher(line);
-                    if (endpointMatcher.find()) endpoint = endpointMatcher.group(2);
-                    Matcher titleMatcher = Pattern.compile("\\\"title\\\":\\\"([^\\\"]+)").matcher(line);
+                    type = candidateType;
+                    endpoint = endpointMatcher.group(2);
                     Matcher nameMatcher = Pattern.compile("\\\"name\\\":\\\"([^\\\"]+)").matcher(line);
-                    if (titleMatcher.find()) name = titleMatcher.group(1);
-                    else if (nameMatcher.find()) name = nameMatcher.group(1);
-                    if (fan || light || sw) break;
+                    if (nameMatcher.find()) name = nameMatcher.group(1);
+                    break;
                 }
             }
-            if (!fan && !light && !sw) return null;
-            String type = fan ? "fan" : light ? "light" : "switch";
+            if (type.isEmpty() || endpoint.isEmpty()) return null;
             String features = "fan".equals(type) ? "风扇" : entityLabel(type);
             return new Device(host, url, name, features, type, endpoint);
         } catch (Exception ignored) {
