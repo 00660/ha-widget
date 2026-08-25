@@ -32,7 +32,8 @@ public final class WidgetConfigureActivity extends Activity {
         list.setPadding(padding, padding, padding, padding);
         list.setBackgroundColor(Color.rgb(244, 247, 251));
         TextView title = new TextView(this);
-        title.setText("选择风扇设备");
+        boolean entityWidget = isEntityWidget();
+        title.setText(entityWidget ? "选择灯具或开关" : "选择风扇设备");
         title.setTextSize(24);
         title.setTextColor(Color.rgb(15, 23, 42));
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
@@ -70,6 +71,10 @@ public final class WidgetConfigureActivity extends Activity {
 
     private void validateAndBind(View view, int deviceId) {
         view.setEnabled(false);
+        if (isEntityWidget()) {
+            bind(deviceId);
+            return;
+        }
         new Thread(() -> {
             try {
                 EspHomeClient.FanState state = EspHomeClient.fetchFanState(this, deviceId);
@@ -94,6 +99,13 @@ public final class WidgetConfigureActivity extends Activity {
                 });
             }
         }, "widget-capability").start();
+    }
+
+    private boolean isEntityWidget() {
+        AppWidgetManager manager = AppWidgetManager.getInstance(this);
+        android.appwidget.AppWidgetProviderInfo info = manager.getAppWidgetInfo(appWidgetId);
+        return info != null && info.provider != null
+                && info.provider.getClassName().equals(EntityWidgetTileProvider.class.getName());
     }
 
     private void bind(int deviceId) {

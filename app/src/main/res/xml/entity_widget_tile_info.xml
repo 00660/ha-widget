@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:description="@string/entity_widget_description"
+    android:configure="@string/entity_widget_configure_activity"
     android:initialLayout="@layout/entity_widget_tile"
     android:minHeight="64dp"
     android:minWidth="64dp"
