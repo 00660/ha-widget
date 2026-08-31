@@ -19,7 +19,7 @@
             android:id="@+id/entity_widget_icon"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:layout_gravity="top|start"
+            android:layout_gravity="top|center_horizontal"
             android:contentDescription="设备"
             android:scaleType="fitCenter" />
 
