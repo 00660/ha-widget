@@ -6,36 +6,36 @@
 
     <FrameLayout
         android:id="@+id/entity_widget_card"
-        android:layout_width="56dp"
-        android:layout_height="68dp"
-        android:layout_gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="2dp"
         android:background="@drawable/entity_widget_background"
-        android:paddingStart="8dp"
-        android:paddingTop="6dp"
-        android:paddingEnd="6dp"
-        android:paddingBottom="4dp">
+        android:paddingStart="10dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="8dp">
 
         <ImageView
             android:id="@+id/entity_widget_icon"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_gravity="top|center_horizontal"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="top|start"
             android:contentDescription="设备"
             android:scaleType="fitCenter" />
 
         <View
             android:id="@+id/entity_widget_online_dot"
-            android:layout_width="4dp"
-            android:layout_height="4dp"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
             android:layout_gravity="top|end"
-            android:layout_marginTop="1dp"
+            android:layout_marginTop="2dp"
             android:background="@drawable/entity_widget_online_dot" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|start"
-            android:layout_marginEnd="4dp"
+            android:layout_marginEnd="18dp"
             android:orientation="vertical">
             <TextView
                 android:id="@+id/entity_widget_name"
@@ -44,7 +44,8 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="#30343B"
-                android:textSize="9sp" />
+                android:textSize="13sp"
+                android:textStyle="bold" />
             <TextView
                 android:id="@+id/entity_widget_room"
                 android:layout_width="match_parent"
@@ -52,7 +53,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="#8B919B"
-                android:textSize="7sp" />
+                android:textSize="10sp" />
         </LinearLayout>
 
         <TextView
@@ -63,8 +64,8 @@
 
         <View
             android:id="@+id/entity_widget_power"
-            android:layout_width="2dp"
-            android:layout_height="8dp"
+            android:layout_width="4dp"
+            android:layout_height="16dp"
             android:layout_gravity="bottom|end"
             android:background="@drawable/entity_widget_state_on"
             android:contentDescription="切换设备" />

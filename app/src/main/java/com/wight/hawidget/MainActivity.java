@@ -203,7 +203,8 @@ public final class MainActivity extends Activity {
         icon.setContentDescription(entityLabel(type));
         icon.setImageResource("light".equals(type) ? R.drawable.ic_light : R.drawable.ic_switch);
         icon.setPadding(dp(9), dp(9), dp(9), dp(9));
-        icon.setBackgroundResource(R.drawable.fan_title_badge);
+        icon.setBackgroundResource("light".equals(type)
+                ? R.drawable.entity_light_badge : R.drawable.entity_switch_badge);
         header.addView(icon, new LinearLayout.LayoutParams(dp(44), dp(44)));
 
         LinearLayout details = new LinearLayout(this);

@@ -90,14 +90,20 @@ public final class EntityWidgetTileProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.entity_widget_room, room);
         views.setTextViewText(R.id.entity_widget_state,
                 available ? (on ? "已开启" : "已关闭") : "未连接");
-        // 卡片始终保持白底，开关状态由右下角色条表示。
+        // 开启状态使用浅蓝底，右下状态条保留为启动器小尺寸下的快速提示。
         views.setInt(R.id.entity_widget_card, "setBackgroundResource",
-                R.drawable.entity_widget_background);
+                on ? R.drawable.entity_widget_background_on : R.drawable.entity_widget_background);
         views.setViewVisibility(R.id.entity_widget_online_dot,
                 available ? View.VISIBLE : View.INVISIBLE);
         views.setImageViewResource(R.id.entity_widget_icon,
                 "switch".equals(type) ? R.drawable.ic_switch
                         : on ? R.drawable.ic_light_on : R.drawable.ic_light);
+        views.setTextColor(R.id.entity_widget_name, on
+                ? android.graphics.Color.rgb(37, 99, 235)
+                : android.graphics.Color.rgb(48, 52, 59));
+        views.setTextColor(R.id.entity_widget_room, available
+                ? android.graphics.Color.rgb(139, 145, 155)
+                : android.graphics.Color.rgb(170, 175, 183));
         views.setInt(R.id.entity_widget_power, "setBackgroundResource",
                 on ? R.drawable.entity_widget_state_on : R.drawable.entity_widget_state_off);
 
