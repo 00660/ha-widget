@@ -14,6 +14,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.text.InputType;
 import android.view.Gravity;
@@ -199,6 +200,28 @@ public final class MainActivity extends Activity {
                 if (candidate != null && (best == null || candidate.getTime() > best.getTime())) best = candidate;
             } catch (SecurityException ignored) {
                 return null;
+            }
+        }
+        if (best == null) {
+            final Location[] received = new Location[1];
+            final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+            LocationListener listener = new LocationListener() {
+                @Override public void onLocationChanged(Location location) {
+                    received[0] = location;
+                    latch.countDown();
+                }
+            };
+            try {
+                if (manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                    manager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, listener, getMainLooper());
+                } else if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    manager.requestSingleUpdate(LocationManager.GPS_PROVIDER, listener, getMainLooper());
+                }
+                latch.await(5, java.util.concurrent.TimeUnit.SECONDS);
+                best = received[0];
+                manager.removeUpdates(listener);
+            } catch (Exception ignored) {
+                // Fall back to ESPHome when no provider can produce a fix.
             }
         }
         return best;
