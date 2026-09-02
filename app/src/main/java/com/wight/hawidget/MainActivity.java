@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationRequest;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
@@ -160,16 +161,19 @@ public final class MainActivity extends Activity {
         if (manager == null) return null;
         final Location[] received = new Location[1];
         final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
-        final android.os.CancellationSignal cancellation = new android.os.CancellationSignal();
         try {
             if (android.os.Build.VERSION.SDK_INT >= 31) {
-                manager.getCurrentLocation(LocationManager.FUSED_PROVIDER, cancellation,
-                        getMainExecutor(), location -> {
-                            if (location != null) {
-                                received[0] = location;
-                                latch.countDown();
-                            }
-                        });
+                LocationRequest request = new LocationRequest.Builder(1000L)
+                        .setQuality(LocationRequest.QUALITY_HIGH_ACCURACY)
+                        .setDurationMillis(20000L)
+                        .setMaxUpdates(1)
+                        .build();
+                manager.requestLocationUpdates(request, getMainExecutor(), location -> {
+                    if (location != null) {
+                        received[0] = location;
+                        latch.countDown();
+                    }
+                });
             } else if (manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 manager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER,
                         new LocationListener() {
@@ -192,10 +196,8 @@ public final class MainActivity extends Activity {
                         }, getMainLooper());
             }
             latch.await(20, java.util.concurrent.TimeUnit.SECONDS);
-            cancellation.cancel();
             return received[0];
         } catch (Exception ignored) {
-            cancellation.cancel();
             return null;
         }
     }
