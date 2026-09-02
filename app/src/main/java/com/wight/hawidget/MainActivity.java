@@ -203,13 +203,15 @@ public final class MainActivity extends Activity {
             @Override public void onProviderDisabled(String provider) { }
         };
         try {
-            for (String provider : new String[]{LocationManager.NETWORK_PROVIDER,
+            // Use Android's fused provider first so Wi-Fi/cell positioning works on phones
+            // without a GPS fix. No last-known location API is used here.
+            for (String provider : new String[]{"fused", LocationManager.NETWORK_PROVIDER,
                     LocationManager.GPS_PROVIDER}) {
                 if (manager.isProviderEnabled(provider)) {
                     manager.requestLocationUpdates(provider, 1000L, 0f, listener, getMainLooper());
                 }
             }
-            latch.await(8, java.util.concurrent.TimeUnit.SECONDS);
+            latch.await(15, java.util.concurrent.TimeUnit.SECONDS);
             manager.removeUpdates(listener);
             return received[0];
         } catch (Exception ignored) {
