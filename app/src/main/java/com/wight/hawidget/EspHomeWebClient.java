@@ -192,6 +192,8 @@ final class EspHomeWebClient {
                     // Ignore malformed or unrelated SSE events.
                 }
             }
+        } catch (java.net.SocketTimeoutException ignored) {
+            // ESPHome keeps /events open; retain values parsed before the read timeout.
         } finally {
             connection.disconnect();
         }
