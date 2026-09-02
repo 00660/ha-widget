@@ -97,7 +97,8 @@
                         android:id="@+id/environment_temperature"
                         android:text="--"
                         android:textColor="#111827"
-                        android:textSize="29sp"
+                        android:textSize="26sp"
+                        android:singleLine="true"
                         android:textStyle="bold" />
                     <TextView
                         android:layout_width="wrap_content"
