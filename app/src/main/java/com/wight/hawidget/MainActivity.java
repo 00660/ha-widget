@@ -101,45 +101,8 @@ public final class MainActivity extends Activity {
     private void refreshEnvironment() {
         scanExecutor.execute(() -> {
             EnvironmentValues publicValues = fetchPublicEnvironment();
-            if (publicValues != null) {
-                publishEnvironment(publicValues);
-                return;
-            }
-            java.util.concurrent.CountDownLatch pending = new java.util.concurrent.CountDownLatch(254);
-            java.util.concurrent.atomic.AtomicReference<String> weatherRef = new java.util.concurrent.atomic.AtomicReference<>("");
-            java.util.concurrent.atomic.AtomicReference<String> temperatureRef = new java.util.concurrent.atomic.AtomicReference<>("");
-            java.util.concurrent.atomic.AtomicReference<String> humidityRef = new java.util.concurrent.atomic.AtomicReference<>("");
-            java.util.concurrent.atomic.AtomicReference<String> airQualityRef = new java.util.concurrent.atomic.AtomicReference<>("");
-            for (int host = 1; host <= 254; host++) {
-                final String baseUrl = "http://192.168.2." + host;
-                scanExecutor.execute(() -> {
-                    try {
-                        EspHomeClient.EnvironmentState state = EspHomeClient.fetchEnvironmentUrl(this, baseUrl);
-                        weatherRef.compareAndSet("", state.weather);
-                        temperatureRef.compareAndSet("", state.temperature);
-                        humidityRef.compareAndSet("", state.humidity);
-                        airQualityRef.compareAndSet("", state.airQuality);
-                    } catch (Exception ignored) {
-                        // Most LAN hosts are not ESPHome devices; skip them silently.
-                    } finally {
-                        pending.countDown();
-                    }
-                });
-            }
-            try {
-                pending.await();
-            } catch (InterruptedException ignored) {
-                Thread.currentThread().interrupt();
-            }
-            String weather = weatherRef.get();
-            String temperature = temperatureRef.get();
-            String humidity = humidityRef.get();
-            String airQuality = airQualityRef.get();
-            publishEnvironment(new EnvironmentValues(
-                    weather.isEmpty() ? "--" : weather,
-                    temperature.isEmpty() ? "--" : temperature,
-                    humidity.isEmpty() ? "--" : humidity,
-                    airQuality.isEmpty() ? "--" : airQuality));
+            publishEnvironment(publicValues == null
+                    ? new EnvironmentValues("--", "--", "--", "--") : publicValues);
         });
     }
 
@@ -157,16 +120,9 @@ public final class MainActivity extends Activity {
         try {
             double latitude;
             double longitude;
-            if (location != null) {
-                latitude = location.getLatitude();
-                longitude = location.getLongitude();
-            } else {
-                // No cached location: use the current public network exit as a last resort.
-                JSONObject networkLocation = getJson("https://ipapi.co/json/");
-                latitude = networkLocation.optDouble("latitude", Double.NaN);
-                longitude = networkLocation.optDouble("longitude", Double.NaN);
-            }
-            if (Double.isNaN(latitude) || Double.isNaN(longitude)) return null;
+            if (location == null) return null;
+            latitude = location.getLatitude();
+            longitude = location.getLongitude();
             String coordinates = "latitude=" + latitude + "&longitude=" + longitude;
             JSONObject weather = getJson("https://api.open-meteo.com/v1/forecast?"
                     + coordinates + "&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto");
@@ -213,8 +169,17 @@ public final class MainActivity extends Activity {
             @Override public void onProviderDisabled(String provider) { }
         };
         try {
-            // Use Android's fused provider first so Wi-Fi/cell positioning works on phones
-            // without a GPS fix. No last-known location API is used here.
+            android.os.CancellationSignal cancellation = null;
+            if (android.os.Build.VERSION.SDK_INT >= 30
+                    && manager.isProviderEnabled("fused")) {
+                cancellation = new android.os.CancellationSignal();
+                manager.getCurrentLocation("fused", cancellation, getMainExecutor(), location -> {
+                    if (location != null) {
+                        received[0] = location;
+                        latch.countDown();
+                    }
+                });
+            }
             for (String provider : new String[]{"fused", LocationManager.NETWORK_PROVIDER,
                     LocationManager.GPS_PROVIDER}) {
                 if (manager.isProviderEnabled(provider)) {
@@ -222,6 +187,7 @@ public final class MainActivity extends Activity {
                 }
             }
             latch.await(15, java.util.concurrent.TimeUnit.SECONDS);
+            if (cancellation != null) cancellation.cancel();
             manager.removeUpdates(listener);
             return received[0];
         } catch (Exception ignored) {
