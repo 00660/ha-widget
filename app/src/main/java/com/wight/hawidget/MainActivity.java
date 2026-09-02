@@ -153,7 +153,7 @@ public final class MainActivity extends Activity {
     }
 
     private EnvironmentValues fetchPublicEnvironment() {
-        Location location = lastKnownLocation();
+        Location location = activeLocation();
         if (location == null) return null;
         try {
             String coordinates = "latitude=" + location.getLatitude()
@@ -186,45 +186,36 @@ public final class MainActivity extends Activity {
         }
     }
 
-    private Location lastKnownLocation() {
+    private Location activeLocation() {
         if (android.os.Build.VERSION.SDK_INT >= 23
                 && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) return null;
         LocationManager manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (manager == null) return null;
-        Location best = null;
-        for (String provider : new String[]{LocationManager.NETWORK_PROVIDER,
-                LocationManager.GPS_PROVIDER, LocationManager.PASSIVE_PROVIDER}) {
-            try {
-                Location candidate = manager.getLastKnownLocation(provider);
-                if (candidate != null && (best == null || candidate.getTime() > best.getTime())) best = candidate;
-            } catch (SecurityException ignored) {
-                return null;
+        final Location[] received = new Location[1];
+        final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+        LocationListener listener = new LocationListener() {
+            @Override public void onLocationChanged(Location location) {
+                received[0] = location;
+                latch.countDown();
             }
-        }
-        if (best == null) {
-            final Location[] received = new Location[1];
-            final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
-            LocationListener listener = new LocationListener() {
-                @Override public void onLocationChanged(Location location) {
-                    received[0] = location;
-                    latch.countDown();
+            @Override public void onProviderEnabled(String provider) { }
+            @Override public void onProviderDisabled(String provider) { }
+        };
+        try {
+            for (String provider : new String[]{LocationManager.NETWORK_PROVIDER,
+                    LocationManager.GPS_PROVIDER}) {
+                if (manager.isProviderEnabled(provider)) {
+                    manager.requestLocationUpdates(provider, 1000L, 0f, listener, getMainLooper());
                 }
-            };
-            try {
-                if (manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                    manager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, listener, getMainLooper());
-                } else if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                    manager.requestSingleUpdate(LocationManager.GPS_PROVIDER, listener, getMainLooper());
-                }
-                latch.await(5, java.util.concurrent.TimeUnit.SECONDS);
-                best = received[0];
-                manager.removeUpdates(listener);
-            } catch (Exception ignored) {
-                // Fall back to ESPHome when no provider can produce a fix.
             }
+            latch.await(8, java.util.concurrent.TimeUnit.SECONDS);
+            manager.removeUpdates(listener);
+            return received[0];
+        } catch (Exception ignored) {
+            try { manager.removeUpdates(listener); } catch (Exception ignoredAgain) { }
+            return null;
         }
-        return best;
     }
 
     private JSONObject getJson(String endpoint) throws Exception {
@@ -340,7 +331,7 @@ public final class MainActivity extends Activity {
         card.setElevation(dp(2));
         GridLayout.LayoutParams cardParams = new GridLayout.LayoutParams();
         int contentWidth = getResources().getDisplayMetrics().widthPixels - dp(40);
-        int tileWidth = Math.max(dp(76), (contentWidth - dp(24)) / 4);
+        int tileWidth = (contentWidth - dp(24)) / 4;
         cardParams.width = tileWidth;
         cardParams.height = tileWidth;
         cardParams.columnSpec = GridLayout.spec(index % 4);
