@@ -134,7 +134,7 @@ public final class MainActivity extends Activity {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
         card.setGravity(Gravity.CENTER_HORIZONTAL);
-        card.setPadding(dp(6), dp(5), dp(6), dp(4));
+        card.setPadding(dp(5), dp(3), dp(5), dp(2));
         card.setBackgroundResource(tileBackground(type, false));
         card.setForeground(getDrawable(R.drawable.home_device_card_ripple));
         card.setClickable(true);
@@ -162,27 +162,29 @@ public final class MainActivity extends Activity {
         indicatorRow.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
         View stateDot = new View(this);
         indicatorRow.addView(stateDot, new LinearLayout.LayoutParams(dp(7), dp(7)));
-        card.addView(indicatorRow, new LinearLayout.LayoutParams(-1, dp(8)));
+        card.addView(indicatorRow, new LinearLayout.LayoutParams(-1, dp(6)));
 
         ImageView icon = new ImageView(this);
         icon.setContentDescription(entityLabel(type));
         icon.setImageResource(entityIcon(type));
         icon.setPadding(dp(4), dp(3), dp(4), dp(3));
-        card.addView(icon, new LinearLayout.LayoutParams(dp(32), dp(32)));
+        card.addView(icon, new LinearLayout.LayoutParams(dp(28), dp(28)));
 
         TextView title = text(name, 12, Color.rgb(39, 44, 50));
         title.setSingleLine(true);
+        title.setIncludeFontPadding(false);
         title.setEllipsize(android.text.TextUtils.TruncateAt.END);
         title.setGravity(Gravity.CENTER);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, dp(19));
-        titleParams.topMargin = dp(1);
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, dp(17));
+        titleParams.topMargin = dp(2);
         card.addView(title, titleParams);
 
         TextView status = text("正在连接", 10, Color.rgb(125, 133, 142));
         status.setSingleLine(true);
+        status.setIncludeFontPadding(false);
         status.setGravity(Gravity.CENTER);
-        card.addView(status, new LinearLayout.LayoutParams(-1, dp(16)));
+        card.addView(status, new LinearLayout.LayoutParams(-1, dp(14)));
 
         DeviceTile tile = new DeviceTile(card, stateDot, icon, title, status, name, room, type);
         applyTileState(tile, false, false, -1);
