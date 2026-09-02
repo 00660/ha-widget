@@ -169,25 +169,25 @@ public final class MainActivity extends Activity {
             @Override public void onProviderDisabled(String provider) { }
         };
         try {
-            android.os.CancellationSignal cancellation = null;
-            if (android.os.Build.VERSION.SDK_INT >= 30
-                    && manager.isProviderEnabled("fused")) {
-                cancellation = new android.os.CancellationSignal();
-                manager.getCurrentLocation("fused", cancellation, getMainExecutor(), location -> {
-                    if (location != null) {
-                        received[0] = location;
-                        latch.countDown();
-                    }
-                });
-            }
+            java.util.List<android.os.CancellationSignal> cancellations = new ArrayList<>();
             for (String provider : new String[]{"fused", LocationManager.NETWORK_PROVIDER,
                     LocationManager.GPS_PROVIDER}) {
                 if (manager.isProviderEnabled(provider)) {
+                    if (android.os.Build.VERSION.SDK_INT >= 30) {
+                        android.os.CancellationSignal cancellation = new android.os.CancellationSignal();
+                        cancellations.add(cancellation);
+                        manager.getCurrentLocation(provider, cancellation, getMainExecutor(), location -> {
+                            if (location != null && received[0] == null) {
+                                received[0] = location;
+                                latch.countDown();
+                            }
+                        });
+                    }
                     manager.requestLocationUpdates(provider, 1000L, 0f, listener, getMainLooper());
                 }
             }
             latch.await(15, java.util.concurrent.TimeUnit.SECONDS);
-            if (cancellation != null) cancellation.cancel();
+            for (android.os.CancellationSignal cancellation : cancellations) cancellation.cancel();
             manager.removeUpdates(listener);
             return received[0];
         } catch (Exception ignored) {
