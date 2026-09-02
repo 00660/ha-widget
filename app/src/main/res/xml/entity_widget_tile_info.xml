@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Match the visual card dimensions while keeping the widget on one launcher cell. -->
+<!-- Let the card fill the launcher's allocated 2 x 2 widget area. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:description="@string/entity_widget_description"
     android:configure="@string/entity_widget_configure_activity"
