@@ -142,21 +142,14 @@ public final class MainActivity extends Activity {
         card.setClipToOutline(true);
         card.setElevation(dp(2));
         GridLayout.LayoutParams cardParams = new GridLayout.LayoutParams();
-        cardParams.width = 0;
-        cardParams.height = dp(104);
-        cardParams.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
+        int contentWidth = getResources().getDisplayMetrics().widthPixels - dp(40);
+        int tileWidth = Math.max(dp(76), (contentWidth - dp(24)) / 4);
+        cardParams.width = tileWidth;
+        cardParams.height = tileWidth;
+        cardParams.columnSpec = GridLayout.spec(index % 4);
         cardParams.setMargins(index % 4 == 0 ? 0 : dp(4), 0,
                 index % 4 == 3 ? 0 : dp(4), dp(9));
         grid.addView(card, cardParams);
-        // Keep each device tile square at any phone width, matching the reference grid.
-        card.post(() -> {
-            int size = card.getWidth();
-            if (size > 0 && card.getHeight() != size) {
-                android.view.ViewGroup.LayoutParams params = card.getLayoutParams();
-                params.height = size;
-                card.setLayoutParams(params);
-            }
-        });
 
         LinearLayout indicatorRow = new LinearLayout(this);
         indicatorRow.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
