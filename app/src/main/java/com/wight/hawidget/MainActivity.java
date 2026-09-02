@@ -161,6 +161,16 @@ public final class MainActivity extends Activity {
         if (manager == null) return null;
         final Location[] received = new Location[1];
         final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+        LocationListener listener = new LocationListener() {
+            @Override public void onLocationChanged(Location location) {
+                if (received[0] == null) {
+                    received[0] = location;
+                    latch.countDown();
+                }
+            }
+            @Override public void onProviderEnabled(String provider) { }
+            @Override public void onProviderDisabled(String provider) { }
+        };
         try {
             if (android.os.Build.VERSION.SDK_INT >= 31) {
                 LocationRequest request = new LocationRequest.Builder(1000L)
@@ -168,36 +178,17 @@ public final class MainActivity extends Activity {
                         .setDurationMillis(20000L)
                         .setMaxUpdates(1)
                         .build();
-                manager.requestLocationUpdates(request, getMainExecutor(), location -> {
-                    if (location != null) {
-                        received[0] = location;
-                        latch.countDown();
-                    }
-                });
+                manager.requestLocationUpdates(request, getMainExecutor(), listener);
             } else if (manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                manager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER,
-                        new LocationListener() {
-                            @Override public void onLocationChanged(Location location) {
-                                received[0] = location;
-                                latch.countDown();
-                            }
-                            @Override public void onProviderEnabled(String provider) { }
-                            @Override public void onProviderDisabled(String provider) { }
-                        }, getMainLooper());
+                manager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, listener, getMainLooper());
             } else {
-                manager.requestSingleUpdate(LocationManager.GPS_PROVIDER,
-                        new LocationListener() {
-                            @Override public void onLocationChanged(Location location) {
-                                received[0] = location;
-                                latch.countDown();
-                            }
-                            @Override public void onProviderEnabled(String provider) { }
-                            @Override public void onProviderDisabled(String provider) { }
-                        }, getMainLooper());
+                manager.requestSingleUpdate(LocationManager.GPS_PROVIDER, listener, getMainLooper());
             }
             latch.await(20, java.util.concurrent.TimeUnit.SECONDS);
+            manager.removeUpdates(listener);
             return received[0];
         } catch (Exception ignored) {
+            try { manager.removeUpdates(listener); } catch (Exception ignoredAgain) { }
             return null;
         }
     }
