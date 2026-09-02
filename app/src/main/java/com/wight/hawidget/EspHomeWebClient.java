@@ -142,9 +142,14 @@ final class EspHomeWebClient {
     }
 
     static EspHomeClient.EnvironmentState fetchEnvironment(Context context, int slot) throws IOException {
-        String baseUrl = WidgetPreferences.loadEspHomeUrl(context, slot);
+        return fetchEnvironmentUrl(context, WidgetPreferences.loadEspHomeUrl(context, slot));
+    }
+
+    static EspHomeClient.EnvironmentState fetchEnvironmentUrl(Context context, String baseUrl) throws IOException {
         if (baseUrl.isEmpty()) throw new IOException("ESPHome URL missing");
-        HttpURLConnection connection = open(baseUrl + "/events");
+        HttpURLConnection connection = (HttpURLConnection) new URL(baseUrl + "/events").openConnection();
+        connection.setConnectTimeout(500);
+        connection.setReadTimeout(900);
         connection.setRequestProperty("Accept", "text/event-stream");
         String weather = "";
         String temperature = "";
@@ -171,12 +176,10 @@ final class EspHomeWebClient {
                     if (weather.isEmpty() && (name.contains("天气") || name.contains("weather")
                             || name.contains("condition"))) weather = value;
                     if (temperature.isEmpty() && (name.contains("温度") || name.contains("temperature")
-                            || name.contains("temp") || unit.contains("°c") || unit.contains("掳c")
-                            || "c".equals(unit))) {
+                            || name.contains("temp"))) {
                         temperature = normalizeEnvironmentValue(value, "°C");
                     }
-                    if (humidity.isEmpty() && (name.contains("湿度") || name.contains("humidity")
-                            || "%".equals(unit))) {
+                    if (humidity.isEmpty() && (name.contains("湿度") || name.contains("humidity"))) {
                         humidity = normalizeEnvironmentValue(value, "%");
                     }
                     if (airQuality.isEmpty() && (name.contains("空气") || name.contains("air quality")

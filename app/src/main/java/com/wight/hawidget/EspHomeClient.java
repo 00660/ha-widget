@@ -58,6 +58,10 @@ final class EspHomeClient {
         return EspHomeWebClient.fetchEnvironment(context, slot);
     }
 
+    static EnvironmentState fetchEnvironmentUrl(Context context, String baseUrl) throws IOException {
+        return EspHomeWebClient.fetchEnvironmentUrl(context, baseUrl);
+    }
+
     private static void sendCommand(byte[] command) throws IOException {
         try (Session session = Session.open()) {
             session.send(31, command);

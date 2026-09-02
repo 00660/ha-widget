@@ -74,24 +74,36 @@ public final class MainActivity extends Activity {
 
     private void refreshEnvironment() {
         scanExecutor.execute(() -> {
-            String weather = "";
-            String temperature = "";
-            String humidity = "";
-            String airQuality = "";
-            for (int slot = 0; slot < WidgetPreferences.loadDeviceCount(this); slot++) {
-                if (WidgetPreferences.loadEspHomeUrl(this, slot).isEmpty()) continue;
-                try {
-                    EspHomeClient.EnvironmentState state = EspHomeClient.fetchEnvironment(this, slot);
-                    if (weather.isEmpty()) weather = state.weather;
-                    if (temperature.isEmpty()) temperature = state.temperature;
-                    if (humidity.isEmpty()) humidity = state.humidity;
-                    if (airQuality.isEmpty()) airQuality = state.airQuality;
-                    if (!weather.isEmpty() && !temperature.isEmpty() && !humidity.isEmpty()
-                            && !airQuality.isEmpty()) break;
-                } catch (Exception ignored) {
-                    // A device without environment sensors should not hide other readings.
-                }
+            java.util.concurrent.CountDownLatch pending = new java.util.concurrent.CountDownLatch(254);
+            java.util.concurrent.atomic.AtomicReference<String> weatherRef = new java.util.concurrent.atomic.AtomicReference<>("");
+            java.util.concurrent.atomic.AtomicReference<String> temperatureRef = new java.util.concurrent.atomic.AtomicReference<>("");
+            java.util.concurrent.atomic.AtomicReference<String> humidityRef = new java.util.concurrent.atomic.AtomicReference<>("");
+            java.util.concurrent.atomic.AtomicReference<String> airQualityRef = new java.util.concurrent.atomic.AtomicReference<>("");
+            for (int host = 1; host <= 254; host++) {
+                final String baseUrl = "http://192.168.2." + host;
+                scanExecutor.execute(() -> {
+                    try {
+                        EspHomeClient.EnvironmentState state = EspHomeClient.fetchEnvironmentUrl(this, baseUrl);
+                        weatherRef.compareAndSet("", state.weather);
+                        temperatureRef.compareAndSet("", state.temperature);
+                        humidityRef.compareAndSet("", state.humidity);
+                        airQualityRef.compareAndSet("", state.airQuality);
+                    } catch (Exception ignored) {
+                        // Most LAN hosts are not ESPHome devices; skip them silently.
+                    } finally {
+                        pending.countDown();
+                    }
+                });
             }
+            try {
+                pending.await();
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            }
+            String weather = weatherRef.get();
+            String temperature = temperatureRef.get();
+            String humidity = humidityRef.get();
+            String airQuality = airQualityRef.get();
             String finalWeather = weather.isEmpty() ? "--" : weather;
             String finalTemperature = temperature.isEmpty() ? "--" : temperature;
             String finalHumidity = humidity.isEmpty() ? "--" : humidity;
@@ -117,13 +129,11 @@ public final class MainActivity extends Activity {
             if (url.isEmpty()) continue;
             String room = WidgetPreferences.loadRoom(this, slot);
             if (!ALL_ROOMS.equals(selectedRoom) && !selectedRoom.equals(room)) continue;
+            if ("environment".equals(WidgetPreferences.loadDeviceType(this, slot))) continue;
             hasDevice = true;
             String type = WidgetPreferences.loadDeviceType(this, slot);
             if ("fan".equals(type)) {
                 addDeviceCard(grid, configuredCount, slot,
-                        WidgetPreferences.loadFanName(this, slot), room);
-            } else if ("environment".equals(type)) {
-                addEnvironmentCard(grid, configuredCount, slot,
                         WidgetPreferences.loadFanName(this, slot), room);
             } else {
                 addEntityCard(grid, configuredCount, slot,
@@ -164,17 +174,6 @@ public final class MainActivity extends Activity {
             return true;
         });
         refreshEntityTile(slot, tile);
-    }
-
-    private void addEnvironmentCard(GridLayout grid, int index, int slot, String name, String room) {
-        DeviceTile tile = createDeviceTile(grid, index,
-                name.isEmpty() ? "温湿度传感器" : name, room, "environment");
-        tile.card.setOnClickListener(view -> refreshEnvironmentTile(slot, tile));
-        tile.card.setOnLongClickListener(view -> {
-            showDeviceActions(slot, "environment");
-            return true;
-        });
-        refreshEnvironmentTile(slot, tile);
     }
 
     private DeviceTile createDeviceTile(GridLayout grid, int index, String name,
@@ -243,7 +242,6 @@ public final class MainActivity extends Activity {
 
     private int entityIcon(String type) {
         if ("fan".equals(type)) return R.drawable.ic_fan_on;
-        if ("environment".equals(type)) return R.drawable.ic_environment_sensor;
         if ("switch".equals(type)) return R.drawable.ic_switch;
         if ("button".equals(type)) return R.drawable.ic_wireless_button;
         if ("cover".equals(type)) return R.drawable.ic_curtain;
@@ -259,42 +257,6 @@ public final class MainActivity extends Activity {
                 runOnUiThread(() -> applyTileState(tile, false, false, -1));
             }
         });
-    }
-
-    private void refreshEnvironmentTile(int slot, DeviceTile tile) {
-        tile.status.setText("正在读取");
-        scanExecutor.execute(() -> {
-            try {
-                EspHomeClient.EnvironmentState state = EspHomeClient.fetchEnvironment(this, slot);
-                runOnUiThread(() -> {
-                    boolean available = state.hasAny();
-                    tile.available = available;
-                    tile.card.setAlpha(available ? 1f : 0.68f);
-                    tile.card.setBackgroundResource(R.drawable.home_device_card_off);
-                    tile.title.setTextColor(Color.rgb(39, 44, 50));
-                    tile.status.setText(environmentSummary(state));
-                    tile.status.setTextColor(available ? Color.rgb(67, 113, 139)
-                            : Color.rgb(125, 133, 142));
-                    tile.stateDot.setBackground(statusDot(available
-                            ? Color.rgb(67, 143, 178) : Color.rgb(174, 181, 188)));
-                    tile.card.setContentDescription(tile.name + "，" + environmentSummary(state));
-                });
-            } catch (Exception ignored) {
-                runOnUiThread(() -> {
-                    tile.available = false;
-                    tile.card.setAlpha(0.68f);
-                    tile.status.setText("无温湿度数据");
-                    tile.status.setTextColor(Color.rgb(125, 133, 142));
-                    tile.stateDot.setBackground(statusDot(Color.rgb(174, 181, 188)));
-                });
-            }
-        });
-    }
-
-    private String environmentSummary(EspHomeClient.EnvironmentState state) {
-        String temperature = state.temperature.isEmpty() ? "--" : state.temperature;
-        String humidity = state.humidity.isEmpty() ? "--" : state.humidity;
-        return temperature + " · " + humidity;
     }
 
     private void toggleEntityTile(int slot, DeviceTile tile) {
@@ -1005,7 +967,7 @@ public final class MainActivity extends Activity {
                 while ((line = reader.readLine()) != null && seen++ < 40) {
                     Matcher titleMatcher = Pattern.compile("\\\"title\\\":\\\"([^\\\"]+)").matcher(line);
                     if (titleMatcher.find()) name = titleMatcher.group(1);
-                    Matcher endpointMatcher = Pattern.compile("\\\"id\\\":\\\"(fan|light|switch|button|cover|sensor)-([^\\\"]+)").matcher(line);
+                    Matcher endpointMatcher = Pattern.compile("\\\"id\\\":\\\"(fan|light|switch|button|cover)-([^\\\"]+)").matcher(line);
                     if (!endpointMatcher.find()) continue;
                     String candidateType = endpointMatcher.group(1);
                     if ("sensor".equals(candidateType)
@@ -1017,7 +979,7 @@ public final class MainActivity extends Activity {
                             || line.contains("\"name_id\":\"switch/童锁\""))) {
                         continue;
                     }
-                    type = "sensor".equals(candidateType) ? "environment" : candidateType;
+                    type = candidateType;
                     endpoint = endpointMatcher.group(2);
                     Matcher nameMatcher = Pattern.compile("\\\"name\\\":\\\"([^\\\"]+)").matcher(line);
                     if (nameMatcher.find()) name = nameMatcher.group(1);
