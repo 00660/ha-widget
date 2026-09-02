@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
@@ -17,11 +18,10 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.GridLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.ScrollView;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,9 +41,9 @@ import java.util.regex.Pattern;
 
 public final class MainActivity extends Activity {
     private static final String ALL_ROOMS = "全部";
-    private static final String[] ROOMS = {"未分配", "客厅", "卧室", "厨房", "卫生间"};
     private final ExecutorService scanExecutor = Executors.newFixedThreadPool(24);
     private LinearLayout deviceList;
+    private LinearLayout roomTabs;
     private TextView deviceCount;
     private TextView homeSummary;
     private String selectedRoom = ALL_ROOMS;
@@ -52,15 +52,10 @@ public final class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         deviceList = findViewById(R.id.device_list);
+        roomTabs = findViewById(R.id.room_tabs);
         deviceCount = findViewById(R.id.device_count);
         homeSummary = findViewById(R.id.home_summary);
         findViewById(R.id.add_device).setOnClickListener(view -> showAddDevice());
-        findViewById(R.id.room_all).setOnClickListener(view -> setRoomFilter(ALL_ROOMS));
-        findViewById(R.id.room_living).setOnClickListener(view -> setRoomFilter("客厅"));
-        findViewById(R.id.room_bedroom).setOnClickListener(view -> setRoomFilter("卧室"));
-        findViewById(R.id.room_kitchen).setOnClickListener(view -> setRoomFilter("厨房"));
-        findViewById(R.id.room_bathroom).setOnClickListener(view -> setRoomFilter("卫生间"));
-        findViewById(R.id.room_manage).setOnClickListener(view -> showRoomManager());
         findViewById(R.id.nav_home).setOnClickListener(view -> setRoomFilter(ALL_ROOMS));
         findViewById(R.id.nav_scenes).setOnClickListener(view -> showSceneManager());
         findViewById(R.id.nav_rooms).setOnClickListener(view -> showRoomManager());
@@ -76,7 +71,7 @@ public final class MainActivity extends Activity {
         deviceList.removeAllViews();
         boolean hasDevice = false;
         GridLayout grid = new GridLayout(this);
-        grid.setColumnCount(2);
+        grid.setColumnCount(4);
         grid.setUseDefaultMargins(false);
         int configuredCount = 0;
         for (int slot = 0; slot < WidgetPreferences.loadDeviceCount(this); slot++) {
@@ -88,10 +83,10 @@ public final class MainActivity extends Activity {
             String type = WidgetPreferences.loadDeviceType(this, slot);
             if ("fan".equals(type)) {
                 addDeviceCard(grid, configuredCount, slot,
-                        WidgetPreferences.loadFanName(this, slot), url, room);
+                        WidgetPreferences.loadFanName(this, slot), room);
             } else {
                 addEntityCard(grid, configuredCount, slot,
-                        WidgetPreferences.loadFanName(this, slot), url, room, type);
+                        WidgetPreferences.loadFanName(this, slot), room, type);
             }
             configuredCount++;
         }
@@ -111,146 +106,82 @@ public final class MainActivity extends Activity {
         }
     }
 
-    private void addDeviceCard(GridLayout grid, int index, int slot, String name, String url, String room) {
-        LinearLayout card = new LinearLayout(this);
-        card.setOrientation(LinearLayout.VERTICAL);
-        card.setBackgroundResource(R.drawable.settings_card_background);
-        GridLayout.LayoutParams cardParams = new GridLayout.LayoutParams();
-        cardParams.width = 0;
-        cardParams.height = -2;
-        cardParams.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
-        cardParams.setMargins(index % 2 == 0 ? 0 : dp(6), 0,
-                index % 2 == 0 ? dp(6) : 0, dp(12));
-        grid.addView(card, cardParams);
-
-        LinearLayout header = new LinearLayout(this);
-        header.setGravity(Gravity.CENTER_VERTICAL);
-        card.addView(header, new LinearLayout.LayoutParams(-1, -2));
-        ImageView icon = new ImageView(this);
-        icon.setContentDescription("风扇");
-        icon.setImageResource(R.drawable.ic_fan_on);
-        icon.setPadding(dp(10), dp(10), dp(10), dp(10));
-        icon.setBackgroundResource(R.drawable.fan_title_badge);
-        header.addView(icon, new LinearLayout.LayoutParams(dp(44), dp(44)));
-
-        LinearLayout details = new LinearLayout(this);
-        details.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams detailsParams = new LinearLayout.LayoutParams(0, -2, 1);
-        detailsParams.leftMargin = dp(12);
-        header.addView(details, detailsParams);
-        TextView title = text(name.isEmpty() ? "未命名风扇" : name, 16, Color.rgb(15, 23, 42));
-        title.setSingleLine(true);
-        title.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        details.addView(title);
-        TextView address = text("局域网 · " + url.replace("http://", "").replace("https://", ""),
-                12, Color.rgb(100, 116, 139));
-        address.setSingleLine(true);
-        address.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        details.addView(address);
-        TextView roomTag = text(room, 11, Color.rgb(37, 99, 235));
-        roomTag.setSingleLine(true);
-        roomTag.setOnClickListener(view -> showRoomChooser(slot));
-        details.addView(roomTag);
-
-        Switch control = new Switch(this);
-        control.setContentDescription("开关");
-        control.setShowText(false);
-        LinearLayout controlRow = new LinearLayout(this);
-        controlRow.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
-        card.addView(controlRow, new LinearLayout.LayoutParams(-1, dp(34)));
-        controlRow.addView(control, new LinearLayout.LayoutParams(dp(52), dp(34)));
-
-        LinearLayout footer = new LinearLayout(this);
-        footer.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams footerParams = new LinearLayout.LayoutParams(-1, dp(30));
-        card.addView(footer, footerParams);
-        TextView status = text("正在读取设备状态…", 12, Color.rgb(100, 116, 139));
-        footer.addView(status, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView action = text("添加挂件", 12, Color.rgb(37, 99, 235));
-        footer.addView(action, new LinearLayout.LayoutParams(-2, -2));
-
-        ProgressBar progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
-        progress.setMax(100);
-        progress.setProgress(0);
-        LinearLayout.LayoutParams progressParams = new LinearLayout.LayoutParams(-1, dp(4));
-        progressParams.topMargin = dp(4);
-        card.addView(progress, progressParams);
-
-        control.setOnClickListener(view -> toggleFromHome(slot, control, status, progress));
-        refreshHomeState(slot, control, status, progress);
-        card.setOnLongClickListener(view -> { showEditDevice(slot); return true; });
-        card.setOnClickListener(view -> pinDevice(slot));
-        card.setContentDescription("配置 " + (name.isEmpty() ? "未命名风扇" : name) + " 挂件");
+    private void addDeviceCard(GridLayout grid, int index, int slot, String name, String room) {
+        DeviceTile tile = createDeviceTile(grid, index,
+                name.isEmpty() ? "未命名风扇" : name, room, "fan");
+        tile.card.setOnClickListener(view -> toggleFanTile(slot, tile));
+        tile.card.setOnLongClickListener(view -> {
+            showDeviceActions(slot, "fan");
+            return true;
+        });
+        refreshFanTile(slot, tile);
     }
 
-    private void addEntityCard(GridLayout grid, int index, int slot, String name, String url,
+    private void addEntityCard(GridLayout grid, int index, int slot, String name,
                                String room, String type) {
+        String displayName = name.isEmpty() ? "未命名" + entityLabel(type) : name;
+        DeviceTile tile = createDeviceTile(grid, index, displayName, room, type);
+        tile.card.setOnClickListener(view -> toggleEntityTile(slot, tile));
+        tile.card.setOnLongClickListener(view -> {
+            showDeviceActions(slot, type);
+            return true;
+        });
+        refreshEntityTile(slot, tile);
+    }
+
+    private DeviceTile createDeviceTile(GridLayout grid, int index, String name,
+                                        String room, String type) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setBackgroundResource(R.drawable.settings_card_background);
+        card.setGravity(Gravity.CENTER_HORIZONTAL);
+        card.setPadding(dp(8), dp(7), dp(8), dp(6));
+        card.setBackgroundResource(tileBackground(type, false));
+        card.setForeground(getDrawable(R.drawable.home_device_card_ripple));
+        card.setClickable(true);
+        card.setFocusable(true);
+        card.setClipToOutline(true);
+        card.setElevation(dp(2));
         GridLayout.LayoutParams cardParams = new GridLayout.LayoutParams();
         cardParams.width = 0;
-        cardParams.height = -2;
+        cardParams.height = dp(104);
         cardParams.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
-        cardParams.setMargins(index % 2 == 0 ? 0 : dp(6), 0,
-                index % 2 == 0 ? dp(6) : 0, dp(12));
+        cardParams.setMargins(index % 4 == 0 ? 0 : dp(4), 0,
+                index % 4 == 3 ? 0 : dp(4), dp(9));
         grid.addView(card, cardParams);
 
-        LinearLayout header = new LinearLayout(this);
-        header.setGravity(Gravity.CENTER_VERTICAL);
-        card.addView(header, new LinearLayout.LayoutParams(-1, -2));
+        LinearLayout indicatorRow = new LinearLayout(this);
+        indicatorRow.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        View stateDot = new View(this);
+        indicatorRow.addView(stateDot, new LinearLayout.LayoutParams(dp(7), dp(7)));
+        card.addView(indicatorRow, new LinearLayout.LayoutParams(-1, dp(10)));
+
         ImageView icon = new ImageView(this);
         icon.setContentDescription(entityLabel(type));
         icon.setImageResource(entityIcon(type));
-        icon.setPadding(dp(9), dp(9), dp(9), dp(9));
-        icon.setBackgroundResource("light".equals(type)
-                ? R.drawable.entity_light_badge : R.drawable.entity_switch_badge);
-        header.addView(icon, new LinearLayout.LayoutParams(dp(44), dp(44)));
+        icon.setPadding(dp(4), dp(3), dp(4), dp(3));
+        card.addView(icon, new LinearLayout.LayoutParams(dp(40), dp(40)));
 
-        LinearLayout details = new LinearLayout(this);
-        details.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams detailsParams = new LinearLayout.LayoutParams(0, -2, 1);
-        detailsParams.leftMargin = dp(12);
-        header.addView(details, detailsParams);
-        TextView title = text(name.isEmpty() ? "未命名" + entityLabel(type) : name,
-                16, Color.rgb(15, 23, 42));
+        TextView title = text(name, 12, Color.rgb(39, 44, 50));
         title.setSingleLine(true);
         title.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        details.addView(title);
-        TextView address = text("局域网 · " + url.replace("http://", "").replace("https://", ""),
-                12, Color.rgb(100, 116, 139));
-        address.setSingleLine(true);
-        address.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        details.addView(address);
-        TextView roomTag = text(room, 11, Color.rgb(37, 99, 235));
-        roomTag.setSingleLine(true);
-        roomTag.setOnClickListener(view -> showRoomChooser(slot));
-        details.addView(roomTag);
+        title.setGravity(Gravity.CENTER);
+        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, dp(21));
+        titleParams.topMargin = dp(2);
+        card.addView(title, titleParams);
 
-        Switch control = new Switch(this);
-        control.setContentDescription("开关");
-        control.setShowText(false);
-        header.addView(control, new LinearLayout.LayoutParams(dp(52), dp(34)));
+        TextView status = text("正在连接", 10, Color.rgb(125, 133, 142));
+        status.setSingleLine(true);
+        status.setGravity(Gravity.CENTER);
+        card.addView(status, new LinearLayout.LayoutParams(-1, dp(17)));
 
-        LinearLayout footer = new LinearLayout(this);
-        footer.setGravity(Gravity.CENTER_VERTICAL);
-        card.addView(footer, new LinearLayout.LayoutParams(-1, dp(30)));
-        TextView status = text("正在读取设备状态…", 12, Color.rgb(100, 116, 139));
-        footer.addView(status, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView action = text("添加挂件", 12, Color.rgb(37, 99, 235));
-        action.setOnClickListener(view -> showEntityWidgetChooser(slot, type));
-        footer.addView(action, new LinearLayout.LayoutParams(-2, -2));
-
-        ProgressBar progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
-        progress.setVisibility(android.view.View.GONE);
-        card.addView(progress, new LinearLayout.LayoutParams(-1, dp(4)));
-        control.setOnClickListener(view -> toggleEntityFromHome(slot, control, status, progress));
-        refreshEntityState(slot, control, status, progress);
-        card.setOnLongClickListener(view -> { showEditDevice(slot); return true; });
-        card.setContentDescription("配置 " + (name.isEmpty() ? "未命名" + entityLabel(type) : name));
+        DeviceTile tile = new DeviceTile(card, stateDot, icon, title, status, name, room, type);
+        applyTileState(tile, false, false, -1);
+        return tile;
     }
 
     private String entityLabel(String type) {
+        if ("fan".equals(type)) return "风扇";
         if ("switch".equals(type)) return "开关";
         if ("button".equals(type)) return "无线按钮";
         if ("cover".equals(type)) return "窗帘";
@@ -258,57 +189,83 @@ public final class MainActivity extends Activity {
     }
 
     private int entityIcon(String type) {
+        if ("fan".equals(type)) return R.drawable.ic_fan_on;
         if ("switch".equals(type)) return R.drawable.ic_switch;
         if ("button".equals(type)) return R.drawable.ic_wireless_button;
         if ("cover".equals(type)) return R.drawable.ic_curtain;
         return R.drawable.ic_light;
     }
 
-    private void refreshEntityState(int slot, Switch control, TextView status, ProgressBar progress) {
+    private void refreshEntityTile(int slot, DeviceTile tile) {
         scanExecutor.execute(() -> {
             try {
                 EspHomeClient.DeviceState state = EspHomeClient.fetchDeviceState(this, slot);
-                runOnUiThread(() -> {
-                    control.setEnabled(state.available);
-                    control.setChecked(state.available && state.on);
-                    status.setText(state.available ? (state.on ? "已开启" : "已关闭") : "设备离线");
-                    status.setTextColor(state.available && state.on
-                            ? Color.rgb(22, 163, 74) : Color.rgb(100, 116, 139));
-                });
+                runOnUiThread(() -> applyTileState(tile, state.available, state.on, -1));
             } catch (Exception ignored) {
-                runOnUiThread(() -> {
-                    control.setEnabled(false);
-                    status.setText("设备离线");
-                    status.setTextColor(Color.rgb(148, 163, 184));
-                });
+                runOnUiThread(() -> applyTileState(tile, false, false, -1));
             }
         });
     }
 
-    private void toggleEntityFromHome(int slot, Switch control, TextView status, ProgressBar progress) {
-        boolean requested = control.isChecked();
-        control.setEnabled(false);
-        control.setAlpha(0.45f);
+    private void toggleEntityTile(int slot, DeviceTile tile) {
+        if (tile.controlling) return;
+        if (!tile.available) {
+            Toast.makeText(this, "设备离线", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        tile.controlling = true;
+        tile.card.setAlpha(0.72f);
+        tile.status.setText("正在控制");
         scanExecutor.execute(() -> {
             try {
                 EspHomeClient.toggleDevice(this, slot);
                 EspHomeClient.DeviceState state = EspHomeClient.fetchDeviceState(this, slot);
                 runOnUiThread(() -> {
-                    control.setAlpha(1f);
-                    control.setEnabled(state.available);
-                    control.setChecked(state.available && state.on);
-                    status.setText(state.on ? "已开启" : "已关闭");
-                    status.setTextColor(state.on ? Color.rgb(22, 163, 74) : Color.rgb(100, 116, 139));
+                    tile.controlling = false;
+                    tile.card.setAlpha(1f);
+                    applyTileState(tile, state.available, state.on, -1);
+                    if ("button".equals(tile.type)) tile.status.setText("已执行");
                 });
             } catch (Exception ignored) {
                 runOnUiThread(() -> {
-                    control.setAlpha(1f);
-                    control.setChecked(!requested);
-                    control.setEnabled(true);
+                    tile.controlling = false;
+                    tile.card.setAlpha(1f);
+                    applyTileState(tile, tile.available, tile.on, -1);
                     Toast.makeText(this, "设备控制失败", Toast.LENGTH_SHORT).show();
                 });
             }
         });
+    }
+
+    private void showDeviceActions(int slot, String type) {
+        String name = WidgetPreferences.loadFanName(this, slot);
+        LinearLayout panel = panel(name.isEmpty() ? entityLabel(type) : name);
+        panel.addView(text("选择设备操作", 13, Color.rgb(100, 116, 139)),
+                new LinearLayout.LayoutParams(-1, dp(36)));
+        Dialog dialog = panelDialog(panel);
+        TextView widget = panelRow("添加到桌面", false);
+        widget.setOnClickListener(view -> {
+            dialog.dismiss();
+            if ("fan".equals(type)) pinDevice(slot);
+            else showEntityWidgetChooser(slot, type);
+        });
+        panel.addView(widget, rowParams());
+        TextView room = panelRow("分配房间    " + WidgetPreferences.loadRoom(this, slot), false);
+        room.setOnClickListener(view -> {
+            dialog.dismiss();
+            showRoomChooser(slot);
+        });
+        panel.addView(room, rowParams());
+        TextView edit = panelRow("编辑设备", false);
+        edit.setOnClickListener(view -> {
+            dialog.dismiss();
+            showEditDevice(slot);
+        });
+        panel.addView(edit, rowParams());
+        TextView cancel = actionText("取消", Color.rgb(100, 116, 139), false);
+        cancel.setOnClickListener(view -> dialog.dismiss());
+        panel.addView(cancel, actionParams());
+        showPanel(dialog);
     }
 
     private void showEntityWidgetChooser(int slot, String type) {
@@ -345,20 +302,30 @@ public final class MainActivity extends Activity {
     }
 
     private void updateRoomTabColors() {
+        roomTabs.removeAllViews();
         int active = Color.rgb(15, 23, 42);
         int inactive = Color.rgb(100, 116, 139);
-        updateRoomTab((TextView) findViewById(R.id.room_all), ALL_ROOMS, active, inactive);
-        updateRoomTab((TextView) findViewById(R.id.room_living), "客厅", active, inactive);
-        updateRoomTab((TextView) findViewById(R.id.room_bedroom), "卧室", active, inactive);
-        updateRoomTab((TextView) findViewById(R.id.room_kitchen), "厨房", active, inactive);
-        updateRoomTab((TextView) findViewById(R.id.room_bathroom), "卫生间", active, inactive);
+        addRoomTab(ALL_ROOMS, active, inactive);
+        for (String room : WidgetPreferences.loadRooms(this)) addRoomTab(room, active, inactive);
+        ImageView manage = new ImageView(this);
+        manage.setContentDescription("添加或管理房间");
+        manage.setImageResource(R.drawable.ic_nav_menu);
+        manage.setPadding(dp(15), dp(15), dp(15), dp(15));
+        manage.setOnClickListener(view -> showRoomManager());
+        roomTabs.addView(manage, new LinearLayout.LayoutParams(dp(50), -1));
     }
 
-    private void updateRoomTab(TextView tab, String room, int active, int inactive) {
+    private void addRoomTab(String room, int active, int inactive) {
+        TextView tab = text(room, 16, inactive);
+        tab.setGravity(Gravity.CENTER);
+        tab.setMinWidth(dp(room.length() > 3 ? 82 : 66));
+        tab.setPadding(dp(12), 0, dp(12), 0);
         boolean selected = room.equals(selectedRoom);
         tab.setTextColor(selected ? active : inactive);
-        tab.setTypeface(null, selected ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        tab.setTypeface(null, selected ? Typeface.BOLD : Typeface.NORMAL);
         tab.setBackgroundResource(selected ? R.drawable.home_tab_selected : android.R.color.transparent);
+        tab.setOnClickListener(view -> setRoomFilter(room));
+        roomTabs.addView(tab, new LinearLayout.LayoutParams(-2, -1));
     }
 
     private void showRoomChooser(int slot) {
@@ -367,7 +334,13 @@ public final class MainActivity extends Activity {
         panel.addView(text("选择后立即保存到设备", 13, Color.rgb(100, 116, 139)),
                 new LinearLayout.LayoutParams(-1, dp(36)));
         Dialog dialog = panelDialog(panel);
-        for (String room : ROOMS) {
+        List<String> roomOptions = new ArrayList<>();
+        roomOptions.add("未分配");
+        roomOptions.addAll(WidgetPreferences.loadRooms(this));
+        ScrollView scroll = new ScrollView(this);
+        LinearLayout rows = new LinearLayout(this);
+        rows.setOrientation(LinearLayout.VERTICAL);
+        for (String room : roomOptions) {
             TextView row = panelRow(room, room.equals(current));
             row.setOnClickListener(view -> {
                 WidgetPreferences.saveRoom(this, slot, room);
@@ -376,8 +349,11 @@ public final class MainActivity extends Activity {
                 renderDeviceList();
                 EntityWidgetTileProvider.requestRefresh(this);
             });
-            panel.addView(row, rowParams());
+            rows.addView(row, rowParams());
         }
+        scroll.addView(rows, new ScrollView.LayoutParams(-1, -2));
+        panel.addView(scroll, new LinearLayout.LayoutParams(-1,
+                Math.min(dp(300), dp(roomOptions.size() * 58))));
         panel.addView(actionText("取消", Color.rgb(37, 99, 235), false), actionParams());
         ((TextView) panel.getChildAt(panel.getChildCount() - 1)).setOnClickListener(view -> dialog.dismiss());
         showPanel(dialog);
@@ -387,8 +363,14 @@ public final class MainActivity extends Activity {
         LinearLayout panel = panel("房间");
         panel.addView(text("选择房间后，首页只显示该房间的设备", 13, Color.rgb(100, 116, 139)),
                 new LinearLayout.LayoutParams(-1, dp(42)));
-        String[] roomOptions = {ALL_ROOMS, "未分配", "客厅", "卧室", "厨房", "卫生间"};
+        List<String> roomOptions = new ArrayList<>();
+        roomOptions.add(ALL_ROOMS);
+        roomOptions.add("未分配");
+        roomOptions.addAll(WidgetPreferences.loadRooms(this));
         Dialog dialog = panelDialog(panel);
+        ScrollView scroll = new ScrollView(this);
+        LinearLayout rows = new LinearLayout(this);
+        rows.setOrientation(LinearLayout.VERTICAL);
         for (String room : roomOptions) {
             int count = countDevices(room);
             TextView row = panelRow(room + "    " + count + " 台设备", room.equals(selectedRoom));
@@ -396,12 +378,60 @@ public final class MainActivity extends Activity {
                 setRoomFilter(room);
                 dialog.dismiss();
             });
-            panel.addView(row, rowParams());
+            rows.addView(row, rowParams());
         }
+        scroll.addView(rows, new ScrollView.LayoutParams(-1, -2));
+        panel.addView(scroll, new LinearLayout.LayoutParams(-1,
+                Math.min(dp(300), dp(roomOptions.size() * 58))));
+
+        LinearLayout actions = new LinearLayout(this);
+        actions.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        TextView add = actionText("添加房间", Color.rgb(37, 99, 235), true);
         TextView close = actionText("关闭", Color.rgb(37, 99, 235), false);
+        add.setOnClickListener(view -> {
+            dialog.dismiss();
+            showAddRoom();
+        });
         close.setOnClickListener(view -> dialog.dismiss());
-        panel.addView(close, actionParams());
+        actions.addView(add, actionParams());
+        actions.addView(close, actionParams());
+        panel.addView(actions, new LinearLayout.LayoutParams(-1, dp(62)));
         showPanel(dialog);
+    }
+
+    private void showAddRoom() {
+        LinearLayout panel = panel("添加房间");
+        EditText name = input("房间名称", "", InputType.TYPE_CLASS_TEXT);
+        panel.addView(name, fieldParams());
+        LinearLayout actions = new LinearLayout(this);
+        actions.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        TextView cancel = actionText("取消", Color.rgb(100, 116, 139), false);
+        TextView save = actionText("添加", Color.rgb(37, 99, 235), true);
+        actions.addView(cancel, actionParams());
+        actions.addView(save, actionParams());
+        panel.addView(actions, new LinearLayout.LayoutParams(-1, dp(62)));
+        Dialog dialog = panelDialog(panel);
+        cancel.setOnClickListener(view -> dialog.dismiss());
+        save.setOnClickListener(view -> {
+            String room = name.getText().toString().trim();
+            if (room.isEmpty()) {
+                name.setError("请输入房间名称");
+                return;
+            }
+            if (room.length() > 12) {
+                name.setError("房间名称不能超过 12 个字");
+                return;
+            }
+            if (!WidgetPreferences.addRoom(this, room)) {
+                name.setError("房间已存在");
+                return;
+            }
+            dialog.dismiss();
+            setRoomFilter(room);
+            Toast.makeText(this, "已添加房间：" + room, Toast.LENGTH_SHORT).show();
+        });
+        showPanel(dialog);
+        name.requestFocus();
     }
 
     private int countDevices(String room) {
@@ -445,38 +475,79 @@ public final class MainActivity extends Activity {
         });
     }
 
-    private void refreshHomeState(int slot, Switch control, TextView status, ProgressBar progress) {
+    private void refreshFanTile(int slot, DeviceTile tile) {
         scanExecutor.execute(() -> {
             try {
                 EspHomeClient.FanState state = EspHomeClient.fetchFanState(this, slot);
-                runOnUiThread(() -> applyHomeState(control, status, progress, state));
+                runOnUiThread(() -> applyTileState(tile, state.available, state.on, state.percentage));
             } catch (Exception exception) {
-                runOnUiThread(() -> {
-                    control.setEnabled(false);
-                    progress.setProgress(0);
-                    status.setText("设备离线");
-                    status.setTextColor(Color.rgb(148, 163, 184));
-                });
+                runOnUiThread(() -> applyTileState(tile, false, false, -1));
             }
         });
     }
 
-    private void applyHomeState(Switch control, TextView status, ProgressBar progress,
-                                EspHomeClient.FanState state) {
-        control.setEnabled(state.available);
-        control.setChecked(state.available && state.on);
-        progress.setProgress(state.available && state.percentage >= 0 ? state.percentage : 0);
-        if (!state.available) {
-            status.setText("设备离线");
-            status.setTextColor(Color.rgb(148, 163, 184));
-        } else if (state.on) {
-            String speed = state.percentage >= 0 ? " " + state.percentage + "%" : "";
-            status.setText("开启" + speed);
-            status.setTextColor(Color.rgb(22, 163, 74));
+    private void applyTileState(DeviceTile tile, boolean available, boolean on, int percentage) {
+        tile.available = available;
+        tile.on = available && on;
+        boolean active = tile.on && !"button".equals(tile.type);
+        tile.card.setBackgroundResource(tileBackground(tile.type, active));
+        tile.card.setAlpha(available ? 1f : 0.68f);
+
+        String stateLabel;
+        if (!available) {
+            stateLabel = "设备离线";
+        } else if ("button".equals(tile.type)) {
+            stateLabel = "轻触执行";
+        } else if ("cover".equals(tile.type)) {
+            stateLabel = active ? "已打开" : "已关闭";
+        } else if (active && "fan".equals(tile.type) && percentage >= 0) {
+            stateLabel = "开启 · " + percentage + "%";
         } else {
-            status.setText("已关闭");
-            status.setTextColor(Color.rgb(100, 116, 139));
+            stateLabel = active ? "已开启" : "已关闭";
         }
+
+        int activeText = activeTextColor(tile.type);
+        int titleColor = active && "fan".equals(tile.type)
+                ? Color.WHITE : Color.rgb(39, 44, 50);
+        int statusColor = !available ? Color.rgb(125, 133, 142)
+                : active || "button".equals(tile.type) ? activeText : Color.rgb(125, 133, 142);
+        int dotColor = !available ? Color.rgb(174, 181, 188)
+                : active && "fan".equals(tile.type) ? Color.WHITE
+                : active || "button".equals(tile.type) ? activeText : Color.rgb(145, 151, 158);
+        tile.title.setTextColor(titleColor);
+        tile.status.setText(stateLabel);
+        tile.status.setTextColor(statusColor);
+        tile.stateDot.setBackground(statusDot(dotColor));
+        tile.icon.clearColorFilter();
+        if ("fan".equals(tile.type)) {
+            tile.icon.setColorFilter(active ? Color.WHITE : Color.rgb(76, 140, 193));
+        }
+        tile.card.setContentDescription(tile.name + "，" + tile.room + "，" + stateLabel
+                + "。轻触控制，长按更多操作");
+    }
+
+    private int tileBackground(String type, boolean active) {
+        if ("button".equals(type)) return R.drawable.home_device_card_button;
+        if (!active) return R.drawable.home_device_card_off;
+        if ("fan".equals(type)) return R.drawable.home_device_card_fan_on;
+        if ("light".equals(type)) return R.drawable.home_device_card_light_on;
+        if ("cover".equals(type)) return R.drawable.home_device_card_cover_on;
+        return R.drawable.home_device_card_switch_on;
+    }
+
+    private int activeTextColor(String type) {
+        if ("fan".equals(type)) return Color.WHITE;
+        if ("light".equals(type)) return Color.rgb(154, 98, 0);
+        if ("cover".equals(type)) return Color.rgb(22, 116, 122);
+        if ("button".equals(type)) return Color.rgb(128, 104, 70);
+        return Color.rgb(23, 129, 93);
+    }
+
+    private GradientDrawable statusDot(int color) {
+        GradientDrawable dot = new GradientDrawable();
+        dot.setShape(GradientDrawable.OVAL);
+        dot.setColor(color);
+        return dot;
     }
 
     private TextView text(String value, int size, int color) {
@@ -487,23 +558,29 @@ public final class MainActivity extends Activity {
         return view;
     }
 
-    private void toggleFromHome(int slot, Switch control, TextView status, ProgressBar progress) {
-        boolean requestedState = control.isChecked();
-        control.setAlpha(0.45f);
-        control.setEnabled(false);
+    private void toggleFanTile(int slot, DeviceTile tile) {
+        if (tile.controlling) return;
+        if (!tile.available) {
+            Toast.makeText(this, "设备离线", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        tile.controlling = true;
+        tile.card.setAlpha(0.72f);
+        tile.status.setText("正在控制");
         scanExecutor.execute(() -> {
             try {
                 EspHomeClient.toggleFan(this, slot);
                 EspHomeClient.FanState state = EspHomeClient.fetchFanState(this, slot);
                 runOnUiThread(() -> {
-                    control.setAlpha(1f);
-                    applyHomeState(control, status, progress, state);
+                    tile.controlling = false;
+                    tile.card.setAlpha(1f);
+                    applyTileState(tile, state.available, state.on, state.percentage);
                 });
             } catch (Exception exception) {
                 runOnUiThread(() -> {
-                    control.setAlpha(1f);
-                    control.setChecked(!requestedState);
-                    control.setEnabled(true);
+                    tile.controlling = false;
+                    tile.card.setAlpha(1f);
+                    applyTileState(tile, tile.available, tile.on, -1);
                     Toast.makeText(this, "设备控制失败", Toast.LENGTH_SHORT).show();
                 });
             }
@@ -588,7 +665,10 @@ public final class MainActivity extends Activity {
 
     private void renderRoomChoices(LinearLayout container, String[] selectedRoom) {
         container.removeAllViews();
-        for (String room : ROOMS) {
+        List<String> roomOptions = new ArrayList<>();
+        roomOptions.add("未分配");
+        roomOptions.addAll(WidgetPreferences.loadRooms(this));
+        for (String room : roomOptions) {
             TextView chip = panelRow(room, room.equals(selectedRoom[0]));
             chip.setTextSize(12);
             chip.setGravity(Gravity.CENTER);
@@ -597,7 +677,8 @@ public final class MainActivity extends Activity {
                 selectedRoom[0] = room;
                 renderRoomChoices(container, selectedRoom);
             });
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -1, 1f);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    dp(room.length() > 4 ? 96 : 82), -1);
             params.leftMargin = dp(2);
             params.rightMargin = dp(2);
             container.addView(chip, params);
@@ -630,7 +711,10 @@ public final class MainActivity extends Activity {
         LinearLayout roomPicker = new LinearLayout(this);
         roomPicker.setOrientation(LinearLayout.HORIZONTAL);
         roomPicker.setGravity(Gravity.CENTER_VERTICAL);
-        form.addView(roomPicker, new LinearLayout.LayoutParams(-1, dp(44)));
+        HorizontalScrollView roomScroll = new HorizontalScrollView(this);
+        roomScroll.setHorizontalScrollBarEnabled(false);
+        roomScroll.addView(roomPicker, new HorizontalScrollView.LayoutParams(-2, -1));
+        form.addView(roomScroll, new LinearLayout.LayoutParams(-1, dp(44)));
         renderRoomChoices(roomPicker, selectedRoom);
         TextView scan = actionText("扫描局域网 ESPHome 设备", Color.rgb(37, 99, 235), true);
         LinearLayout.LayoutParams scanParams = new LinearLayout.LayoutParams(-1, dp(46));
@@ -782,6 +866,32 @@ public final class MainActivity extends Activity {
     }
 
     private String normalizeUrl(String input) { String value = input.trim(); if (value.equals("http://") || value.equals("https://")) return ""; if (!value.isEmpty() && !value.startsWith("http://") && !value.startsWith("https://")) value = "http://" + value; while (value.endsWith("/")) value = value.substring(0, value.length() - 1); return value; }
+    private static final class DeviceTile {
+        final LinearLayout card;
+        final View stateDot;
+        final ImageView icon;
+        final TextView title;
+        final TextView status;
+        final String name;
+        final String room;
+        final String type;
+        boolean available;
+        boolean on;
+        boolean controlling;
+
+        DeviceTile(LinearLayout card, View stateDot, ImageView icon, TextView title,
+                   TextView status, String name, String room, String type) {
+            this.card = card;
+            this.stateDot = stateDot;
+            this.icon = icon;
+            this.title = title;
+            this.status = status;
+            this.name = name;
+            this.room = room;
+            this.type = type;
+        }
+    }
+
     private static final class Device {
         final int host;
         final String url, name, features, type, endpoint;

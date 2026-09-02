@@ -2,6 +2,11 @@ package com.wight.hawidget;
 
 import android.content.Context;
 
+import org.json.JSONArray;
+
+import java.util.ArrayList;
+import java.util.List;
+
 final class WidgetPreferences {
     private static final String PREFERENCES = "widget_preferences";
     private static final String SELECTED_PRESET = "selected_preset";
@@ -16,6 +21,8 @@ final class WidgetPreferences {
     private static final String DEVICE_TYPE = "device_type";
     private static final String DEVICE_ENDPOINT = "device_endpoint";
     private static final String WIDGET_DEVICE = "widget_device_";
+    private static final String CUSTOM_ROOMS = "custom_rooms";
+    private static final String[] DEFAULT_ROOMS = {"客厅", "卧室", "厨房", "卫生间"};
 
     private WidgetPreferences() {
     }
@@ -145,6 +152,44 @@ final class WidgetPreferences {
     static void saveRoom(Context context, int slot, String room) {
         context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
                 .edit().putString(ROOM + slot, room == null ? "未分配" : room).apply();
+    }
+
+    static List<String> loadRooms(Context context) {
+        List<String> rooms = new ArrayList<>();
+        for (String room : DEFAULT_ROOMS) rooms.add(room);
+        String stored = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .getString(CUSTOM_ROOMS, "[]");
+        try {
+            JSONArray customRooms = new JSONArray(stored);
+            for (int index = 0; index < customRooms.length(); index++) {
+                String room = customRooms.optString(index, "").trim();
+                if (!room.isEmpty() && !rooms.contains(room)) rooms.add(room);
+            }
+        } catch (Exception ignored) {
+            // Ignore damaged custom-room data and keep the built-in rooms available.
+        }
+        return rooms;
+    }
+
+    static boolean addRoom(Context context, String roomName) {
+        String room = roomName == null ? "" : roomName.trim();
+        if (room.isEmpty() || "全部".equals(room) || "未分配".equals(room)
+                || loadRooms(context).contains(room)) return false;
+        JSONArray customRooms = new JSONArray();
+        for (String existing : loadRooms(context)) {
+            boolean builtIn = false;
+            for (String defaultRoom : DEFAULT_ROOMS) {
+                if (defaultRoom.equals(existing)) {
+                    builtIn = true;
+                    break;
+                }
+            }
+            if (!builtIn) customRooms.put(existing);
+        }
+        customRooms.put(room);
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .edit().putString(CUSTOM_ROOMS, customRooms.toString()).apply();
+        return true;
     }
 
     static void saveDevice(Context context, String url, String fanName) {
