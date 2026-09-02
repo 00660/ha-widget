@@ -247,19 +247,19 @@ public final class MainActivity extends Activity {
         widget.setOnClickListener(view -> {
             dialog.dismiss();
             if ("fan".equals(type)) pinDevice(slot);
-            else showEntityWidgetChooser(slot, type);
+            else roomTabs.post(() -> showEntityWidgetChooser(slot, type));
         });
         panel.addView(widget, rowParams());
         TextView room = panelRow("分配房间    " + WidgetPreferences.loadRoom(this, slot), false);
         room.setOnClickListener(view -> {
             dialog.dismiss();
-            showRoomChooser(slot);
+            roomTabs.post(() -> showRoomChooser(slot));
         });
         panel.addView(room, rowParams());
         TextView edit = panelRow("编辑设备", false);
         edit.setOnClickListener(view -> {
             dialog.dismiss();
-            showEditDevice(slot);
+            roomTabs.post(() -> showEditDevice(slot));
         });
         panel.addView(edit, rowParams());
         TextView cancel = actionText("取消", Color.rgb(100, 116, 139), false);
@@ -390,7 +390,7 @@ public final class MainActivity extends Activity {
         TextView close = actionText("关闭", Color.rgb(37, 99, 235), false);
         add.setOnClickListener(view -> {
             dialog.dismiss();
-            showAddRoom();
+            roomTabs.post(this::showAddRoom);
         });
         close.setOnClickListener(view -> dialog.dismiss());
         actions.addView(add, actionParams());
