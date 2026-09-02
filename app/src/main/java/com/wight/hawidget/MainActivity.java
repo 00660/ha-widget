@@ -316,7 +316,7 @@ public final class MainActivity extends Activity {
         panel.addView(text("选择桌面卡片样式", 13, Color.rgb(100, 116, 139)),
                 new LinearLayout.LayoutParams(-1, dp(36)));
         Dialog dialog = panelDialog(panel);
-        TextView tile = panelRow("方卡    84 × 96", false);
+        TextView tile = panelRow("方卡    96 × 96", false);
         tile.setOnClickListener(view -> { dialog.dismiss(); pinEntityWidget(slot); });
         panel.addView(tile, rowParams());
         TextView cancel = actionText("取消", Color.rgb(100, 116, 139), false);

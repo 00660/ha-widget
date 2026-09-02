@@ -6,7 +6,7 @@
 
     <FrameLayout
         android:id="@+id/entity_widget_card"
-        android:layout_width="84dp"
+        android:layout_width="96dp"
         android:layout_height="96dp"
         android:layout_gravity="center"
         android:background="@drawable/entity_widget_background"
