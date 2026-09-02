@@ -250,4 +250,15 @@ final class WidgetPreferences {
         if (slot >= loadDeviceCount(context)) editor.putInt(DEVICE_COUNT, slot + 1);
         editor.apply();
     }
+
+    static void removeDevice(Context context, int slot) {
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .edit()
+                .putString(ESPHOME_URL + slot, "")
+                .putString(FAN_NAME + slot, "")
+                .putString(DEVICE_TYPE + slot, "fan")
+                .putString(DEVICE_ENDPOINT + slot, "")
+                .putString(ROOM + slot, "未分配")
+                .apply();
+    }
 }

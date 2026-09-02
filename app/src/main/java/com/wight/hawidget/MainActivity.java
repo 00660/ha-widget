@@ -972,12 +972,24 @@ public final class MainActivity extends Activity {
         actions.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
         TextView cancel = actionText("取消", Color.rgb(100, 116, 139), false);
         TextView save = actionText("保存", Color.rgb(37, 99, 235), false);
+        boolean editing = "编辑设备".equals(title);
+        TextView remove = actionText("删除设备", Color.rgb(220, 38, 38), false);
+        if (editing) actions.addView(remove, actionParams());
         actions.addView(cancel, actionParams());
         actions.addView(save, actionParams());
         panel.addView(actions, new LinearLayout.LayoutParams(-1, dp(56)));
 
         Dialog dialog = panelDialog(panel);
         cancel.setOnClickListener(view -> dialog.dismiss());
+        if (editing) {
+            remove.setOnClickListener(view -> {
+                WidgetPreferences.removeDevice(this, slot);
+                HaFanWidgetProvider.requestRefresh(this);
+                EntityWidgetTileProvider.requestRefresh(this);
+                dialog.dismiss();
+                renderDeviceList();
+            });
+        }
         save.setOnClickListener(view -> {
             String url = normalizeUrl(address.getText().toString());
             if (url.isEmpty()) { address.setError("请输入 ESPHome 地址"); return; }
