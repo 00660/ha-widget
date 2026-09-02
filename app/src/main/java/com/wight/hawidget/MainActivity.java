@@ -44,6 +44,10 @@ public final class MainActivity extends Activity {
     private final ExecutorService scanExecutor = Executors.newFixedThreadPool(24);
     private LinearLayout deviceList;
     private LinearLayout roomTabs;
+    private TextView environmentWeather;
+    private TextView environmentTemperature;
+    private TextView environmentHumidity;
+    private TextView environmentAirQuality;
     private String selectedRoom = ALL_ROOMS;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +55,10 @@ public final class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         deviceList = findViewById(R.id.device_list);
         roomTabs = findViewById(R.id.room_tabs);
+        environmentWeather = findViewById(R.id.environment_weather);
+        environmentTemperature = findViewById(R.id.environment_temperature);
+        environmentHumidity = findViewById(R.id.environment_humidity);
+        environmentAirQuality = findViewById(R.id.environment_air_quality);
         findViewById(R.id.add_device).setOnClickListener(view -> showAddDevice());
         findViewById(R.id.nav_home).setOnClickListener(view -> setRoomFilter(ALL_ROOMS));
         findViewById(R.id.nav_scenes).setOnClickListener(view -> showSceneManager());
@@ -60,7 +68,41 @@ public final class MainActivity extends Activity {
         HaFanWidgetProvider.requestRefresh(this);
         EntityWidgetTileProvider.requestRefresh(this);
         updateRoomTabColors();
+        refreshEnvironment();
         renderDeviceList();
+    }
+
+    private void refreshEnvironment() {
+        scanExecutor.execute(() -> {
+            String weather = "";
+            String temperature = "";
+            String humidity = "";
+            String airQuality = "";
+            for (int slot = 0; slot < WidgetPreferences.loadDeviceCount(this); slot++) {
+                if (WidgetPreferences.loadEspHomeUrl(this, slot).isEmpty()) continue;
+                try {
+                    EspHomeClient.EnvironmentState state = EspHomeClient.fetchEnvironment(this, slot);
+                    if (weather.isEmpty()) weather = state.weather;
+                    if (temperature.isEmpty()) temperature = state.temperature;
+                    if (humidity.isEmpty()) humidity = state.humidity;
+                    if (airQuality.isEmpty()) airQuality = state.airQuality;
+                    if (!weather.isEmpty() && !temperature.isEmpty() && !humidity.isEmpty()
+                            && !airQuality.isEmpty()) break;
+                } catch (Exception ignored) {
+                    // A device without environment sensors should not hide other readings.
+                }
+            }
+            String finalWeather = weather.isEmpty() ? "--" : weather;
+            String finalTemperature = temperature.isEmpty() ? "--" : temperature;
+            String finalHumidity = humidity.isEmpty() ? "--" : humidity;
+            String finalAirQuality = airQuality.isEmpty() ? "--" : airQuality;
+            runOnUiThread(() -> {
+                environmentWeather.setText(finalWeather);
+                environmentTemperature.setText(finalTemperature);
+                environmentHumidity.setText(finalHumidity);
+                environmentAirQuality.setText(finalAirQuality);
+            });
+        });
     }
 
     private void renderDeviceList() {
@@ -79,6 +121,9 @@ public final class MainActivity extends Activity {
             String type = WidgetPreferences.loadDeviceType(this, slot);
             if ("fan".equals(type)) {
                 addDeviceCard(grid, configuredCount, slot,
+                        WidgetPreferences.loadFanName(this, slot), room);
+            } else if ("environment".equals(type)) {
+                addEnvironmentCard(grid, configuredCount, slot,
                         WidgetPreferences.loadFanName(this, slot), room);
             } else {
                 addEntityCard(grid, configuredCount, slot,
@@ -119,6 +164,17 @@ public final class MainActivity extends Activity {
             return true;
         });
         refreshEntityTile(slot, tile);
+    }
+
+    private void addEnvironmentCard(GridLayout grid, int index, int slot, String name, String room) {
+        DeviceTile tile = createDeviceTile(grid, index,
+                name.isEmpty() ? "温湿度传感器" : name, room, "environment");
+        tile.card.setOnClickListener(view -> refreshEnvironmentTile(slot, tile));
+        tile.card.setOnLongClickListener(view -> {
+            showDeviceActions(slot, "environment");
+            return true;
+        });
+        refreshEnvironmentTile(slot, tile);
     }
 
     private DeviceTile createDeviceTile(GridLayout grid, int index, String name,
@@ -178,6 +234,7 @@ public final class MainActivity extends Activity {
 
     private String entityLabel(String type) {
         if ("fan".equals(type)) return "风扇";
+        if ("environment".equals(type)) return "温湿度传感器";
         if ("switch".equals(type)) return "开关";
         if ("button".equals(type)) return "无线按钮";
         if ("cover".equals(type)) return "窗帘";
@@ -186,6 +243,7 @@ public final class MainActivity extends Activity {
 
     private int entityIcon(String type) {
         if ("fan".equals(type)) return R.drawable.ic_fan_on;
+        if ("environment".equals(type)) return R.drawable.ic_environment_sensor;
         if ("switch".equals(type)) return R.drawable.ic_switch;
         if ("button".equals(type)) return R.drawable.ic_wireless_button;
         if ("cover".equals(type)) return R.drawable.ic_curtain;
@@ -201,6 +259,42 @@ public final class MainActivity extends Activity {
                 runOnUiThread(() -> applyTileState(tile, false, false, -1));
             }
         });
+    }
+
+    private void refreshEnvironmentTile(int slot, DeviceTile tile) {
+        tile.status.setText("正在读取");
+        scanExecutor.execute(() -> {
+            try {
+                EspHomeClient.EnvironmentState state = EspHomeClient.fetchEnvironment(this, slot);
+                runOnUiThread(() -> {
+                    boolean available = state.hasAny();
+                    tile.available = available;
+                    tile.card.setAlpha(available ? 1f : 0.68f);
+                    tile.card.setBackgroundResource(R.drawable.home_device_card_off);
+                    tile.title.setTextColor(Color.rgb(39, 44, 50));
+                    tile.status.setText(environmentSummary(state));
+                    tile.status.setTextColor(available ? Color.rgb(67, 113, 139)
+                            : Color.rgb(125, 133, 142));
+                    tile.stateDot.setBackground(statusDot(available
+                            ? Color.rgb(67, 143, 178) : Color.rgb(174, 181, 188)));
+                    tile.card.setContentDescription(tile.name + "，" + environmentSummary(state));
+                });
+            } catch (Exception ignored) {
+                runOnUiThread(() -> {
+                    tile.available = false;
+                    tile.card.setAlpha(0.68f);
+                    tile.status.setText("无温湿度数据");
+                    tile.status.setTextColor(Color.rgb(125, 133, 142));
+                    tile.stateDot.setBackground(statusDot(Color.rgb(174, 181, 188)));
+                });
+            }
+        });
+    }
+
+    private String environmentSummary(EspHomeClient.EnvironmentState state) {
+        String temperature = state.temperature.isEmpty() ? "--" : state.temperature;
+        String humidity = state.humidity.isEmpty() ? "--" : state.humidity;
+        return temperature + " · " + humidity;
     }
 
     private void toggleEntityTile(int slot, DeviceTile tile) {
@@ -239,13 +333,15 @@ public final class MainActivity extends Activity {
         panel.addView(text("选择设备操作", 13, Color.rgb(100, 116, 139)),
                 new LinearLayout.LayoutParams(-1, dp(36)));
         Dialog dialog = panelDialog(panel);
-        TextView widget = panelRow("添加到桌面", false);
-        widget.setOnClickListener(view -> {
-            dialog.dismiss();
-            if ("fan".equals(type)) pinDevice(slot);
-            else roomTabs.post(() -> showEntityWidgetChooser(slot, type));
-        });
-        panel.addView(widget, rowParams());
+        if (!"environment".equals(type)) {
+            TextView widget = panelRow("添加到桌面", false);
+            widget.setOnClickListener(view -> {
+                dialog.dismiss();
+                if ("fan".equals(type)) pinDevice(slot);
+                else roomTabs.post(() -> showEntityWidgetChooser(slot, type));
+            });
+            panel.addView(widget, rowParams());
+        }
         TextView room = panelRow("分配房间    " + WidgetPreferences.loadRoom(this, slot), false);
         room.setOnClickListener(view -> {
             dialog.dismiss();
@@ -909,15 +1005,19 @@ public final class MainActivity extends Activity {
                 while ((line = reader.readLine()) != null && seen++ < 40) {
                     Matcher titleMatcher = Pattern.compile("\\\"title\\\":\\\"([^\\\"]+)").matcher(line);
                     if (titleMatcher.find()) name = titleMatcher.group(1);
-                    Matcher endpointMatcher = Pattern.compile("\\\"id\\\":\\\"(fan|light|switch|button|cover)-([^\\\"]+)").matcher(line);
+                    Matcher endpointMatcher = Pattern.compile("\\\"id\\\":\\\"(fan|light|switch|button|cover|sensor)-([^\\\"]+)").matcher(line);
                     if (!endpointMatcher.find()) continue;
                     String candidateType = endpointMatcher.group(1);
+                    if ("sensor".equals(candidateType)
+                            && !line.matches("(?is).*\\\"(name|name_id)\\\"\\s*:\\s*\\\"[^\\\"]*(temperature|temp|humidity|湿度|温度).*")) {
+                        continue;
+                    }
                     if ("switch".equals(candidateType)
                             && (line.contains("\"name\":\"童锁\"")
                             || line.contains("\"name_id\":\"switch/童锁\""))) {
                         continue;
                     }
-                    type = candidateType;
+                    type = "sensor".equals(candidateType) ? "environment" : candidateType;
                     endpoint = endpointMatcher.group(2);
                     Matcher nameMatcher = Pattern.compile("\\\"name\\\":\\\"([^\\\"]+)").matcher(line);
                     if (nameMatcher.find()) name = nameMatcher.group(1);
@@ -925,7 +1025,7 @@ public final class MainActivity extends Activity {
                 }
             }
             if (type.isEmpty() || endpoint.isEmpty()) return null;
-            String features = "fan".equals(type) ? "风扇" : entityLabel(type);
+            String features = entityLabel(type);
             return new Device(host, url, name, features, type, endpoint);
         } catch (Exception ignored) {
             return null;

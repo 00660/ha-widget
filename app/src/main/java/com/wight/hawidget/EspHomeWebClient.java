@@ -141,6 +141,73 @@ final class EspHomeWebClient {
         }
     }
 
+    static EspHomeClient.EnvironmentState fetchEnvironment(Context context, int slot) throws IOException {
+        String baseUrl = WidgetPreferences.loadEspHomeUrl(context, slot);
+        if (baseUrl.isEmpty()) throw new IOException("ESPHome URL missing");
+        HttpURLConnection connection = open(baseUrl + "/events");
+        connection.setRequestProperty("Accept", "text/event-stream");
+        String weather = "";
+        String temperature = "";
+        String humidity = "";
+        String airQuality = "";
+        try (InputStream input = connection.getInputStream();
+             BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
+            String line;
+            int seen = 0;
+            while ((line = reader.readLine()) != null && seen++ < 80) {
+                if (!line.startsWith("data:")) continue;
+                String json = line.substring(5).trim();
+                if (!json.startsWith("{")) continue;
+                try {
+                    JSONObject event = new JSONObject(json);
+                    String domain = event.optString("domain", "");
+                    if (!("sensor".equals(domain) || "text_sensor".equals(domain))) continue;
+                    String name = (event.optString("name", "") + " "
+                            + event.optString("name_id", "") + " "
+                            + event.optString("icon", "")).toLowerCase(java.util.Locale.ROOT);
+                    String unit = event.optString("uom", "").toLowerCase(java.util.Locale.ROOT);
+                    String value = environmentValue(event);
+                    if (value.isEmpty()) continue;
+                    if (weather.isEmpty() && (name.contains("天气") || name.contains("weather")
+                            || name.contains("condition"))) weather = value;
+                    if (temperature.isEmpty() && (name.contains("温度") || name.contains("temperature")
+                            || name.contains("temp") || unit.contains("°c") || unit.contains("掳c")
+                            || "c".equals(unit))) {
+                        temperature = normalizeEnvironmentValue(value, "°C");
+                    }
+                    if (humidity.isEmpty() && (name.contains("湿度") || name.contains("humidity")
+                            || "%".equals(unit))) {
+                        humidity = normalizeEnvironmentValue(value, "%");
+                    }
+                    if (airQuality.isEmpty() && (name.contains("空气") || name.contains("air quality")
+                            || name.contains("pm2.5") || name.contains("aqi")
+                            || unit.contains("µg") || unit.contains("ug/m"))) airQuality = value;
+                    if (!weather.isEmpty() && !temperature.isEmpty() && !humidity.isEmpty()
+                            && !airQuality.isEmpty()) break;
+                } catch (Exception ignored) {
+                    // Ignore malformed or unrelated SSE events.
+                }
+            }
+        } finally {
+            connection.disconnect();
+        }
+        return new EspHomeClient.EnvironmentState(weather, temperature, humidity, airQuality);
+    }
+
+    private static String environmentValue(JSONObject event) {
+        String state = event.optString("state", "").trim();
+        if (!state.isEmpty()) return state;
+        Object value = event.opt("value");
+        return value == null || JSONObject.NULL.equals(value) ? "" : String.valueOf(value).trim();
+    }
+
+    private static String normalizeEnvironmentValue(String value, String suffix) {
+        String normalized = value.trim().replace(" ", "");
+        if (normalized.endsWith("°C") || normalized.endsWith("%")) return normalized;
+        if (normalized.endsWith("掳C")) return normalized.substring(0, normalized.length() - 2) + "°C";
+        return normalized + suffix;
+    }
+
     private static LockState fetchLockState(Context context, int slot) throws IOException {
         String base = WidgetPreferences.loadEspHomeUrl(context, slot);
         HttpURLConnection connection = open(base + "/events");
