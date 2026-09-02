@@ -192,6 +192,44 @@ final class WidgetPreferences {
         return true;
     }
 
+    static boolean isBuiltInRoom(String room) {
+        for (String defaultRoom : DEFAULT_ROOMS) {
+            if (defaultRoom.equals(room)) return true;
+        }
+        return false;
+    }
+
+    static boolean renameRoom(Context context, String oldName, String newName) {
+        String replacement = newName == null ? "" : newName.trim();
+        if (oldName == null || oldName.trim().isEmpty() || isBuiltInRoom(oldName)
+                || replacement.isEmpty() || "全部".equals(replacement)
+                || "未分配".equals(replacement) || loadRooms(context).contains(replacement)) {
+            return false;
+        }
+        List<String> rooms = loadRooms(context);
+        JSONArray customRooms = new JSONArray();
+        for (String room : rooms) {
+            if (isBuiltInRoom(room)) continue;
+            customRooms.put(oldName.equals(room) ? replacement : room);
+        }
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .edit().putString(CUSTOM_ROOMS, customRooms.toString()).apply();
+        return true;
+    }
+
+    static boolean removeRoom(Context context, String roomName) {
+        if (roomName == null || isBuiltInRoom(roomName) || !loadRooms(context).contains(roomName)) {
+            return false;
+        }
+        JSONArray customRooms = new JSONArray();
+        for (String room : loadRooms(context)) {
+            if (!isBuiltInRoom(room) && !roomName.equals(room)) customRooms.put(room);
+        }
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .edit().putString(CUSTOM_ROOMS, customRooms.toString()).apply();
+        return true;
+    }
+
     static void saveDevice(Context context, String url, String fanName) {
         saveDevice(context, 0, url, fanName, "fan", "");
     }

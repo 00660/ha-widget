@@ -148,6 +148,15 @@ public final class MainActivity extends Activity {
         cardParams.setMargins(index % 4 == 0 ? 0 : dp(4), 0,
                 index % 4 == 3 ? 0 : dp(4), dp(9));
         grid.addView(card, cardParams);
+        // Keep each device tile square at any phone width, matching the reference grid.
+        card.post(() -> {
+            int size = card.getWidth();
+            if (size > 0 && card.getHeight() != size) {
+                android.view.ViewGroup.LayoutParams params = card.getLayoutParams();
+                params.height = size;
+                card.setLayoutParams(params);
+            }
+        });
 
         LinearLayout indicatorRow = new LinearLayout(this);
         indicatorRow.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
@@ -373,12 +382,26 @@ public final class MainActivity extends Activity {
         rows.setOrientation(LinearLayout.VERTICAL);
         for (String room : roomOptions) {
             int count = countDevices(room);
-            TextView row = panelRow(room + "    " + count + " 台设备", room.equals(selectedRoom));
-            row.setOnClickListener(view -> {
+            LinearLayout row = new LinearLayout(this);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            TextView label = panelRow(room + "    " + count + " 台设备", room.equals(selectedRoom));
+            label.setOnClickListener(view -> {
                 setRoomFilter(room);
                 dialog.dismiss();
             });
-            rows.addView(row, rowParams());
+            row.addView(label, new LinearLayout.LayoutParams(0, -1, 1f));
+            if (!ALL_ROOMS.equals(room) && !"未分配".equals(room)
+                    && !WidgetPreferences.isBuiltInRoom(room)) {
+                TextView edit = actionText("编辑", Color.rgb(37, 99, 235), false);
+                edit.setContentDescription("编辑房间 " + room);
+                edit.setOnClickListener(view -> {
+                    dialog.dismiss();
+                    roomTabs.post(() -> showEditRoom(room));
+                });
+                row.addView(edit, new LinearLayout.LayoutParams(dp(72), dp(50)));
+            }
+            LinearLayout.LayoutParams rowLayout = rowParams();
+            rows.addView(row, rowLayout);
         }
         scroll.addView(rows, new ScrollView.LayoutParams(-1, -2));
         panel.addView(scroll, new LinearLayout.LayoutParams(-1,
@@ -429,6 +452,63 @@ public final class MainActivity extends Activity {
             dialog.dismiss();
             setRoomFilter(room);
             Toast.makeText(this, "已添加房间：" + room, Toast.LENGTH_SHORT).show();
+        });
+        showPanel(dialog);
+        name.requestFocus();
+    }
+
+    private void showEditRoom(String roomName) {
+        LinearLayout panel = panel("编辑房间");
+        EditText name = input("房间名称", roomName, InputType.TYPE_CLASS_TEXT);
+        panel.addView(name, fieldParams());
+        TextView hint = text("重命名会同步更新该房间下的设备", 13, Color.rgb(100, 116, 139));
+        panel.addView(hint, new LinearLayout.LayoutParams(-1, dp(34)));
+        LinearLayout actions = new LinearLayout(this);
+        actions.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        TextView remove = actionText("删除", Color.rgb(220, 38, 38), false);
+        TextView cancel = actionText("取消", Color.rgb(100, 116, 139), false);
+        TextView save = actionText("保存", Color.rgb(37, 99, 235), true);
+        actions.addView(remove, actionParams());
+        actions.addView(cancel, actionParams());
+        actions.addView(save, actionParams());
+        panel.addView(actions, new LinearLayout.LayoutParams(-1, dp(62)));
+        Dialog dialog = panelDialog(panel);
+        remove.setOnClickListener(view -> {
+            if (!WidgetPreferences.removeRoom(this, roomName)) return;
+            for (int slot = 0; slot < WidgetPreferences.loadDeviceCount(this); slot++) {
+                if (roomName.equals(WidgetPreferences.loadRoom(this, slot))) {
+                    WidgetPreferences.saveRoom(this, slot, "未分配");
+                }
+            }
+            if (roomName.equals(selectedRoom)) selectedRoom = ALL_ROOMS;
+            dialog.dismiss();
+            updateRoomTabColors();
+            renderDeviceList();
+            EntityWidgetTileProvider.requestRefresh(this);
+            Toast.makeText(this, "房间已删除，设备已移至未分配", Toast.LENGTH_SHORT).show();
+        });
+        cancel.setOnClickListener(view -> dialog.dismiss());
+        save.setOnClickListener(view -> {
+            String replacement = name.getText().toString().trim();
+            if (replacement.length() > 12) {
+                name.setError("房间名称不能超过 12 个字");
+                return;
+            }
+            if (!WidgetPreferences.renameRoom(this, roomName, replacement)) {
+                name.setError("名称为空、重复或不可用");
+                return;
+            }
+            for (int slot = 0; slot < WidgetPreferences.loadDeviceCount(this); slot++) {
+                if (roomName.equals(WidgetPreferences.loadRoom(this, slot))) {
+                    WidgetPreferences.saveRoom(this, slot, replacement);
+                }
+            }
+            if (roomName.equals(selectedRoom)) selectedRoom = replacement;
+            dialog.dismiss();
+            updateRoomTabColors();
+            renderDeviceList();
+            EntityWidgetTileProvider.requestRefresh(this);
+            Toast.makeText(this, "房间已重命名", Toast.LENGTH_SHORT).show();
         });
         showPanel(dialog);
         name.requestFocus();
