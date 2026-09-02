@@ -160,38 +160,42 @@ public final class MainActivity extends Activity {
         if (manager == null) return null;
         final Location[] received = new Location[1];
         final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
-        LocationListener listener = new LocationListener() {
-            @Override public void onLocationChanged(Location location) {
-                received[0] = location;
-                latch.countDown();
-            }
-            @Override public void onProviderEnabled(String provider) { }
-            @Override public void onProviderDisabled(String provider) { }
-        };
+        final android.os.CancellationSignal cancellation = new android.os.CancellationSignal();
         try {
-            java.util.List<android.os.CancellationSignal> cancellations = new ArrayList<>();
-            for (String provider : new String[]{"fused", LocationManager.NETWORK_PROVIDER,
-                    LocationManager.GPS_PROVIDER}) {
-                if (manager.isProviderEnabled(provider)) {
-                    if (android.os.Build.VERSION.SDK_INT >= 30) {
-                        android.os.CancellationSignal cancellation = new android.os.CancellationSignal();
-                        cancellations.add(cancellation);
-                        manager.getCurrentLocation(provider, cancellation, getMainExecutor(), location -> {
-                            if (location != null && received[0] == null) {
+            if (android.os.Build.VERSION.SDK_INT >= 31) {
+                manager.getCurrentLocation(LocationManager.FUSED_PROVIDER, cancellation,
+                        getMainExecutor(), location -> {
+                            if (location != null) {
                                 received[0] = location;
                                 latch.countDown();
                             }
                         });
-                    }
-                    manager.requestLocationUpdates(provider, 1000L, 0f, listener, getMainLooper());
-                }
+            } else if (manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                manager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER,
+                        new LocationListener() {
+                            @Override public void onLocationChanged(Location location) {
+                                received[0] = location;
+                                latch.countDown();
+                            }
+                            @Override public void onProviderEnabled(String provider) { }
+                            @Override public void onProviderDisabled(String provider) { }
+                        }, getMainLooper());
+            } else {
+                manager.requestSingleUpdate(LocationManager.GPS_PROVIDER,
+                        new LocationListener() {
+                            @Override public void onLocationChanged(Location location) {
+                                received[0] = location;
+                                latch.countDown();
+                            }
+                            @Override public void onProviderEnabled(String provider) { }
+                            @Override public void onProviderDisabled(String provider) { }
+                        }, getMainLooper());
             }
-            latch.await(15, java.util.concurrent.TimeUnit.SECONDS);
-            for (android.os.CancellationSignal cancellation : cancellations) cancellation.cancel();
-            manager.removeUpdates(listener);
+            latch.await(20, java.util.concurrent.TimeUnit.SECONDS);
+            cancellation.cancel();
             return received[0];
         } catch (Exception ignored) {
-            try { manager.removeUpdates(listener); } catch (Exception ignoredAgain) { }
+            cancellation.cancel();
             return null;
         }
     }
