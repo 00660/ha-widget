@@ -96,7 +96,7 @@ public final class EntityWidgetTileProvider extends AppWidgetProvider {
                         : R.drawable.entity_widget_background);
         views.setViewVisibility(R.id.entity_widget_online_dot,
                 available ? View.VISIBLE : View.INVISIBLE);
-        views.setImageViewResource(R.id.entity_widget_icon, iconFor(type, on));
+        views.setImageViewResource(R.id.entity_widget_icon, iconFor(type));
         views.setTextColor(R.id.entity_widget_name, android.graphics.Color.rgb(48, 52, 59));
         views.setTextColor(R.id.entity_widget_room, available
                 ? android.graphics.Color.rgb(139, 145, 155)
@@ -125,10 +125,10 @@ public final class EntityWidgetTileProvider extends AppWidgetProvider {
         return "灯具";
     }
 
-    private int iconFor(String type, boolean on) {
+    private int iconFor(String type) {
         if ("switch".equals(type)) return R.drawable.ic_switch;
         if ("button".equals(type)) return R.drawable.ic_wireless_button;
         if ("cover".equals(type)) return R.drawable.ic_curtain;
-        return on ? R.drawable.ic_light_on : R.drawable.ic_light;
+        return R.drawable.ic_light;
     }
 }

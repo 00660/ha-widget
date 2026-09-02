@@ -10,16 +10,17 @@
         android:layout_height="96dp"
         android:layout_gravity="center"
         android:background="@drawable/entity_widget_background"
-        android:paddingStart="10dp"
+        android:paddingStart="12dp"
         android:paddingTop="8dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="8dp">
+        android:paddingEnd="10dp"
+        android:paddingBottom="10dp">
 
         <ImageView
             android:id="@+id/entity_widget_icon"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="4dp"
             android:contentDescription="设备"
             android:scaleType="fitCenter" />
 
@@ -44,8 +45,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="#30343B"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                android:textSize="12sp" />
             <TextView
                 android:id="@+id/entity_widget_room"
                 android:layout_width="match_parent"
@@ -53,7 +53,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="#8B919B"
-                android:textSize="10sp" />
+                android:textSize="11sp" />
         </LinearLayout>
 
         <TextView
@@ -64,8 +64,8 @@
 
         <View
             android:id="@+id/entity_widget_power"
-            android:layout_width="4dp"
-            android:layout_height="16dp"
+            android:layout_width="2dp"
+            android:layout_height="8dp"
             android:layout_gravity="bottom|end"
             android:background="@drawable/entity_widget_state_on"
             android:contentDescription="切换设备" />
