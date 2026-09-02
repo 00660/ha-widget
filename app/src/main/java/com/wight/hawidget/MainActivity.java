@@ -154,10 +154,20 @@ public final class MainActivity extends Activity {
 
     private EnvironmentValues fetchPublicEnvironment() {
         Location location = activeLocation();
-        if (location == null) return null;
         try {
-            String coordinates = "latitude=" + location.getLatitude()
-                    + "&longitude=" + location.getLongitude();
+            double latitude;
+            double longitude;
+            if (location != null) {
+                latitude = location.getLatitude();
+                longitude = location.getLongitude();
+            } else {
+                // No cached location: use the current public network exit as a last resort.
+                JSONObject networkLocation = getJson("https://ipapi.co/json/");
+                latitude = networkLocation.optDouble("latitude", Double.NaN);
+                longitude = networkLocation.optDouble("longitude", Double.NaN);
+            }
+            if (Double.isNaN(latitude) || Double.isNaN(longitude)) return null;
+            String coordinates = "latitude=" + latitude + "&longitude=" + longitude;
             JSONObject weather = getJson("https://api.open-meteo.com/v1/forecast?"
                     + coordinates + "&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto");
             JSONObject current = weather.optJSONObject("current");
