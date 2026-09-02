@@ -6,9 +6,9 @@
 
     <FrameLayout
         android:id="@+id/entity_widget_card"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="2dp"
+        android:layout_width="84dp"
+        android:layout_height="96dp"
+        android:layout_gravity="center"
         android:background="@drawable/entity_widget_background"
         android:paddingStart="10dp"
         android:paddingTop="8dp"

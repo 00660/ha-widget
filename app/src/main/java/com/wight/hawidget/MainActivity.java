@@ -201,7 +201,7 @@ public final class MainActivity extends Activity {
         card.addView(header, new LinearLayout.LayoutParams(-1, -2));
         ImageView icon = new ImageView(this);
         icon.setContentDescription(entityLabel(type));
-        icon.setImageResource("light".equals(type) ? R.drawable.ic_light : R.drawable.ic_switch);
+        icon.setImageResource(entityIcon(type));
         icon.setPadding(dp(9), dp(9), dp(9), dp(9));
         icon.setBackgroundResource("light".equals(type)
                 ? R.drawable.entity_light_badge : R.drawable.entity_switch_badge);
@@ -251,7 +251,17 @@ public final class MainActivity extends Activity {
     }
 
     private String entityLabel(String type) {
-        return "light".equals(type) ? "灯具" : "开关";
+        if ("switch".equals(type)) return "开关";
+        if ("button".equals(type)) return "无线按钮";
+        if ("cover".equals(type)) return "窗帘";
+        return "灯具";
+    }
+
+    private int entityIcon(String type) {
+        if ("switch".equals(type)) return R.drawable.ic_switch;
+        if ("button".equals(type)) return R.drawable.ic_wireless_button;
+        if ("cover".equals(type)) return R.drawable.ic_curtain;
+        return R.drawable.ic_light;
     }
 
     private void refreshEntityState(int slot, Switch control, TextView status, ProgressBar progress) {
@@ -306,7 +316,7 @@ public final class MainActivity extends Activity {
         panel.addView(text("选择桌面卡片样式", 13, Color.rgb(100, 116, 139)),
                 new LinearLayout.LayoutParams(-1, dp(36)));
         Dialog dialog = panelDialog(panel);
-        TextView tile = panelRow("方卡    64 × 64", false);
+        TextView tile = panelRow("方卡    84 × 96", false);
         tile.setOnClickListener(view -> { dialog.dismiss(); pinEntityWidget(slot); });
         panel.addView(tile, rowParams());
         TextView cancel = actionText("取消", Color.rgb(100, 116, 139), false);
@@ -748,7 +758,7 @@ public final class MainActivity extends Activity {
                 while ((line = reader.readLine()) != null && seen++ < 40) {
                     Matcher titleMatcher = Pattern.compile("\\\"title\\\":\\\"([^\\\"]+)").matcher(line);
                     if (titleMatcher.find()) name = titleMatcher.group(1);
-                    Matcher endpointMatcher = Pattern.compile("\\\"id\\\":\\\"(fan|light|switch)-([^\\\"]+)").matcher(line);
+                    Matcher endpointMatcher = Pattern.compile("\\\"id\\\":\\\"(fan|light|switch|button|cover)-([^\\\"]+)").matcher(line);
                     if (!endpointMatcher.find()) continue;
                     String candidateType = endpointMatcher.group(1);
                     if ("switch".equals(candidateType)

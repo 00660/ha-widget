@@ -33,7 +33,7 @@ public final class WidgetConfigureActivity extends Activity {
         list.setBackgroundColor(Color.rgb(244, 247, 251));
         TextView title = new TextView(this);
         boolean entityWidget = isEntityWidget();
-        title.setText(entityWidget ? "选择灯具或开关" : "选择风扇设备");
+        title.setText(entityWidget ? "选择灯具、开关、按钮或窗帘" : "选择风扇设备");
         title.setTextSize(24);
         title.setTextColor(Color.rgb(15, 23, 42));
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);

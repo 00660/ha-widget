@@ -128,7 +128,8 @@ final class WidgetPreferences {
     static String loadDeviceType(Context context, int slot) {
         String type = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
                 .getString(DEVICE_TYPE + slot, "fan");
-        return "light".equals(type) || "switch".equals(type) ? type : "fan";
+        return "light".equals(type) || "switch".equals(type)
+                || "button".equals(type) || "cover".equals(type) ? type : "fan";
     }
 
     static String loadDeviceEndpoint(Context context, int slot) {

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Keep the entity card square so launchers do not allocate a vertical capsule. -->
+<!-- Match the visual card dimensions while keeping the widget on one launcher cell. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:description="@string/entity_widget_description"
     android:configure="@string/entity_widget_configure_activity"
     android:initialLayout="@layout/entity_widget_tile"
-    android:minHeight="68dp"
-    android:minWidth="68dp"
-    android:minResizeHeight="68dp"
-    android:minResizeWidth="68dp"
-    android:maxResizeHeight="68dp"
-    android:maxResizeWidth="68dp"
+    android:minHeight="96dp"
+    android:minWidth="84dp"
+    android:minResizeHeight="96dp"
+    android:minResizeWidth="84dp"
+    android:maxResizeHeight="96dp"
+    android:maxResizeWidth="84dp"
     android:previewImage="@drawable/entity_widget_preview_tile"
     android:resizeMode="none"
     android:targetCellHeight="1"

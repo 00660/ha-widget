@@ -53,7 +53,7 @@
         <receiver
             android:name=".EntityWidgetTileProvider"
             android:exported="true"
-            android:label="ESPHome 灯具和开关">
+            android:label="ESPHome 实体控制">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>

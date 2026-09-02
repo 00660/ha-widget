@@ -127,8 +127,18 @@ final class EspHomeWebClient {
     static void toggleDevice(Context context, int slot) throws IOException {
         String type = WidgetPreferences.loadDeviceType(context, slot);
         if ("fan".equals(type)) throw new IOException("fan uses the fan control path");
+        if ("button".equals(type)) {
+            postEntity(context, slot, type,
+                    WidgetPreferences.loadDeviceEndpoint(context, slot), "press");
+            return;
+        }
         EspHomeClient.DeviceState state = fetchDeviceState(context, slot);
-        postEntity(context, slot, type, state.endpointName, state.on ? "turn_off" : "turn_on");
+        if ("cover".equals(type)) {
+            postEntity(context, slot, type, state.endpointName, state.on ? "close" : "open");
+        } else {
+            postEntity(context, slot, type, state.endpointName,
+                    state.on ? "turn_off" : "turn_on");
+        }
     }
 
     private static LockState fetchLockState(Context context, int slot) throws IOException {
@@ -188,7 +198,9 @@ final class EspHomeWebClient {
     private static boolean eventOn(JSONObject event) {
         Object state = event.opt("state");
         if (state instanceof Boolean) return (Boolean) state;
-        return "ON".equalsIgnoreCase(String.valueOf(state));
+        String value = String.valueOf(state);
+        return "ON".equalsIgnoreCase(value) || "OPEN".equalsIgnoreCase(value)
+                || "OPENING".equalsIgnoreCase(value);
     }
 
     private static boolean isChildLock(JSONObject event) {

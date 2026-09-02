@@ -90,17 +90,14 @@ public final class EntityWidgetTileProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.entity_widget_room, room);
         views.setTextViewText(R.id.entity_widget_state,
                 available ? (on ? "已开启" : "已关闭") : "未连接");
-        // 开启状态使用浅蓝底，右下状态条保留为启动器小尺寸下的快速提示。
+        // 卡片底色保持稳定，设备状态只由右下角状态条表达。
         views.setInt(R.id.entity_widget_card, "setBackgroundResource",
-                on ? R.drawable.entity_widget_background_on : R.drawable.entity_widget_background);
+                "button".equals(type) ? R.drawable.entity_widget_background_wireless
+                        : R.drawable.entity_widget_background);
         views.setViewVisibility(R.id.entity_widget_online_dot,
                 available ? View.VISIBLE : View.INVISIBLE);
-        views.setImageViewResource(R.id.entity_widget_icon,
-                "switch".equals(type) ? R.drawable.ic_switch
-                        : on ? R.drawable.ic_light_on : R.drawable.ic_light);
-        views.setTextColor(R.id.entity_widget_name, on
-                ? android.graphics.Color.rgb(37, 99, 235)
-                : android.graphics.Color.rgb(48, 52, 59));
+        views.setImageViewResource(R.id.entity_widget_icon, iconFor(type, on));
+        views.setTextColor(R.id.entity_widget_name, android.graphics.Color.rgb(48, 52, 59));
         views.setTextColor(R.id.entity_widget_room, available
                 ? android.graphics.Color.rgb(139, 145, 155)
                 : android.graphics.Color.rgb(170, 175, 183));
@@ -122,6 +119,16 @@ public final class EntityWidgetTileProvider extends AppWidgetProvider {
     }
 
     private String entityLabel(String type) {
-        return "switch".equals(type) ? "开关" : "灯具";
+        if ("switch".equals(type)) return "开关";
+        if ("button".equals(type)) return "无线按钮";
+        if ("cover".equals(type)) return "窗帘";
+        return "灯具";
+    }
+
+    private int iconFor(String type, boolean on) {
+        if ("switch".equals(type)) return R.drawable.ic_switch;
+        if ("button".equals(type)) return R.drawable.ic_wireless_button;
+        if ("cover".equals(type)) return R.drawable.ic_curtain;
+        return on ? R.drawable.ic_light_on : R.drawable.ic_light;
     }
 }
