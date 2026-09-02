@@ -44,8 +44,6 @@ public final class MainActivity extends Activity {
     private final ExecutorService scanExecutor = Executors.newFixedThreadPool(24);
     private LinearLayout deviceList;
     private LinearLayout roomTabs;
-    private TextView deviceCount;
-    private TextView homeSummary;
     private String selectedRoom = ALL_ROOMS;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -53,8 +51,6 @@ public final class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         deviceList = findViewById(R.id.device_list);
         roomTabs = findViewById(R.id.room_tabs);
-        deviceCount = findViewById(R.id.device_count);
-        homeSummary = findViewById(R.id.home_summary);
         findViewById(R.id.add_device).setOnClickListener(view -> showAddDevice());
         findViewById(R.id.nav_home).setOnClickListener(view -> setRoomFilter(ALL_ROOMS));
         findViewById(R.id.nav_scenes).setOnClickListener(view -> showSceneManager());
@@ -91,10 +87,6 @@ public final class MainActivity extends Activity {
             configuredCount++;
         }
         if (hasDevice) deviceList.addView(grid, new LinearLayout.LayoutParams(-1, -2));
-        deviceCount.setText(configuredCount + " 台");
-        homeSummary.setText(ALL_ROOMS.equals(selectedRoom)
-                ? "ESPHome 局域网设备 · 全部房间"
-                : "ESPHome 局域网设备 · " + selectedRoom);
         if (!hasDevice) {
             TextView empty = new TextView(this);
             empty.setText("还没有设备\n点击右上角 + 扫描 ESPHome 设备");

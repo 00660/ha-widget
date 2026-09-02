@@ -44,27 +44,6 @@
             android:textSize="29sp" />
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="36dp"
-        android:gravity="center_vertical"
-        android:paddingStart="22dp"
-        android:paddingEnd="22dp">
-        <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:contentDescription="设备状态"
-            android:src="@drawable/ic_fan_on" />
-        <TextView
-            android:id="@+id/home_summary"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="ESPHome 局域网设备 · 实时状态"
-            android:textColor="#64748B"
-            android:textSize="13sp" />
-    </LinearLayout>
-
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="52dp"
@@ -93,87 +72,10 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="148dp"
-                android:background="@drawable/fan_card_background"
-                android:gravity="center_vertical"
-                android:paddingStart="18dp"
-                android:paddingEnd="18dp">
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="已配置设备"
-                        android:textColor="#64748B"
-                        android:textSize="13sp" />
-                    <TextView
-                        android:id="@+id/device_count"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="0 台"
-                        android:textColor="#0F172A"
-                        android:textSize="25sp"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
-                        android:text="点击设备卡片添加桌面挂件"
-                        android:textColor="#94A3B8"
-                        android:textSize="12sp" />
-                </LinearLayout>
-                <FrameLayout
-                    android:layout_width="104dp"
-                    android:layout_height="104dp"
-                    android:background="@drawable/home_summary_ring">
-                    <ImageView
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:layout_gravity="center"
-                        android:background="@drawable/fan_title_badge"
-                        android:padding="13dp"
-                        android:src="@drawable/ic_fan_on" />
-                </FrameLayout>
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="18dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="局域网"
-                        android:textColor="#64748B"
-                        android:textSize="13sp" />
-                    <TextView
-                        android:id="@+id/online_count"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="实时检测"
-                        android:textColor="#0F172A"
-                        android:textSize="21sp"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
-                        android:text="设备在线状态"
-                        android:textColor="#94A3B8"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </LinearLayout>
-            <LinearLayout
                 android:id="@+id/device_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="4dp"
                 android:orientation="vertical" />
         </LinearLayout>
     </ScrollView>
