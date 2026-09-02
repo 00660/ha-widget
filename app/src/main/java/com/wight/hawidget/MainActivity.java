@@ -178,7 +178,8 @@ public final class MainActivity extends Activity {
                         .setDurationMillis(20000L)
                         .setMaxUpdates(1)
                         .build();
-                manager.requestLocationUpdates(request, getMainExecutor(), listener);
+                manager.requestLocationUpdates(LocationManager.FUSED_PROVIDER, request,
+                        getMainExecutor(), listener);
             } else if (manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 manager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, listener, getMainLooper());
             } else {
