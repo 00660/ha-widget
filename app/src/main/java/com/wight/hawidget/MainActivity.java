@@ -4,13 +4,17 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.location.Location;
+import android.location.LocationManager;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
@@ -38,9 +42,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.json.JSONObject;
 
 public final class MainActivity extends Activity {
     private static final String ALL_ROOMS = "全部";
+    private static final int LOCATION_REQUEST_CODE = 4101;
     private final ExecutorService scanExecutor = Executors.newFixedThreadPool(24);
     private LinearLayout deviceList;
     private LinearLayout roomTabs;
@@ -68,12 +74,36 @@ public final class MainActivity extends Activity {
         HaFanWidgetProvider.requestRefresh(this);
         EntityWidgetTileProvider.requestRefresh(this);
         updateRoomTabColors();
-        refreshEnvironment();
+        refreshEnvironmentWithLocation();
         renderDeviceList();
+    }
+
+    private void refreshEnvironmentWithLocation() {
+        if (android.os.Build.VERSION.SDK_INT >= 23
+                && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+            }, LOCATION_REQUEST_CODE);
+            return;
+        }
+        refreshEnvironment();
+    }
+
+    @Override public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                                     int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_REQUEST_CODE) refreshEnvironment();
     }
 
     private void refreshEnvironment() {
         scanExecutor.execute(() -> {
+            EnvironmentValues publicValues = fetchPublicEnvironment();
+            if (publicValues != null) {
+                publishEnvironment(publicValues);
+                return;
+            }
             java.util.concurrent.CountDownLatch pending = new java.util.concurrent.CountDownLatch(254);
             java.util.concurrent.atomic.AtomicReference<String> weatherRef = new java.util.concurrent.atomic.AtomicReference<>("");
             java.util.concurrent.atomic.AtomicReference<String> temperatureRef = new java.util.concurrent.atomic.AtomicReference<>("");
@@ -104,17 +134,114 @@ public final class MainActivity extends Activity {
             String temperature = temperatureRef.get();
             String humidity = humidityRef.get();
             String airQuality = airQualityRef.get();
-            String finalWeather = weather.isEmpty() ? "--" : weather;
-            String finalTemperature = temperature.isEmpty() ? "--" : temperature;
-            String finalHumidity = humidity.isEmpty() ? "--" : humidity;
-            String finalAirQuality = airQuality.isEmpty() ? "--" : airQuality;
-            runOnUiThread(() -> {
-                environmentWeather.setText(finalWeather);
-                environmentTemperature.setText(finalTemperature);
-                environmentHumidity.setText(finalHumidity);
-                environmentAirQuality.setText(finalAirQuality);
-            });
+            publishEnvironment(new EnvironmentValues(
+                    weather.isEmpty() ? "--" : weather,
+                    temperature.isEmpty() ? "--" : temperature,
+                    humidity.isEmpty() ? "--" : humidity,
+                    airQuality.isEmpty() ? "--" : airQuality));
         });
+    }
+
+    private void publishEnvironment(EnvironmentValues values) {
+        runOnUiThread(() -> {
+            environmentWeather.setText(values.weather);
+            environmentTemperature.setText(values.temperature);
+            environmentHumidity.setText(values.humidity);
+            environmentAirQuality.setText(values.airQuality);
+        });
+    }
+
+    private EnvironmentValues fetchPublicEnvironment() {
+        Location location = lastKnownLocation();
+        if (location == null) return null;
+        try {
+            String coordinates = "latitude=" + location.getLatitude()
+                    + "&longitude=" + location.getLongitude();
+            JSONObject weather = getJson("https://api.open-meteo.com/v1/forecast?"
+                    + coordinates + "&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto");
+            JSONObject current = weather.optJSONObject("current");
+            if (current == null) return null;
+            double temperature = current.optDouble("temperature_2m", Double.NaN);
+            int humidity = current.optInt("relative_humidity_2m", -1);
+            int weatherCode = current.optInt("weather_code", -1);
+            if (Double.isNaN(temperature) || humidity < 0) return null;
+            String airQuality = "--";
+            try {
+                JSONObject air = getJson("https://air-quality-api.open-meteo.com/v1/air-quality?"
+                        + coordinates + "&current=us_aqi");
+                JSONObject airCurrent = air.optJSONObject("current");
+                if (airCurrent != null && airCurrent.has("us_aqi")
+                        && airCurrent.optInt("us_aqi", -1) >= 0) {
+                    airQuality = "AQI " + airCurrent.optInt("us_aqi", -1);
+                }
+            } catch (Exception ignored) {
+                // Weather data remains useful when the optional air-quality request fails.
+            }
+            return new EnvironmentValues(weatherLabel(weatherCode),
+                    String.format(java.util.Locale.US, "%.1f°C", temperature),
+                    humidity + "%", airQuality);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private Location lastKnownLocation() {
+        if (android.os.Build.VERSION.SDK_INT >= 23
+                && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) return null;
+        LocationManager manager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if (manager == null) return null;
+        Location best = null;
+        for (String provider : new String[]{LocationManager.NETWORK_PROVIDER,
+                LocationManager.GPS_PROVIDER, LocationManager.PASSIVE_PROVIDER}) {
+            try {
+                Location candidate = manager.getLastKnownLocation(provider);
+                if (candidate != null && (best == null || candidate.getTime() > best.getTime())) best = candidate;
+            } catch (SecurityException ignored) {
+                return null;
+            }
+        }
+        return best;
+    }
+
+    private JSONObject getJson(String endpoint) throws Exception {
+        HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
+        connection.setConnectTimeout(4000);
+        connection.setReadTimeout(5000);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                connection.getInputStream(), StandardCharsets.UTF_8))) {
+            StringBuilder body = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) body.append(line);
+            return new JSONObject(body.toString());
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private String weatherLabel(int code) {
+        if (code == 0) return "晴";
+        if (code <= 3) return "多云";
+        if (code == 45 || code == 48) return "雾";
+        if (code >= 51 && code <= 67) return "降雨";
+        if (code >= 71 && code <= 77) return "降雪";
+        if (code >= 80 && code <= 82) return "阵雨";
+        if (code <= 99) return "雷雨";
+        return "--";
+    }
+
+    private static final class EnvironmentValues {
+        final String weather;
+        final String temperature;
+        final String humidity;
+        final String airQuality;
+
+        EnvironmentValues(String weather, String temperature, String humidity, String airQuality) {
+            this.weather = weather;
+            this.temperature = temperature;
+            this.humidity = humidity;
+            this.airQuality = airQuality;
+        }
     }
 
     private void renderDeviceList() {
