@@ -66,7 +66,7 @@ final class EspHomeWebClient {
     }
 
     static void toggleFan(Context context, int slot) throws IOException {
-        EspHomeClient.FanState state = FAN_STATES.get(slot);
+        EspHomeClient.FanState state = cachedState(context, slot);
         if (state == null) state = fetchFanState(context, slot);
         boolean nextOn = !state.on;
         postFan(context, slot, state.endpointName, nextOn ? "turn_on" : "turn_off", null);
@@ -84,7 +84,7 @@ final class EspHomeWebClient {
             postFan(context, slot, discoverEndpoint(context, slot), "turn_off", null);
             return;
         }
-        EspHomeClient.FanState state = FAN_STATES.get(slot);
+        EspHomeClient.FanState state = cachedState(context, slot);
         if (state == null) state = fetchFanState(context, slot);
         int count = Math.max(1, state.speedCount);
         int level = Math.max(1, Math.min(count, (int) Math.round(clamped * count / 100.0)));
@@ -240,9 +240,18 @@ final class EspHomeWebClient {
     }
 
     private static String discoverEndpoint(Context context, int slot) throws IOException {
+        String configured = WidgetPreferences.loadDeviceEndpoint(context, slot).trim();
+        if (!configured.isEmpty()) return configured;
         String cached = FAN_ENDPOINTS.get(slot);
         if (cached != null && !cached.isEmpty()) return cached;
         return fetchFanState(context, slot).endpointName;
+    }
+
+    private static EspHomeClient.FanState cachedState(Context context, int slot) {
+        EspHomeClient.FanState state = FAN_STATES.get(slot);
+        String configured = WidgetPreferences.loadDeviceEndpoint(context, slot).trim();
+        return state != null && (configured.isEmpty() || configured.equals(state.endpointName))
+                ? state : null;
     }
 
     private static void cacheState(int slot, EspHomeClient.FanState state) {
