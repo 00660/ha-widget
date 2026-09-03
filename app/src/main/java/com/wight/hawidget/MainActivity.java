@@ -595,10 +595,12 @@ public final class MainActivity extends Activity {
         }
 
         int activeText = activeTextColor(tile.type);
-        int titleColor = Color.rgb(39, 44, 50);
+        int titleColor = active && "fan".equals(tile.type)
+                ? Color.WHITE : Color.rgb(39, 44, 50);
         int statusColor = !available ? Color.rgb(125, 133, 142)
                 : active || "button".equals(tile.type) ? activeText : Color.rgb(125, 133, 142);
         int dotColor = !available ? Color.rgb(174, 181, 188)
+                : active && "fan".equals(tile.type) ? Color.WHITE
                 : active || "button".equals(tile.type) ? activeText : Color.rgb(145, 151, 158);
         tile.title.setTextColor(titleColor);
         tile.status.setText(stateLabel);
@@ -606,7 +608,7 @@ public final class MainActivity extends Activity {
         tile.stateDot.setBackground(statusDot(dotColor));
         tile.icon.clearColorFilter();
         if ("fan".equals(tile.type)) {
-            tile.icon.setColorFilter(Color.rgb(76, 140, 193));
+            tile.icon.setColorFilter(active ? Color.WHITE : Color.rgb(76, 140, 193));
         }
         tile.card.setContentDescription(tile.name + "，" + tile.room + "，" + stateLabel
                 + "。轻触控制，长按更多操作");
@@ -615,14 +617,14 @@ public final class MainActivity extends Activity {
     private int tileBackground(String type, boolean active) {
         if ("button".equals(type)) return R.drawable.home_device_card_button;
         if (!active) return R.drawable.home_device_card_off;
-        if ("fan".equals(type)) return R.drawable.home_device_card_off;
+        if ("fan".equals(type)) return R.drawable.home_device_card_fan_on;
         if ("light".equals(type)) return R.drawable.home_device_card_light_on;
         if ("cover".equals(type)) return R.drawable.home_device_card_cover_on;
         return R.drawable.home_device_card_switch_on;
     }
 
     private int activeTextColor(String type) {
-        if ("fan".equals(type)) return Color.rgb(76, 140, 193);
+        if ("fan".equals(type)) return Color.WHITE;
         if ("light".equals(type)) return Color.rgb(154, 98, 0);
         if ("cover".equals(type)) return Color.rgb(22, 116, 122);
         if ("button".equals(type)) return Color.rgb(128, 104, 70);
