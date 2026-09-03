@@ -808,9 +808,11 @@ public final class MainActivity extends Activity {
         form.addView(roomScroll, new LinearLayout.LayoutParams(-1, dp(44)));
         renderRoomChoices(roomPicker, selectedRoom);
         TextView scan = actionText("扫描局域网 ESPHome 设备", Color.rgb(37, 99, 235), true);
+        TextView provision = actionText("配网新设备", Color.rgb(37, 99, 235), true);
         LinearLayout.LayoutParams scanParams = new LinearLayout.LayoutParams(-1, dp(46));
         scanParams.bottomMargin = dp(10);
         form.addView(scan, scanParams);
+        form.addView(provision, scanParams);
         LinearLayout results = new LinearLayout(this);
         results.setOrientation(LinearLayout.VERTICAL);
         form.addView(results, new LinearLayout.LayoutParams(-1, -2));
@@ -853,9 +855,100 @@ public final class MainActivity extends Activity {
         });
         scan.setOnClickListener(view -> scanDevices(scan, results, name, address,
                 selectedType, selectedEndpoint));
+        provision.setOnClickListener(view -> showProvisionDialog(dialog));
         showPanel(dialog);
     }
 
+    private void showProvisionDialog(Dialog parent) {
+        parent.dismiss();
+        LinearLayout panel = panel("配网新设备");
+        panel.addView(text("请先连接新设备热点，通常为 192.168.4.1", 13, Color.rgb(100, 116, 139)),
+                new LinearLayout.LayoutParams(-1, dp(42)));
+        EditText base = input("配网地址", CaptivePortalClient.DEFAULT_URL, InputType.TYPE_TEXT_VARIATION_URI);
+        panel.addView(base, fieldParams());
+        TextView scan = actionText("读取设备热点", Color.rgb(37, 99, 235), true);
+        panel.addView(scan, new LinearLayout.LayoutParams(-1, dp(46)));
+        LinearLayout results = new LinearLayout(this);
+        results.setOrientation(LinearLayout.VERTICAL);
+        panel.addView(results, new LinearLayout.LayoutParams(-1, -2));
+        TextView cancel = actionText("返回", Color.rgb(100, 116, 139), false);
+        panel.addView(cancel, actionParams());
+        Dialog dialog = panelDialog(panel);
+        scan.setOnClickListener(view -> loadPortalNetworks(scan, base, results));
+        cancel.setOnClickListener(view -> dialog.dismiss());
+        showPanel(dialog);
+    }
+
+    private void loadPortalNetworks(TextView scan, EditText base, LinearLayout results) {
+        scan.setEnabled(false);
+        scan.setText("正在读取...");
+        scanExecutor.execute(() -> {
+            CaptivePortalClient.PortalState state;
+            try {
+                state = CaptivePortalClient.fetchState(base.getText().toString());
+            } catch (Exception exception) {
+                runOnUiThread(() -> {
+                    results.removeAllViews();
+                    results.addView(text("未连接到 ESPHome 配网热点", 14, Color.rgb(220, 38, 38)));
+                    scan.setEnabled(true);
+                    scan.setText("重新读取");
+                });
+                return;
+            }
+            runOnUiThread(() -> {
+                results.removeAllViews();
+                TextView info = text(state.name.isEmpty() ? "ESPHome 新设备" : state.name, 14, Color.rgb(15, 23, 42));
+                info.setPadding(0, dp(8), 0, dp(8));
+                results.addView(info, new LinearLayout.LayoutParams(-1, dp(40)));
+                if (state.networks.isEmpty()) {
+                    results.addView(text("未发现可连接 WiFi", 14, Color.rgb(100, 116, 139)));
+                }
+                for (CaptivePortalClient.AccessPoint ap : state.networks) {
+                    String lock = ap.secure ? " 已加密" : "";
+                    TextView row = panelRow(ap.ssid + "  " + ap.rssi + "dBm" + lock, false);
+                    row.setOnClickListener(view -> choosePortalWiFi(base.getText().toString(), ap));
+                    results.addView(row, rowParams());
+                }
+                scan.setEnabled(true);
+                scan.setText("重新读取");
+            });
+        });
+    }
+
+    private void choosePortalWiFi(String baseUrl, CaptivePortalClient.AccessPoint ap) {
+        EditText password = input(ap.secure ? "WiFi 密码" : "无需密码", "", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        LinearLayout panel = panel(ap.ssid);
+        panel.addView(password, fieldParams());
+        TextView cancel = actionText("取消", Color.rgb(100, 116, 139), false);
+        TextView save = actionText("连接", Color.rgb(37, 99, 235), true);
+        LinearLayout actions = new LinearLayout(this);
+        actions.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        actions.addView(cancel, actionParams());
+        actions.addView(save, actionParams());
+        panel.addView(actions, new LinearLayout.LayoutParams(-1, dp(62)));
+        Dialog dialog = panelDialog(panel);
+        cancel.setOnClickListener(view -> dialog.dismiss());
+        save.setOnClickListener(view -> {
+            save.setEnabled(false);
+            save.setText("连接中...");
+            scanExecutor.execute(() -> {
+                try {
+                    CaptivePortalClient.saveWiFi(baseUrl, ap.ssid, password.getText().toString());
+                    runOnUiThread(() -> {
+                        dialog.dismiss();
+                        Toast.makeText(this, "已发送 WiFi 配置，等待设备接入", Toast.LENGTH_LONG).show();
+                    });
+                } catch (Exception exception) {
+                    runOnUiThread(() -> {
+                        save.setEnabled(true);
+                        save.setText("连接");
+                        Toast.makeText(this, "配网失败，请确认已连接设备热点", Toast.LENGTH_LONG).show();
+                    });
+                }
+            });
+        });
+        showPanel(dialog);
+    }
     private void pinDevice(int deviceId) {
         scanExecutor.execute(() -> {
             try {
