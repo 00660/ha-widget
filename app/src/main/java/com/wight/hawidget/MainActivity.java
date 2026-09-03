@@ -1,15 +1,21 @@
 package com.wight.hawidget;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.net.wifi.WifiManager;
+import android.net.wifi.WifiInfo;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
@@ -861,93 +867,80 @@ public final class MainActivity extends Activity {
 
     private void showProvisionDialog(Dialog parent) {
         parent.dismiss();
+        ensureWiFiPermission();
         LinearLayout panel = panel("配网新设备");
-        panel.addView(text("请先连接新设备热点，通常为 192.168.4.1", 13, Color.rgb(100, 116, 139)),
-                new LinearLayout.LayoutParams(-1, dp(42)));
-        EditText base = input("配网地址", CaptivePortalClient.DEFAULT_URL, InputType.TYPE_TEXT_VARIATION_URI);
-        panel.addView(base, fieldParams());
-        TextView scan = actionText("读取设备热点", Color.rgb(37, 99, 235), true);
-        panel.addView(scan, new LinearLayout.LayoutParams(-1, dp(46)));
-        LinearLayout results = new LinearLayout(this);
-        results.setOrientation(LinearLayout.VERTICAL);
-        panel.addView(results, new LinearLayout.LayoutParams(-1, -2));
-        TextView cancel = actionText("返回", Color.rgb(100, 116, 139), false);
-        panel.addView(cancel, actionParams());
-        Dialog dialog = panelDialog(panel);
-        scan.setOnClickListener(view -> loadPortalNetworks(scan, base, results));
-        cancel.setOnClickListener(view -> dialog.dismiss());
-        showPanel(dialog);
-    }
-
-    private void loadPortalNetworks(TextView scan, EditText base, LinearLayout results) {
-        scan.setEnabled(false);
-        scan.setText("正在读取...");
-        scanExecutor.execute(() -> {
-            CaptivePortalClient.PortalState state;
-            try {
-                state = CaptivePortalClient.fetchState(base.getText().toString());
-            } catch (Exception exception) {
-                runOnUiThread(() -> {
-                    results.removeAllViews();
-                    results.addView(text("未连接到 ESPHome 配网热点", 14, Color.rgb(220, 38, 38)));
-                    scan.setEnabled(true);
-                    scan.setText("重新读取");
-                });
-                return;
-            }
-            runOnUiThread(() -> {
-                results.removeAllViews();
-                TextView info = text(state.name.isEmpty() ? "ESPHome 新设备" : state.name, 14, Color.rgb(15, 23, 42));
-                info.setPadding(0, dp(8), 0, dp(8));
-                results.addView(info, new LinearLayout.LayoutParams(-1, dp(40)));
-                if (state.networks.isEmpty()) {
-                    results.addView(text("未发现可连接 WiFi", 14, Color.rgb(100, 116, 139)));
-                }
-                for (CaptivePortalClient.AccessPoint ap : state.networks) {
-                    String lock = ap.secure ? " 已加密" : "";
-                    TextView row = panelRow(ap.ssid + "  " + ap.rssi + "dBm" + lock, false);
-                    row.setOnClickListener(view -> choosePortalWiFi(base.getText().toString(), ap));
-                    results.addView(row, rowParams());
-                }
-                scan.setEnabled(true);
-                scan.setText("重新读取");
-            });
-        });
-    }
-
-    private void choosePortalWiFi(String baseUrl, CaptivePortalClient.AccessPoint ap) {
-        EditText password = input(ap.secure ? "WiFi 密码" : "无需密码", "", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        LinearLayout panel = panel(ap.ssid);
+        panel.addView(text("填写当前家庭 WiFi，密码将用于新设备入网", 13, Color.rgb(100, 116, 139)),
+                new LinearLayout.LayoutParams(-1, dp(44)));
+        String currentSsid = currentWiFiSsid();
+        EditText ssid = input("家庭 WiFi 名称", currentSsid, InputType.TYPE_CLASS_TEXT);
+        panel.addView(ssid, fieldParams());
+        EditText password = input("家庭 WiFi 密码", "", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         panel.addView(password, fieldParams());
-        TextView cancel = actionText("取消", Color.rgb(100, 116, 139), false);
-        TextView save = actionText("连接", Color.rgb(37, 99, 235), true);
+        TextView status = text("等待连接设备热点...", 14, Color.rgb(100, 116, 139));
+        panel.addView(status, new LinearLayout.LayoutParams(-1, dp(42)));
+        TextView cancel = actionText("返回", Color.rgb(100, 116, 139), false);
+        TextView next = actionText("开始配网", Color.rgb(37, 99, 235), true);
         LinearLayout actions = new LinearLayout(this);
         actions.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
         actions.addView(cancel, actionParams());
-        actions.addView(save, actionParams());
+        actions.addView(next, actionParams());
         panel.addView(actions, new LinearLayout.LayoutParams(-1, dp(62)));
         Dialog dialog = panelDialog(panel);
         cancel.setOnClickListener(view -> dialog.dismiss());
-        save.setOnClickListener(view -> {
-            save.setEnabled(false);
-            save.setText("连接中...");
-            scanExecutor.execute(() -> {
-                try {
-                    CaptivePortalClient.saveWiFi(baseUrl, ap.ssid, password.getText().toString());
-                    runOnUiThread(() -> {
-                        dialog.dismiss();
-                        Toast.makeText(this, "已发送 WiFi 配置，等待设备接入", Toast.LENGTH_LONG).show();
-                    });
-                } catch (Exception exception) {
-                    runOnUiThread(() -> {
-                        save.setEnabled(true);
-                        save.setText("连接");
-                        Toast.makeText(this, "配网失败，请确认已连接设备热点", Toast.LENGTH_LONG).show();
-                    });
-                }
-            });
+        next.setOnClickListener(view -> {
+            String targetSsid = ssid.getText().toString().trim();
+            if (targetSsid.isEmpty()) { ssid.setError("请输入家庭 WiFi 名称"); return; }
+            next.setEnabled(false);
+            next.setText("正在等待设备...");
+            status.setText("请将手机连接到新设备的 fallback hotspot 热点");
+            waitForProvisionDevice(targetSsid, password.getText().toString(), status, next, dialog);
         });
         showPanel(dialog);
+    }
+
+    private void waitForProvisionDevice(String targetSsid, String targetPassword, TextView status, TextView next, Dialog dialog) {
+        scanExecutor.execute(() -> {
+            for (int attempt = 0; attempt < 20; attempt++) {
+                try {
+                    CaptivePortalClient.saveWiFi(CaptivePortalClient.DEFAULT_URL, targetSsid, targetPassword);
+                    runOnUiThread(() -> {
+                        status.setText("已下发，设备正在连接家庭 WiFi");
+                        dialog.dismiss();
+                        Toast.makeText(this, "配网完成，设备将自动连接家庭 WiFi", Toast.LENGTH_LONG).show();
+                    });
+                    return;
+                } catch (Exception ignored) {
+                    try { Thread.sleep(1500); } catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); return; }
+                }
+            }
+            runOnUiThread(() -> {
+                status.setText("未检测到设备热点，请确认已连接");
+                next.setEnabled(true);
+                next.setText("开始配网");
+            });
+        });
+    }
+    private void ensureWiFiPermission() {
+        if (Build.VERSION.SDK_INT < 23) return;
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 3001);
+        }
+    }
+    private String currentWiFiSsid() {
+        try {
+            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            WifiInfo info = wifiManager == null ? null : wifiManager.getConnectionInfo();
+            String ssid = info == null ? null : info.getSSID();
+            if (ssid == null) return "";
+            ssid = ssid.trim();
+            if (ssid.startsWith("\"") && ssid.endsWith("\"") && ssid.length() >= 2) {
+                ssid = ssid.substring(1, ssid.length() - 1);
+            }
+            if ("<unknown ssid>".equals(ssid)) return "";
+            return ssid;
+        } catch (Exception ignored) {
+            return "";
+        }
     }
     private void pinDevice(int deviceId) {
         scanExecutor.execute(() -> {
