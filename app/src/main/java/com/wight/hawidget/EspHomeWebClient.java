@@ -19,10 +19,6 @@ final class EspHomeWebClient {
     private static final String FAN_NAME = "风扇";
     private static final String LOCK_NAME = "童锁";
     private static final int TIMEOUT_MILLIS = 3000;
-    private static final Pattern FAN_STATE = Pattern.compile("\\\"state\\\":\\\"(ON|OFF)\\\"");
-    private static final Pattern SPEED_LEVEL = Pattern.compile("\\\"speed_level\\\":(\\d+)");
-    private static final Pattern SPEED_COUNT = Pattern.compile("\\\"speed_count\\\":(\\d+)");
-    private static final Pattern OSCILLATION = Pattern.compile("\\\"oscillation\\\":(true|false)");
     private static final ConcurrentHashMap<Integer, String> FAN_ENDPOINTS = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, EspHomeClient.FanState> FAN_STATES = new ConcurrentHashMap<>();
 
@@ -35,19 +31,28 @@ final class EspHomeWebClient {
 
     static EspHomeClient.FanState fetchFanState(Context context, int slot) throws IOException {
         String baseUrl = WidgetPreferences.loadEspHomeUrl(context, slot);
+        String configuredEndpoint = WidgetPreferences.loadDeviceEndpoint(context, slot).trim();
         HttpURLConnection connection = open(baseUrl + "/events");
         connection.setRequestProperty("Accept", "text/event-stream");
         try (InputStream input = connection.getInputStream();
              BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                if (line.startsWith("data: {\"name_id\":\"fan/")
-                        || line.contains("\"id\":\"fan-")) {
-                    EspHomeClient.FanState state = parseFanState(line.substring(6));
+                if (!line.startsWith("data:")) continue;
+                String json = line.substring(5).trim();
+                if (!json.startsWith("{")) continue;
+                try {
+                    JSONObject event = new JSONObject(json);
+                    if (!isFanEvent(event)) continue;
+                    EspHomeClient.FanState state = parseFanState(json);
+                    if (!configuredEndpoint.isEmpty()
+                            && !configuredEndpoint.equals(state.endpointName)) continue;
                     // Fan control must not wait for an optional child-lock event stream.
                     // The lock endpoint is queried only when the lock button is pressed.
                     cacheState(slot, state);
                     return state;
+                } catch (Exception ignored) {
+                    // Ignore malformed or unrelated SSE events.
                 }
             }
             throw new IOException("ESPHome fan state not found");
@@ -142,78 +147,6 @@ final class EspHomeWebClient {
         }
     }
 
-    static EspHomeClient.EnvironmentState fetchEnvironment(Context context, int slot) throws IOException {
-        return fetchEnvironmentUrl(context, WidgetPreferences.loadEspHomeUrl(context, slot));
-    }
-
-    static EspHomeClient.EnvironmentState fetchEnvironmentUrl(Context context, String baseUrl) throws IOException {
-        if (baseUrl.isEmpty()) throw new IOException("ESPHome URL missing");
-        HttpURLConnection connection = (HttpURLConnection) new URL(baseUrl + "/events").openConnection();
-        connection.setConnectTimeout(500);
-        connection.setReadTimeout(900);
-        connection.setRequestProperty("Accept", "text/event-stream");
-        String weather = "";
-        String temperature = "";
-        String humidity = "";
-        String airQuality = "";
-        try (InputStream input = connection.getInputStream();
-             BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
-            String line;
-            int seen = 0;
-            while ((line = reader.readLine()) != null && seen++ < 80) {
-                if (!line.startsWith("data:")) continue;
-                String json = line.substring(5).trim();
-                if (!json.startsWith("{")) continue;
-                try {
-                    JSONObject event = new JSONObject(json);
-                    String domain = event.optString("domain", "");
-                    if (!("sensor".equals(domain) || "text_sensor".equals(domain))) continue;
-                    String name = (event.optString("name", "") + " "
-                            + event.optString("name_id", "") + " "
-                            + event.optString("icon", "")).toLowerCase(java.util.Locale.ROOT);
-                    String unit = event.optString("uom", "").toLowerCase(java.util.Locale.ROOT);
-                    String value = environmentValue(event);
-                    if (value.isEmpty()) continue;
-                    if (weather.isEmpty() && (name.contains("天气") || name.contains("weather")
-                            || name.contains("condition"))) weather = value;
-                    if (temperature.isEmpty() && (name.contains("温度") || name.contains("temperature")
-                            || name.contains("temp"))) {
-                        temperature = normalizeEnvironmentValue(value, "°C");
-                    }
-                    if (humidity.isEmpty() && (name.contains("湿度") || name.contains("humidity"))) {
-                        humidity = normalizeEnvironmentValue(value, "%");
-                    }
-                    if (airQuality.isEmpty() && (name.contains("空气") || name.contains("air quality")
-                            || name.contains("pm2.5") || name.contains("aqi")
-                            || unit.contains("µg") || unit.contains("ug/m"))) airQuality = value;
-                    if (!weather.isEmpty() && !temperature.isEmpty() && !humidity.isEmpty()
-                            && !airQuality.isEmpty()) break;
-                } catch (Exception ignored) {
-                    // Ignore malformed or unrelated SSE events.
-                }
-            }
-        } catch (java.net.SocketTimeoutException ignored) {
-            // ESPHome keeps /events open; retain values parsed before the read timeout.
-        } finally {
-            connection.disconnect();
-        }
-        return new EspHomeClient.EnvironmentState(weather, temperature, humidity, airQuality);
-    }
-
-    private static String environmentValue(JSONObject event) {
-        String state = event.optString("state", "").trim();
-        if (!state.isEmpty()) return state;
-        Object value = event.opt("value");
-        return value == null || JSONObject.NULL.equals(value) ? "" : String.valueOf(value).trim();
-    }
-
-    private static String normalizeEnvironmentValue(String value, String suffix) {
-        String normalized = value.trim().replace(" ", "");
-        if (normalized.endsWith("°C") || normalized.endsWith("%")) return normalized;
-        if (normalized.endsWith("掳C")) return normalized.substring(0, normalized.length() - 2) + "°C";
-        return normalized + suffix;
-    }
-
     private static LockState fetchLockState(Context context, int slot) throws IOException {
         String base = WidgetPreferences.loadEspHomeUrl(context, slot);
         HttpURLConnection connection = open(base + "/events");
@@ -260,12 +193,14 @@ final class EspHomeWebClient {
     }
 
     private static String eventEndpoint(JSONObject event, String type) {
-        String id = event.optString("id", "");
-        String prefix = type + "-";
-        if (id.startsWith(prefix)) return id.substring(prefix.length());
-        String nameId = event.optString("name_id", "");
-        prefix = type + "/";
-        return nameId.startsWith(prefix) ? nameId.substring(prefix.length()) : "";
+        String[] identifiers = {event.optString("id", ""), event.optString("name_id", "")};
+        for (String identifier : identifiers) {
+            String dashPrefix = type + "-";
+            if (identifier.startsWith(dashPrefix)) return identifier.substring(dashPrefix.length());
+            String slashPrefix = type + "/";
+            if (identifier.startsWith(slashPrefix)) return identifier.substring(slashPrefix.length());
+        }
+        return "";
     }
 
     private static boolean eventOn(JSONObject event) {
@@ -319,21 +254,24 @@ final class EspHomeWebClient {
         }
     }
 
-    private static EspHomeClient.FanState parseFanState(String json) {
-        boolean on = match(FAN_STATE, json, "OFF").equals("ON");
-        int level = Integer.parseInt(match(SPEED_LEVEL, json, "0"));
-        int count = Integer.parseInt(match(SPEED_COUNT, json, "0"));
-        boolean oscillation = Boolean.parseBoolean(match(OSCILLATION, json, "false"));
-        int percentage = count == 3 ? (level >= 3 ? 100 : level * 33) : level;
-        if (percentage > 100) percentage = 100;
-        Matcher endpoint = Pattern.compile("\\\"id\\\":\\\"fan-([^\\\"]+)").matcher(json);
-        String endpointName = endpoint.find() ? endpoint.group(1) : "";
+    private static EspHomeClient.FanState parseFanState(String json) throws Exception {
+        JSONObject event = new JSONObject(json);
+        boolean on = "ON".equalsIgnoreCase(event.optString("state", "OFF"));
+        int level = event.optInt("speed_level", 0);
+        int count = event.optInt("speed_count", 0);
+        boolean oscillation = event.optBoolean("oscillation", false);
+        int percentage = count > 0 ? Math.round(level * 100f / count) : level;
+        percentage = Math.max(0, Math.min(100, percentage));
+        String endpointName = eventEndpoint(event, "fan");
         return new EspHomeClient.FanState(on, true, percentage, "", count, oscillation, false, endpointName);
     }
 
-    private static String match(Pattern pattern, String value, String fallback) {
-        Matcher matcher = pattern.matcher(value);
-        return matcher.find() ? matcher.group(1) : fallback;
+    private static boolean isFanEvent(JSONObject event) {
+        if ("fan".equals(event.optString("domain", ""))) return true;
+        String id = event.optString("id", "");
+        String nameId = event.optString("name_id", "");
+        return id.startsWith("fan-") || id.startsWith("fan/")
+                || nameId.startsWith("fan-") || nameId.startsWith("fan/");
     }
 
     private static HttpURLConnection open(String url) throws IOException {

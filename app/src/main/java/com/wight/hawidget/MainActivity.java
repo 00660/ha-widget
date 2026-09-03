@@ -4,19 +4,13 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
-import android.Manifest;
 import android.content.ComponentName;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.location.LocationRequest;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
@@ -44,18 +38,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.json.JSONObject;
 
 public final class MainActivity extends Activity {
     private static final String ALL_ROOMS = "全部";
-    private static final int LOCATION_REQUEST_CODE = 4101;
     private final ExecutorService scanExecutor = Executors.newFixedThreadPool(24);
     private LinearLayout deviceList;
     private LinearLayout roomTabs;
-    private TextView environmentWeather;
-    private TextView environmentTemperature;
-    private TextView environmentHumidity;
-    private TextView environmentAirQuality;
     private String selectedRoom = ALL_ROOMS;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -63,10 +51,6 @@ public final class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         deviceList = findViewById(R.id.device_list);
         roomTabs = findViewById(R.id.room_tabs);
-        environmentWeather = findViewById(R.id.environment_weather);
-        environmentTemperature = findViewById(R.id.environment_temperature);
-        environmentHumidity = findViewById(R.id.environment_humidity);
-        environmentAirQuality = findViewById(R.id.environment_air_quality);
         findViewById(R.id.add_device).setOnClickListener(view -> showAddDevice());
         findViewById(R.id.nav_home).setOnClickListener(view -> setRoomFilter(ALL_ROOMS));
         findViewById(R.id.nav_scenes).setOnClickListener(view -> showSceneManager());
@@ -76,162 +60,7 @@ public final class MainActivity extends Activity {
         HaFanWidgetProvider.requestRefresh(this);
         EntityWidgetTileProvider.requestRefresh(this);
         updateRoomTabColors();
-        refreshEnvironmentWithLocation();
         renderDeviceList();
-    }
-
-    private void refreshEnvironmentWithLocation() {
-        if (android.os.Build.VERSION.SDK_INT >= 23
-                && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-            }, LOCATION_REQUEST_CODE);
-            return;
-        }
-        refreshEnvironment();
-    }
-
-    @Override public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                                     int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_REQUEST_CODE) refreshEnvironment();
-    }
-
-    private void refreshEnvironment() {
-        scanExecutor.execute(() -> {
-            EnvironmentValues publicValues = fetchPublicEnvironment();
-            publishEnvironment(publicValues == null
-                    ? new EnvironmentValues("--", "--", "--", "--") : publicValues);
-        });
-    }
-
-    private void publishEnvironment(EnvironmentValues values) {
-        runOnUiThread(() -> {
-            environmentWeather.setText(values.weather);
-            environmentTemperature.setText(values.temperature);
-            environmentHumidity.setText(values.humidity);
-            environmentAirQuality.setText(values.airQuality);
-        });
-    }
-
-    private EnvironmentValues fetchPublicEnvironment() {
-        Location location = activeLocation();
-        try {
-            double latitude;
-            double longitude;
-            if (location == null) return null;
-            latitude = location.getLatitude();
-            longitude = location.getLongitude();
-            String coordinates = "latitude=" + latitude + "&longitude=" + longitude;
-            JSONObject weather = getJson("https://api.open-meteo.com/v1/forecast?"
-                    + coordinates + "&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto");
-            JSONObject current = weather.optJSONObject("current");
-            if (current == null) return null;
-            double temperature = current.optDouble("temperature_2m", Double.NaN);
-            int humidity = current.optInt("relative_humidity_2m", -1);
-            int weatherCode = current.optInt("weather_code", -1);
-            if (Double.isNaN(temperature) || humidity < 0) return null;
-            String airQuality = "--";
-            try {
-                JSONObject air = getJson("https://air-quality-api.open-meteo.com/v1/air-quality?"
-                        + coordinates + "&current=us_aqi");
-                JSONObject airCurrent = air.optJSONObject("current");
-                if (airCurrent != null && airCurrent.has("us_aqi")
-                        && airCurrent.optInt("us_aqi", -1) >= 0) {
-                    airQuality = "AQI " + airCurrent.optInt("us_aqi", -1);
-                }
-            } catch (Exception ignored) {
-                // Weather data remains useful when the optional air-quality request fails.
-            }
-            return new EnvironmentValues(weatherLabel(weatherCode),
-                    String.format(java.util.Locale.US, "%.1f°C", temperature),
-                    humidity + "%", airQuality);
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
-    private Location activeLocation() {
-        if (android.os.Build.VERSION.SDK_INT >= 23
-                && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) return null;
-        LocationManager manager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        if (manager == null) return null;
-        final Location[] received = new Location[1];
-        final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
-        LocationListener listener = new LocationListener() {
-            @Override public void onLocationChanged(Location location) {
-                if (received[0] == null) {
-                    received[0] = location;
-                    latch.countDown();
-                }
-            }
-            @Override public void onProviderEnabled(String provider) { }
-            @Override public void onProviderDisabled(String provider) { }
-        };
-        try {
-            if (android.os.Build.VERSION.SDK_INT >= 31) {
-                LocationRequest request = new LocationRequest.Builder(1000L)
-                        .setQuality(LocationRequest.QUALITY_HIGH_ACCURACY)
-                        .setDurationMillis(20000L)
-                        .setMaxUpdates(1)
-                        .build();
-                manager.requestLocationUpdates(LocationManager.FUSED_PROVIDER, request,
-                        getMainExecutor(), listener);
-            } else if (manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                manager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, listener, getMainLooper());
-            } else {
-                manager.requestSingleUpdate(LocationManager.GPS_PROVIDER, listener, getMainLooper());
-            }
-            latch.await(20, java.util.concurrent.TimeUnit.SECONDS);
-            manager.removeUpdates(listener);
-            return received[0];
-        } catch (Exception ignored) {
-            try { manager.removeUpdates(listener); } catch (Exception ignoredAgain) { }
-            return null;
-        }
-    }
-
-    private JSONObject getJson(String endpoint) throws Exception {
-        HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
-        connection.setConnectTimeout(4000);
-        connection.setReadTimeout(5000);
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                connection.getInputStream(), StandardCharsets.UTF_8))) {
-            StringBuilder body = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) body.append(line);
-            return new JSONObject(body.toString());
-        } finally {
-            connection.disconnect();
-        }
-    }
-
-    private String weatherLabel(int code) {
-        if (code == 0) return "晴";
-        if (code <= 3) return "多云";
-        if (code == 45 || code == 48) return "雾";
-        if (code >= 51 && code <= 67) return "降雨";
-        if (code >= 71 && code <= 77) return "降雪";
-        if (code >= 80 && code <= 82) return "阵雨";
-        if (code <= 99) return "雷雨";
-        return "--";
-    }
-
-    private static final class EnvironmentValues {
-        final String weather;
-        final String temperature;
-        final String humidity;
-        final String airQuality;
-
-        EnvironmentValues(String weather, String temperature, String humidity, String airQuality) {
-            this.weather = weather;
-            this.temperature = temperature;
-            this.humidity = humidity;
-            this.airQuality = airQuality;
-        }
     }
 
     private void renderDeviceList() {
@@ -271,7 +100,7 @@ public final class MainActivity extends Activity {
     }
 
     private void addDeviceCard(GridLayout grid, int index, int slot, String name, String room) {
-        DeviceTile tile = createDeviceTile(grid, index,
+        DeviceTile tile = createDeviceTile(grid, index, slot,
                 name.isEmpty() ? "未命名风扇" : name, room, "fan");
         tile.card.setOnClickListener(view -> toggleFanTile(slot, tile));
         tile.card.setOnLongClickListener(view -> {
@@ -284,7 +113,7 @@ public final class MainActivity extends Activity {
     private void addEntityCard(GridLayout grid, int index, int slot, String name,
                                String room, String type) {
         String displayName = name.isEmpty() ? "未命名" + entityLabel(type) : name;
-        DeviceTile tile = createDeviceTile(grid, index, displayName, room, type);
+        DeviceTile tile = createDeviceTile(grid, index, slot, displayName, room, type);
         tile.card.setOnClickListener(view -> toggleEntityTile(slot, tile));
         tile.card.setOnLongClickListener(view -> {
             showDeviceActions(slot, type);
@@ -293,7 +122,7 @@ public final class MainActivity extends Activity {
         refreshEntityTile(slot, tile);
     }
 
-    private DeviceTile createDeviceTile(GridLayout grid, int index, String name,
+    private DeviceTile createDeviceTile(GridLayout grid, int index, int slot, String name,
                                         String room, String type) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
@@ -343,7 +172,7 @@ public final class MainActivity extends Activity {
         status.setGravity(Gravity.CENTER);
         card.addView(status, new LinearLayout.LayoutParams(-1, dp(14)));
 
-        DeviceTile tile = new DeviceTile(card, stateDot, icon, title, status, name, room, type);
+        DeviceTile tile = new DeviceTile(card, stateDot, icon, title, status, name, room, type, slot);
         applyTileState(tile, false, false, -1);
         return tile;
     }
@@ -366,12 +195,19 @@ public final class MainActivity extends Activity {
     }
 
     private void refreshEntityTile(int slot, DeviceTile tile) {
+        final long request = ++tile.requestSerial;
         scanExecutor.execute(() -> {
             try {
                 EspHomeClient.DeviceState state = EspHomeClient.fetchDeviceState(this, slot);
-                runOnUiThread(() -> applyTileState(tile, state.available, state.on, -1));
+                runOnUiThread(() -> {
+                    if (request != tile.requestSerial || tile.card.getParent() == null) return;
+                    applyTileState(tile, state.available, state.on, -1);
+                });
             } catch (Exception ignored) {
-                runOnUiThread(() -> applyTileState(tile, false, false, -1));
+                runOnUiThread(() -> {
+                    if (request != tile.requestSerial || tile.card.getParent() == null) return;
+                    applyTileState(tile, false, false, -1);
+                });
             }
         });
     }
@@ -383,6 +219,7 @@ public final class MainActivity extends Activity {
             return;
         }
         tile.controlling = true;
+        final long request = ++tile.requestSerial;
         tile.card.setAlpha(0.72f);
         tile.status.setText("正在控制");
         scanExecutor.execute(() -> {
@@ -390,6 +227,7 @@ public final class MainActivity extends Activity {
                 EspHomeClient.toggleDevice(this, slot);
                 EspHomeClient.DeviceState state = EspHomeClient.fetchDeviceState(this, slot);
                 runOnUiThread(() -> {
+                    if (request != tile.requestSerial || tile.card.getParent() == null) return;
                     tile.controlling = false;
                     tile.card.setAlpha(1f);
                     applyTileState(tile, state.available, state.on, -1);
@@ -397,6 +235,7 @@ public final class MainActivity extends Activity {
                 });
             } catch (Exception ignored) {
                 runOnUiThread(() -> {
+                    if (request != tile.requestSerial || tile.card.getParent() == null) return;
                     tile.controlling = false;
                     tile.card.setAlpha(1f);
                     applyTileState(tile, tile.available, tile.on, -1);
@@ -718,12 +557,19 @@ public final class MainActivity extends Activity {
     }
 
     private void refreshFanTile(int slot, DeviceTile tile) {
+        final long request = ++tile.requestSerial;
         scanExecutor.execute(() -> {
             try {
                 EspHomeClient.FanState state = EspHomeClient.fetchFanState(this, slot);
-                runOnUiThread(() -> applyTileState(tile, state.available, state.on, state.percentage));
+                runOnUiThread(() -> {
+                    if (request != tile.requestSerial || tile.card.getParent() == null) return;
+                    applyTileState(tile, state.available, state.on, state.percentage);
+                });
             } catch (Exception exception) {
-                runOnUiThread(() -> applyTileState(tile, false, false, -1));
+                runOnUiThread(() -> {
+                    if (request != tile.requestSerial || tile.card.getParent() == null) return;
+                    applyTileState(tile, false, false, -1);
+                });
             }
         });
     }
@@ -749,12 +595,10 @@ public final class MainActivity extends Activity {
         }
 
         int activeText = activeTextColor(tile.type);
-        int titleColor = active && "fan".equals(tile.type)
-                ? Color.WHITE : Color.rgb(39, 44, 50);
+        int titleColor = Color.rgb(39, 44, 50);
         int statusColor = !available ? Color.rgb(125, 133, 142)
                 : active || "button".equals(tile.type) ? activeText : Color.rgb(125, 133, 142);
         int dotColor = !available ? Color.rgb(174, 181, 188)
-                : active && "fan".equals(tile.type) ? Color.WHITE
                 : active || "button".equals(tile.type) ? activeText : Color.rgb(145, 151, 158);
         tile.title.setTextColor(titleColor);
         tile.status.setText(stateLabel);
@@ -762,7 +606,7 @@ public final class MainActivity extends Activity {
         tile.stateDot.setBackground(statusDot(dotColor));
         tile.icon.clearColorFilter();
         if ("fan".equals(tile.type)) {
-            tile.icon.setColorFilter(active ? Color.WHITE : Color.rgb(76, 140, 193));
+            tile.icon.setColorFilter(Color.rgb(76, 140, 193));
         }
         tile.card.setContentDescription(tile.name + "，" + tile.room + "，" + stateLabel
                 + "。轻触控制，长按更多操作");
@@ -771,14 +615,14 @@ public final class MainActivity extends Activity {
     private int tileBackground(String type, boolean active) {
         if ("button".equals(type)) return R.drawable.home_device_card_button;
         if (!active) return R.drawable.home_device_card_off;
-        if ("fan".equals(type)) return R.drawable.home_device_card_fan_on;
+        if ("fan".equals(type)) return R.drawable.home_device_card_off;
         if ("light".equals(type)) return R.drawable.home_device_card_light_on;
         if ("cover".equals(type)) return R.drawable.home_device_card_cover_on;
         return R.drawable.home_device_card_switch_on;
     }
 
     private int activeTextColor(String type) {
-        if ("fan".equals(type)) return Color.WHITE;
+        if ("fan".equals(type)) return Color.rgb(76, 140, 193);
         if ("light".equals(type)) return Color.rgb(154, 98, 0);
         if ("cover".equals(type)) return Color.rgb(22, 116, 122);
         if ("button".equals(type)) return Color.rgb(128, 104, 70);
@@ -807,6 +651,7 @@ public final class MainActivity extends Activity {
             return;
         }
         tile.controlling = true;
+        final long request = ++tile.requestSerial;
         tile.card.setAlpha(0.72f);
         tile.status.setText("正在控制");
         scanExecutor.execute(() -> {
@@ -814,12 +659,14 @@ public final class MainActivity extends Activity {
                 EspHomeClient.toggleFan(this, slot);
                 EspHomeClient.FanState state = EspHomeClient.fetchFanState(this, slot);
                 runOnUiThread(() -> {
+                    if (request != tile.requestSerial || tile.card.getParent() == null) return;
                     tile.controlling = false;
                     tile.card.setAlpha(1f);
                     applyTileState(tile, state.available, state.on, state.percentage);
                 });
             } catch (Exception exception) {
                 runOnUiThread(() -> {
+                    if (request != tile.requestSerial || tile.card.getParent() == null) return;
                     tile.controlling = false;
                     tile.card.setAlpha(1f);
                     applyTileState(tile, tile.available, tile.on, -1);
@@ -1096,7 +943,7 @@ public final class MainActivity extends Activity {
                 while ((line = reader.readLine()) != null && seen++ < 40) {
                     Matcher titleMatcher = Pattern.compile("\\\"title\\\":\\\"([^\\\"]+)").matcher(line);
                     if (titleMatcher.find()) name = titleMatcher.group(1);
-                    Matcher endpointMatcher = Pattern.compile("\\\"id\\\":\\\"(fan|light|switch|button|cover)-([^\\\"]+)").matcher(line);
+                    Matcher endpointMatcher = Pattern.compile("\\\"(?:id|name_id)\\\":\\\"(fan|light|switch|button|cover)[-/]([^\\\"]+)").matcher(line);
                     if (!endpointMatcher.find()) continue;
                     String candidateType = endpointMatcher.group(1);
                     if ("sensor".equals(candidateType)
@@ -1133,12 +980,14 @@ public final class MainActivity extends Activity {
         final String name;
         final String room;
         final String type;
+        final int slot;
         boolean available;
         boolean on;
         boolean controlling;
+        long requestSerial;
 
         DeviceTile(LinearLayout card, View stateDot, ImageView icon, TextView title,
-                   TextView status, String name, String room, String type) {
+                   TextView status, String name, String room, String type, int slot) {
             this.card = card;
             this.stateDot = stateDot;
             this.icon = icon;
@@ -1147,6 +996,7 @@ public final class MainActivity extends Activity {
             this.name = name;
             this.room = room;
             this.type = type;
+            this.slot = slot;
         }
     }
 

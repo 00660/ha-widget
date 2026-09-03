@@ -54,14 +54,6 @@ final class EspHomeClient {
         EspHomeWebClient.toggleDevice(context, slot);
     }
 
-    static EnvironmentState fetchEnvironment(Context context, int slot) throws IOException {
-        return EspHomeWebClient.fetchEnvironment(context, slot);
-    }
-
-    static EnvironmentState fetchEnvironmentUrl(Context context, String baseUrl) throws IOException {
-        return EspHomeWebClient.fetchEnvironmentUrl(context, baseUrl);
-    }
-
     private static void sendCommand(byte[] command) throws IOException {
         try (Session session = Session.open()) {
             session.send(31, command);
@@ -159,29 +151,6 @@ final class EspHomeClient {
             this.on = on;
             this.available = available;
             this.endpointName = endpointName == null ? "" : endpointName;
-        }
-    }
-
-    static final class EnvironmentState {
-        final String weather;
-        final String temperature;
-        final String humidity;
-        final String airQuality;
-
-        EnvironmentState(String weather, String temperature, String humidity, String airQuality) {
-            this.weather = valueOrEmpty(weather);
-            this.temperature = valueOrEmpty(temperature);
-            this.humidity = valueOrEmpty(humidity);
-            this.airQuality = valueOrEmpty(airQuality);
-        }
-
-        boolean hasAny() {
-            return !weather.isEmpty() || !temperature.isEmpty() || !humidity.isEmpty()
-                    || !airQuality.isEmpty();
-        }
-
-        private static String valueOrEmpty(String value) {
-            return value == null || "--".equals(value) ? "" : value;
         }
     }
 
