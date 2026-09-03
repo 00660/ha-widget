@@ -60,7 +60,7 @@ public final class FanModeService extends Service {
 
     private synchronized void startMode(int slot, String requestedMode) {
         ModeTask previous = tasks.remove(slot);
-        if (previous != null) previous.running = false;
+        if (previous != null) previous.stop();
         ModeTask task = new ModeTask(slot, requestedMode);
         tasks.put(slot, task);
         WidgetPreferences.saveMode(this, slot, requestedMode);
@@ -69,8 +69,9 @@ public final class FanModeService extends Service {
 
     private synchronized void stopMode(int slot) {
         ModeTask task = tasks.remove(slot);
-        if (task != null) task.running = false;
+        if (task != null) task.stop();
         WidgetPreferences.saveMode(this, slot, "");
+        WidgetPreferences.saveSelectedPreset(this, slot, "");
         if (tasks.isEmpty()) {
             stopForeground(STOP_FOREGROUND_REMOVE);
             stopSelf();
@@ -85,9 +86,12 @@ public final class FanModeService extends Service {
                     ? naturalSpeed(base, phase)
                     : sleepSpeed(base, phase);
             COMMANDS.execute(() -> {
+                if (!task.isCurrent()) return;
                 try {
                     EspHomeClient.setFanPercentage(this, task.slot, speed);
-                    HaFanWidgetProvider.requestRefresh(this);
+                    if (task.isCurrent()) {
+                        HaFanWidgetProvider.requestRefreshForSlot(this, task.slot);
+                    }
                 } catch (IOException ignored) {
                 }
             });
@@ -111,6 +115,15 @@ public final class FanModeService extends Service {
             this.slot = slot;
             this.mode = mode;
             this.thread = new Thread(() -> runLoop(this), "fan-mode-" + slot);
+        }
+
+        boolean isCurrent() {
+            return running && tasks.get(slot) == this;
+        }
+
+        void stop() {
+            running = false;
+            thread.interrupt();
         }
     }
 

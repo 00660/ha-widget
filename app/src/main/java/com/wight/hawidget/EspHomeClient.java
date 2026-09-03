@@ -26,6 +26,10 @@ final class EspHomeClient {
         return EspHomeWebClient.fetchFanState(context, slot);
     }
 
+    static FanState cachedFanState(Context context, int slot) {
+        return EspHomeWebClient.cachedFanState(context, slot);
+    }
+
     static void toggleFan(Context context) throws IOException {
         EspHomeWebClient.toggleFan(context);
     }

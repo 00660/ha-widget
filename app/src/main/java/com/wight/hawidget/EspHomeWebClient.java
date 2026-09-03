@@ -19,8 +19,7 @@ final class EspHomeWebClient {
     private static final String FAN_NAME = "风扇";
     private static final String LOCK_NAME = "童锁";
     private static final int TIMEOUT_MILLIS = 3000;
-    private static final ConcurrentHashMap<Integer, String> FAN_ENDPOINTS = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Integer, EspHomeClient.FanState> FAN_STATES = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, FanCacheEntry> FAN_STATES = new ConcurrentHashMap<>();
 
     private EspHomeWebClient() {
     }
@@ -49,7 +48,7 @@ final class EspHomeWebClient {
                             && !configuredEndpoint.equals(state.endpointName)) continue;
                     // Fan control must not wait for an optional child-lock event stream.
                     // The lock endpoint is queried only when the lock button is pressed.
-                    cacheState(slot, state);
+                    cacheState(baseUrl, slot, state);
                     return state;
                 } catch (Exception ignored) {
                     // Ignore malformed or unrelated SSE events.
@@ -70,7 +69,8 @@ final class EspHomeWebClient {
         if (state == null) state = fetchFanState(context, slot);
         boolean nextOn = !state.on;
         postFan(context, slot, state.endpointName, nextOn ? "turn_on" : "turn_off", null);
-        cacheState(slot, new EspHomeClient.FanState(nextOn, state.available, state.percentage,
+        cacheState(WidgetPreferences.loadEspHomeUrl(context, slot), slot,
+                new EspHomeClient.FanState(nextOn, state.available, state.percentage,
                 state.presetMode, state.speedCount, state.oscillation, state.childLock, state.endpointName));
     }
 
@@ -89,7 +89,8 @@ final class EspHomeWebClient {
         int count = Math.max(1, state.speedCount);
         int level = Math.max(1, Math.min(count, (int) Math.round(clamped * count / 100.0)));
         postFan(context, slot, state.endpointName, "turn_on", "speed_level=" + level);
-        cacheState(slot, new EspHomeClient.FanState(true, state.available, clamped,
+        cacheState(WidgetPreferences.loadEspHomeUrl(context, slot), slot,
+                new EspHomeClient.FanState(true, state.available, clamped,
                 state.presetMode, state.speedCount, state.oscillation, state.childLock, state.endpointName));
     }
 
@@ -242,24 +243,41 @@ final class EspHomeWebClient {
     private static String discoverEndpoint(Context context, int slot) throws IOException {
         String configured = WidgetPreferences.loadDeviceEndpoint(context, slot).trim();
         if (!configured.isEmpty()) return configured;
-        String cached = FAN_ENDPOINTS.get(slot);
-        if (cached != null && !cached.isEmpty()) return cached;
+        EspHomeClient.FanState cached = cachedFanState(context, slot);
+        if (cached != null && !cached.endpointName.isEmpty()) return cached.endpointName;
         return fetchFanState(context, slot).endpointName;
     }
 
     private static EspHomeClient.FanState cachedState(Context context, int slot) {
-        EspHomeClient.FanState state = FAN_STATES.get(slot);
+        EspHomeClient.FanState state = cachedFanState(context, slot);
         String configured = WidgetPreferences.loadDeviceEndpoint(context, slot).trim();
         return state != null && (configured.isEmpty() || configured.equals(state.endpointName))
                 ? state : null;
     }
 
-    private static void cacheState(int slot, EspHomeClient.FanState state) {
+    static EspHomeClient.FanState cachedFanState(Context context, int slot) {
+        FanCacheEntry entry = FAN_STATES.get(slot);
+        if (entry == null) return null;
+        String baseUrl = WidgetPreferences.loadEspHomeUrl(context, slot);
+        if (!entry.baseUrl.equals(baseUrl)) return null;
+        String configured = WidgetPreferences.loadDeviceEndpoint(context, slot).trim();
+        return configured.isEmpty() || configured.equals(entry.state.endpointName)
+                ? entry.state : null;
+    }
+
+    private static void cacheState(String baseUrl, int slot, EspHomeClient.FanState state) {
         if (state != null) {
-            FAN_STATES.put(slot, state);
-            if (state.endpointName != null && !state.endpointName.isEmpty()) {
-                FAN_ENDPOINTS.put(slot, state.endpointName);
-            }
+            FAN_STATES.put(slot, new FanCacheEntry(baseUrl, state));
+        }
+    }
+
+    private static final class FanCacheEntry {
+        final String baseUrl;
+        final EspHomeClient.FanState state;
+
+        FanCacheEntry(String baseUrl, EspHomeClient.FanState state) {
+            this.baseUrl = baseUrl == null ? "" : baseUrl;
+            this.state = state;
         }
     }
 
