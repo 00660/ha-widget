@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 final class CaptivePortalClient {
@@ -27,7 +28,12 @@ final class CaptivePortalClient {
         try {
             int code = connection.getResponseCode();
             if (code < 200 || code >= 300) throw new IOException("HTTP " + code);
-            JSONObject json = new JSONObject(readBody(connection));
+            JSONObject json;
+            try {
+                json = new JSONObject(readBody(connection));
+            } catch (JSONException exception) {
+                throw new IOException("Invalid portal JSON", exception);
+            }
             JSONArray aps = json.optJSONArray("aps");
             List<AccessPoint> networks = new ArrayList<>();
             if (aps != null) {
